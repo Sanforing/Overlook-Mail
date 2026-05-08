@@ -2,7 +2,11 @@ import { loadJSON, applyThemeVars } from './core/utils.js';
 import { initUI, host } from './core/ui.js';
 import { initBossKey } from './core/boss-key.js';
 import { initMute } from './core/mute.js';
-import { createBackend } from './core/backend.js';
+import { createBackend, registerBackend } from './core/backend.js';
+import { RemoteBackend } from './core/remote-backend.js';
+import { applyUserPrefs } from './core/prefs-ui.js';
+
+registerBackend('remote', RemoteBackend);
 
 async function bootstrap() {
   const [settings, folders, categories, templates, manifest] = await Promise.all([
@@ -22,11 +26,18 @@ async function bootstrap() {
   const state = {
     settings, folders, categories, templates,
     adminApps: manifest.apps || [],
-    backend, user,
+    backend, user, userPrefs: {},
     currentFolder: null, currentCategory: null, search: '',
     visibleMails: []
   };
   window.__stealth = state;
+
+  if (user && typeof backend.getPrefs === 'function') {
+    try {
+      const prefs = await backend.getPrefs();
+      applyUserPrefs(state, prefs);
+    } catch { /* keep defaults */ }
+  }
 
   initMute(state);
   await initUI(state);

@@ -300,12 +300,21 @@ class LocalBackend {
 
 const REGISTRY = { local: LocalBackend };
 
+// Lazily register the remote backend so this file has no eager dependency on it.
+import('./remote-backend.js').then(m => { REGISTRY.remote = m.RemoteBackend; }).catch(() => {});
+
 export function registerBackend(name, cls) { REGISTRY[name] = cls; }
 
 export function createBackend(settings) {
   const kind = settings?.backend?.kind || 'local';
   const Cls = REGISTRY[kind];
-  if (!Cls) throw new Error(`Unknown backend kind: ${kind}`);
+  if (!Cls) {
+    if (kind === 'remote') {
+      // Synchronous fallback if dynamic import hasn't resolved yet.
+      throw new Error('Remote backend not loaded yet — ensure remote-backend.js is reachable');
+    }
+    throw new Error(`Unknown backend kind: ${kind}`);
+  }
   return new Cls(settings);
 }
 

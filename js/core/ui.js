@@ -4,6 +4,8 @@ import { createAppRunner } from './app-loader.js';
 import { withFakeLoading } from './fake-loading.js';
 import { showAuth } from './auth-ui.js';
 import { showCompose } from './composer.js';
+import { showSettings } from './settings-ui.js';
+import { applyUserPrefs } from './prefs-ui.js';
 
 /**
  * Builds the entire UI from state. Everything that appears on screen is
@@ -40,7 +42,7 @@ function renderTopbar(state) {
     search,
     el('div',    { class: 'spacer' }),
     el('button', { class: 'bell', title: 'Notifications', html: '&#9788;' }),
-    el('button', { class: 'gear', title: 'Settings', html: '&#9881;' }),
+    el('button', { class: 'gear', title: 'Settings', html: '&#9881;', onclick: () => showSettings(state) }),
     avatarButton(state)
   );
 }
@@ -79,13 +81,21 @@ function openAvatarMenu(state, anchor) {
         state.user = await state.backend.upgradeCurrent('paid'); menu.remove(); renderTopbar(state);
       } }));
     }
+    menu.appendChild(el('button', { class: 'menu-item', text: 'Personalise…', onclick: () => { menu.remove(); showSettings(state); } }));
     menu.appendChild(el('button', { class: 'menu-item', text: 'Sign out', onclick: async () => {
-      await state.backend.logout(); state.user = null; menu.remove(); renderTopbar(state); refreshList(state, { autoOpenFirst: true });
+      await state.backend.logout(); state.user = null; state.userPrefs = {};
+      applyUserPrefs(state, {}); menu.remove(); renderTopbar(state); refreshList(state, { autoOpenFirst: true });
     } }));
   } else {
     menu.appendChild(el('button', { class: 'menu-item', text: 'Sign in / Create account', onclick: () => {
       menu.remove();
-      showAuth(state, { onSignedIn: async (u) => { state.user = u; renderTopbar(state); await refreshList(state, { autoOpenFirst: true }); } });
+      showAuth(state, { onSignedIn: async (u) => {
+        state.user = u;
+        if (typeof state.backend.getPrefs === 'function') {
+          try { applyUserPrefs(state, await state.backend.getPrefs()); } catch {}
+        }
+        renderTopbar(state); await refreshList(state, { autoOpenFirst: true });
+      } });
     } }));
   }
 
