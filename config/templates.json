@@ -1,0 +1,23 @@
+{
+  "filler": [
+    "Per our last sync, the cross-functional alignment workshop confirmed the priorities outlined in the Q3 OKRs. The deliverables matrix has been updated in the shared workspace and is awaiting stakeholder sign-off before the gate review next Thursday.",
+    "Following up on the action items from the steering committee, please find below the consolidated risk register. Note that two items have been escalated to the executive sponsor for immediate attention. We will reconvene on Monday to track mitigation progress.",
+    "Attached you will find the executive summary, the detailed financial breakdown by business unit, and the updated headcount forecast. Numbers are subject to final audit and should be treated as draft until validated by the controllership team.",
+    "We have synchronized with Procurement and Legal regarding the third-party vendor onboarding process. The revised SLA template will be circulated separately. Please ensure that all functional leads acknowledge receipt by close of business Friday.",
+    "Reminder: the quarterly compliance training module is now available in the corporate learning portal. Completion is mandatory for all full-time employees. Failure to complete by the deadline will be flagged in the next audit cycle."
+  ],
+  "templates": {
+    "default": {
+      "greetingHtml": "<p>Dear {recipient},</p><p>I hope this email finds you well. As per our previous discussion, please find the latest updates regarding <em>{subject}</em> below. Kindly review the attached materials at your earliest convenience and revert with comments before the next checkpoint.</p>",
+      "signatureText": "Best regards,\n{senderName}\n{senderTitle}\n{senderCompany}\n\n— This email and any attachments are confidential and intended solely for the addressee."
+    },
+    "report": {
+      "greetingHtml": "<p>Hi team,</p><p>Please find below the status report for <strong>{subject}</strong>. The summary highlights key metrics, blockers, and action items requiring follow-up before EOW.</p><p><strong>Executive Summary —</strong> Overall progress remains on track with minor deviations in scope. The risk register has been updated and a revised forecast attached for review.</p>",
+      "signatureText": "Thanks,\n{senderName}\nSent from Outlook for Web"
+    },
+    "minimal": {
+      "greetingHtml": "<p>Hi {recipient},</p><p>See attachment.</p>",
+      "signatureText": "Regards,\n{senderName}"
+    }
+  }
+}

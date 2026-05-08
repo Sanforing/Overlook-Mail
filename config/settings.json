@@ -1,0 +1,74 @@
+{
+  "appName": "Outlook",
+  "user": {
+    "displayName": "Alex Chen",
+    "email": "alex.chen@contoso.com",
+    "initials": "AC",
+    "company": "Contoso Ltd."
+  },
+  "topbar": {
+    "brand": "Outlook",
+    "searchPlaceholder": "Search"
+  },
+  "list": {
+    "filterLabel": "Filter",
+    "headerByFolder": true
+  },
+  "splitSizes": {
+    "sidebar": 18,
+    "list": 28,
+    "reader": 54,
+    "minSize": 180
+  },
+  "globalMute": true,
+  "muteToggleKey": "m",
+  "bossKey": {
+    "key": "Escape",
+    "pressCount": 2,
+    "windowMs": 600
+  },
+  "fakeLoading": {
+    "enabledFor": ["iframe", "emulator"],
+    "minMs": 900,
+    "maxMs": 1600,
+    "label": "Downloading attachment…"
+  },
+  "backend": {
+    "kind": "local",
+    "note": "swap to a custom kind by registering one with registerBackend()"
+  },
+  "features": {
+    "compose":      "free",
+    "novelPaste":   "free",
+    "novelUpload":  "paid",
+    "gameUrl":      "free",
+    "romUpload":    "paid",
+    "publicVisibility": "free"
+  },
+  "emulator": {
+    "loaderUrl": "https://cdn.emulatorjs.org/stable/data/loader.js",
+    "dataPath":  "https://cdn.emulatorjs.org/stable/data/",
+    "cores": [
+      { "id": "gba",     "label": "Game Boy Advance (GBA)" },
+      { "id": "gb",      "label": "Game Boy / Color (GB/GBC)" },
+      { "id": "nes",     "label": "Nintendo (NES)" },
+      { "id": "snes",    "label": "Super Nintendo (SNES)" },
+      { "id": "segaMD",  "label": "Sega Mega Drive / Genesis" },
+      { "id": "n64",     "label": "Nintendo 64" },
+      { "id": "psx",     "label": "PlayStation 1" },
+      { "id": "arcade",  "label": "Arcade (FBNeo)" }
+    ]
+  },
+  "theme": {
+    "primary": "#0078d4",
+    "primaryDark": "#106ebe",
+    "background": "#faf9f8",
+    "panel": "#ffffff",
+    "border": "#edebe9",
+    "textPrimary": "#201f1e",
+    "textSecondary": "#605e5c",
+    "unread": "#0078d4",
+    "hover": "#f3f2f1",
+    "selected": "#deecf9"
+  }
+}

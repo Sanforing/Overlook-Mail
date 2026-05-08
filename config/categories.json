@@ -1,0 +1,5 @@
+[
+  { "id": "admin",     "name": "From Admin",     "icon": "🏛️" },
+  { "id": "community", "name": "From Community", "icon": "🌐" },
+  { "id": "mine",      "name": "Mine",           "icon": "👤" }
+]

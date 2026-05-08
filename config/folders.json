@@ -1,0 +1,7 @@
+[
+  { "id": "inbox",   "name": "Inbox",      "icon": "📥" },
+  { "id": "mine",    "name": "Mine",       "icon": "✉️" },
+  { "id": "drafts",  "name": "Drafts",     "icon": "📝" },
+  { "id": "junk",    "name": "Junk Email", "icon": "🚫" },
+  { "id": "archive", "name": "Archive",    "icon": "🗄️" }
+]
