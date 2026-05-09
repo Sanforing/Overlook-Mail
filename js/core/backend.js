@@ -239,6 +239,21 @@ class LocalBackend {
     await done;
   }
 
+  // ===== Preferences =====
+
+  async getPrefs() {
+    const me = await this.currentUser();
+    if (!me) return {};
+    return await this.loadState(`__prefs__:${me.id}`) || {};
+  }
+
+  async putPrefs(prefs) {
+    const me = await this.currentUser();
+    if (!me) throw new Error('You must be signed in to save preferences');
+    await this.saveState(`__prefs__:${me.id}`, prefs || {});
+    return prefs || {};
+  }
+
   // ===== Files =====
 
   /**
@@ -249,9 +264,13 @@ class LocalBackend {
   async putBlob(file, { persisted = true } = {}) {
     const db = await this._db();
     const id = randomId('f_');
+    // Read content into an ArrayBuffer first — File objects may lose their data
+    // after an IndexedDB structured-clone round-trip in some browsers.
+    const arrayBuffer = await file.arrayBuffer();
+    const type = file.type || 'application/octet-stream';
     const record = {
-      id, name: file.name || 'blob', type: file.type || 'application/octet-stream',
-      size: file.size, blob: file, persisted, createdAt: Date.now()
+      id, name: file.name || 'blob', type,
+      size: file.size, blob: new Blob([arrayBuffer], { type }), persisted, createdAt: Date.now()
     };
     const { stores, done } = tx(db, ['files'], 'readwrite');
     stores.files.put(record);

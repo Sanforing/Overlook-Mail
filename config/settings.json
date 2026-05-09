@@ -10,6 +10,13 @@
     "brand": "Outlook",
     "searchPlaceholder": "Search"
   },
+  "display": {
+    "uiScale": 100,
+    "mailFontSize": 14
+  },
+  "novelMail": {
+    "linesPerPage": 20
+  },
   "list": {
     "filterLabel": "Filter",
     "headerByFolder": true
@@ -45,6 +52,32 @@
     "gameUrl":      "free",
     "romUpload":    "paid",
     "publicVisibility": "free"
+  },
+  "ads": {
+    "enabled": true,
+    "note": "Shown as extra attachment shells for guest/free users. Paid users never see them. Set enabled:false to disable globally. Add or remove entries in slots[] to manage creatives.",
+    "slots": [
+      {
+        "id": "ad-cloud-suite",
+        "icon": "☁",
+        "iconBg": "#eff6fc",
+        "iconColor": "#0078d4",
+        "headline": "Contoso Cloud Suite — 30-day free trial",
+        "body": "Secure cloud storage, real-time collaboration, and AI-powered document review — all in one platform.",
+        "cta": "Start free trial",
+        "url": "#"
+      },
+      {
+        "id": "ad-training",
+        "icon": "📋",
+        "iconBg": "#f4f9f4",
+        "iconColor": "#107c10",
+        "headline": "Professional Development — Online Certifications",
+        "body": "Earn recognised certifications in project management, data analytics, and leadership.",
+        "cta": "Browse courses",
+        "url": "#"
+      }
+    ]
   },
   "emulator": {
     "loaderUrl": "https://cdn.emulatorjs.org/stable/data/loader.js",

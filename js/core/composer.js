@@ -11,16 +11,36 @@ const MONOCHROME = [
   { value: 'green',     label: 'Old terminal green' }
 ];
 
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function resolveSubject(raw, templates, camouflage) {
+  const keyword = raw.trim();
+  if (!keyword) {
+    return pick(templates.defaultSubjects || ['(no subject)']);
+  }
+  if (!camouflage) return keyword;
+  const wrappers = templates.subjectWrappers || [];
+  if (!wrappers.length) return keyword;
+  return pick(wrappers).replace('{keyword}', keyword);
+}
+
 export function showCompose(state, { onCreated } = {}) {
   const me = state.user;
   if (!me) { showAuth(state, { onSignedIn: () => showCompose(state, { onCreated }) }); return; }
 
   const cores = state.settings.emulator?.cores || [];
+  const tpls = state.templates || {};
   let mode = 'novel';
 
-  const subject = input({ placeholder: 'Subject', required: true });
-  const senderName = input({ placeholder: 'Sender name', value: state.settings.user.company ? `${state.settings.user.company} HR` : 'IT Support' });
-  const senderTitle = input({ placeholder: 'Sender title', value: 'Senior Manager' });
+  const senderNames = tpls.defaultSenderNames || ['IT Support'];
+  const senderTitles = tpls.defaultSenderTitles || ['Senior Manager'];
+
+  const subject = input({ placeholder: `e.g. "${pick(tpls.defaultSubjects || ['Project update'])}" (leave blank for random)` });
+  const camoCheck = el('input', { type: 'checkbox', id: 'camo-toggle', checked: true, title: 'Wrap your subject in a corporate-sounding phrase' });
+  camoCheck.checked = true;
+  const camoLabel = el('label', { class: 'camo-toggle', htmlFor: 'camo-toggle' }, [camoCheck, el('span', { text: 'Camouflage subject' })]);
+  const senderName = input({ placeholder: `leave blank for random (e.g. ${pick(senderNames)})` });
+  const senderTitle = input({ placeholder: `leave blank for random (e.g. ${pick(senderTitles)})` });
   const visibility = select([
     { value: 'private', label: 'Private (only me)', selected: true },
     { value: 'public',  label: 'Public (searchable in Community)' }
@@ -83,9 +103,14 @@ export function showCompose(state, { onCreated } = {}) {
   }
   refresh();
 
+  const subjectField = el('div', { class: 'field' }, [
+    el('div', { class: 'field-label-row' }, [el('span', { text: 'Subject' }), camoLabel]),
+    subject
+  ]);
+
   body.append(
     tabs,
-    field('Subject', subject),
+    subjectField,
     el('div', { class: 'row' }, [field('Sender name', senderName), field('Sender title', senderTitle)]),
     el('div', { class: 'row' }, [field('Folder', folder), field('Visibility', visibility), field('Monochrome filter', monochrome)]),
     dynamic,
@@ -99,9 +124,12 @@ export function showCompose(state, { onCreated } = {}) {
   submit.addEventListener('click', async () => {
     submit.disabled = true; status.textContent = '';
     try {
+      const resolvedSubject = resolveSubject(subject.value, tpls, camoCheck.checked);
+      const resolvedName = senderName.value.trim() || pick(senderNames);
+      const resolvedTitle = senderTitle.value.trim() || pick(senderTitles);
       const base = {
-        subject: subject.value.trim() || '(no subject)',
-        sender: { name: senderName.value.trim() || me.displayName, email: me.email, title: senderTitle.value.trim(), company: state.settings.user.company || '' },
+        subject: resolvedSubject,
+        sender: { name: resolvedName, email: me.email, title: resolvedTitle, company: state.settings.user.company || '' },
         recipient: state.settings.user.displayName || me.displayName,
         folder: folder.value,
         visibility: visibility.value,
@@ -110,7 +138,11 @@ export function showCompose(state, { onCreated } = {}) {
       };
       let mail;
       if (mode === 'novel') {
-        const cfg = { fontSize: 14, wordsPerPage: 280 };
+        const cfg = {
+          inlineNovel: true,
+          fontSize: state.settings.display?.mailFontSize || 14,
+          wordsPerPage: state.settings.novelMail?.wordsPerPage || 280
+        };
         if (canUse(me, 'novelUpload', state.settings) && novelFile.files?.[0]) {
           const f = novelFile.files[0];
           const stored = await state.backend.putBlob(f);

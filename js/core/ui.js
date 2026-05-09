@@ -1,5 +1,5 @@
-import { el, clear } from './utils.js';
-import { buildEmailView } from './email-wrapper.js';
+import { el, clear, loadText } from './utils.js';
+import { buildEmailView, restoreFrameSize } from './email-wrapper.js';
 import { createAppRunner } from './app-loader.js';
 import { withFakeLoading } from './fake-loading.js';
 import { showAuth } from './auth-ui.js';
@@ -243,6 +243,7 @@ function renderEmpty() {
 
 let currentRunner = null;
 let currentView = null;
+let currentInlineNovel = null;
 
 async function openMail(state, mail) {
   if (!mail) return;
@@ -275,28 +276,362 @@ async function openMail(state, mail) {
   const scroll = el('div', { class: 'scroll' });
   reader.appendChild(scroll);
 
-  const view = buildEmailView({ app: mail, settings: state.settings, templates: state.templates });
+  const view = buildEmailView({ app: mail, settings: state.settings, settingsDefaults: state.settingsDefaults, templates: state.templates, user: state.user });
   scroll.appendChild(view.node);
   currentView = view;
 
+  if (isInlineNovelMail(mail)) {
+    currentInlineNovel = await mountInlineNovel(state, mail, view);
+    scroll.scrollTop = 0;
+    return;
+  }
+
+  // Show the splash screen immediately so the email opens at the top and
+  // the game doesn't auto-start (which would call canvas.focus() and scroll
+  // the reader down to the attachment zone).
+  const splashEl = buildSplash(mail);
+  view.hostEl.appendChild(splashEl);
+  // Guarantee the reader starts at the very top regardless of anything
+  // that runs asynchronously below.
+  scroll.scrollTop = 0;
+
+  // Prepare the factory (module import / blob-URL fetch) in the background.
+  // For iframe/emulator types the fake-loading overlay covers this time.
+  let factory;
   await withFakeLoading(state.settings, mail, async () => {
     const ctx = { settings: state.settings, app: mail, host: { backend: state.backend, user: state.user } };
-    const factory = await createAppRunner(mail, ctx);
-    currentRunner = await factory(view.hostEl);
+    factory = await createAppRunner(mail, ctx);
   });
+
+  // Factory is ready — enable the "Open Preview" button.
+  const openBtn = splashEl.querySelector('.splash-open');
+  if (openBtn) {
+    openBtn.disabled = false;
+    openBtn.textContent = 'Open Preview';
+    openBtn.addEventListener('click', async () => {
+      openBtn.disabled = true;
+      splashEl.remove();
+      currentRunner = await factory(view.hostEl);
+      // Apply the user's saved frame size now that the game has rendered and
+      // we can measure the true natural container dimensions.
+      restoreFrameSize(view.attBody);
+      // A game's init() may call el.focus() which triggers the browser's
+      // scroll-into-view. Override it so the email stays wherever the user
+      // scrolled to when they clicked the button.
+      requestAnimationFrame(() => { scroll.scrollTop = scroll.scrollTop; });
+    }, { once: true });
+  }
+}
+
+/**
+ * Builds the "start screen" placeholder shown inside the attachment before
+ * the user has opened the interactive preview. Keeps the mail scrolled to
+ * the top on open and decouples game init from email rendering.
+ */
+function buildSplash(app) {
+  const icons = { local: '📎', iframe: '🌐', emulator: '🎮' };
+  const labels = { local: 'Interactive Attachment', iframe: 'Web Embed', emulator: 'ROM Emulator' };
+  return el('div', { class: 'att-splash' }, [
+    el('div', { class: 'att-splash-icon', text: icons[app.type] || '📎' }),
+    el('div', { class: 'att-splash-label', text: app.subject || 'Attachment' }),
+    el('div', { class: 'att-splash-type',  text: labels[app.type] || 'Attachment Preview' }),
+    el('div', { class: 'att-splash-hint',  text: 'Click the button below to open the attachment preview.' }),
+    el('button', { class: 'btn btn-primary splash-open', text: 'Loading…', disabled: true })
+  ]);
 }
 
 async function teardownCurrent() {
+  try { currentInlineNovel?.destroy?.(); } catch (e) { console.warn(e); }
   try { currentRunner?.destroy?.(); } catch (e) { console.warn(e); }
+  currentInlineNovel = null;
   currentRunner = null;
   currentView = null;
+}
+
+function isInlineNovelMail(mail) {
+  return mail?.config?.inlineNovel === true || mail?.id === 'novel-reader' || /novel-reader\/index\.js$/.test(mail?.entry || '');
+}
+
+async function mountInlineNovel(state, mail, view) {
+  const target = view.inlineNovelEl;
+  if (!target) return null;
+  const linesPerPage = clampNumber(state.settings.novelMail?.linesPerPage || mail.config?.linesPerPage, 5, 60, 20);
+  const fontSize = clampNumber(state.settings.display?.mailFontSize || mail.config?.fontSize, 12, 22, 14);
+  const lineHeight = 1.72;
+  target.style.fontSize = `${fontSize}px`;
+
+  let text = '';
+  try {
+    text = await loadNovelText(state, mail);
+  } catch (err) {
+    text = `Failed to load document text: ${err.message}`;
+  }
+
+  const lines = text.split('\n');
+  const pages = buildNovelPages(lines, linesPerPage);
+  if (!pages.length) pages.push('(empty document)');
+
+  const chapters = detectNovelChapters(lines, linesPerPage);
+
+  // ── Bookmark persistence ──────────────────────────────────────────────────
+  // Key per mail so each novel keeps its own bookmarks.
+  const bmKey = `__novel-bm__:${mail.id || 'unsaved'}`;
+  let savedData = { page: 0, bookmarks: [] };
+  if (state.backend) {
+    try { savedData = (await state.backend.loadState(bmKey)) || savedData; } catch {}
+  }
+  let bookmarks = Array.isArray(savedData.bookmarks) ? savedData.bookmarks : [];
+
+  const saveToBackend = async () => {
+    if (!state.backend) return;
+    try { await state.backend.saveState(bmKey, { page, bookmarks }); } catch {}
+  };
+
+  let page = Math.max(0, Math.min(pages.length - 1, savedData.page || 0));
+
+  const textEl = el('div', { class: 'inline-novel-text' });
+  textEl.style.height = `${linesPerPage * lineHeight}em`;
+  textEl.style.overflow = 'hidden';
+  target.textContent = '';
+  target.append(textEl);
+
+  // ── Disguised controls in the email header date element ──
+  const dateBase = mail.date || '';
+  let dateTextSpan = null;
+  if (view.dateEl) {
+    const existingText = view.dateEl.textContent;
+    view.dateEl.textContent = '';
+    dateTextSpan = document.createElement('span');
+    dateTextSpan.textContent = existingText || dateBase;
+    view.dateEl.appendChild(dateTextSpan);
+  }
+
+  const updateDate = () => {
+    if (!dateTextSpan) return;
+    dateTextSpan.textContent = pages.length > 1
+      ? `${dateBase} · p.${page + 1}/${pages.length}`
+      : dateBase;
+  };
+
+  // ── Jump/Bookmark panel ───────────────────────────────────────────────────
+  const jumpPanel = buildNovelJumpPanel({
+    chapters,
+    totalPages: pages.length,
+    getPage: () => page,
+    getLines: () => lines,
+    getLinesPerPage: () => linesPerPage,
+    getBookmarks: () => bookmarks,
+    goTo: (targetPage) => {
+      page = Math.max(0, Math.min(pages.length - 1, targetPage));
+      render();
+      saveToBackend();
+      jumpPanel.classList.add('hidden');
+    },
+    addBookmark: (label) => {
+      bookmarks = bookmarks.filter(b => b.page !== page);
+      bookmarks.push({ page, label: label || `p.${page + 1}` });
+      bookmarks.sort((a, b) => a.page - b.page);
+      saveToBackend();
+    },
+    removeBookmark: (bmPage) => {
+      bookmarks = bookmarks.filter(b => b.page !== bmPage);
+      saveToBackend();
+    }
+  });
+
+  if (view.dateEl) {
+    view.dateEl.classList.add('novel-date-nav');
+    view.dateEl.appendChild(jumpPanel);
+    view.dateEl.addEventListener('click', (e) => {
+      if (jumpPanel.contains(e.target)) return;
+      e.stopPropagation();
+      refreshJumpPanel(jumpPanel, bookmarks, () => page);
+      jumpPanel.classList.toggle('hidden');
+    });
+  }
+  const closePanel = (e) => {
+    if (!view.dateEl?.contains(e.target)) jumpPanel.classList.add('hidden');
+  };
+  document.addEventListener('click', closePanel);
+
+  const render = () => {
+    textEl.textContent = pages[page];
+    updateDate();
+  };
+
+  const prev = () => { if (page > 0) { page--; render(); saveToBackend(); } };
+  const next = () => { if (page < pages.length - 1) { page++; render(); saveToBackend(); } };
+
+  const onKey = (e) => {
+    if (!document.body.contains(target) || isTypingTarget(e.target)) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
+  };
+  document.addEventListener('keydown', onKey);
+
+  const setPanic = (on) => {
+    target.classList.toggle('hidden', on);
+    view.panicTextEl?.classList.toggle('hidden', !on);
+  };
+
+  render();
+  return {
+    destroy: () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('click', closePanel);
+    },
+    setPanic
+  };
+}
+
+/** Split text lines into pages of N lines each. */
+function buildNovelPages(lines, linesPerPage) {
+  const pages = [];
+  for (let i = 0; i < lines.length; i += linesPerPage) {
+    pages.push(lines.slice(i, i + linesPerPage).join('\n'));
+  }
+  return pages;
+}
+
+/** Detect chapter headings from the line array and return [{title, page}]. */
+function detectNovelChapters(lines, linesPerPage) {
+  const re = /^(第[〇零一二三四五六七八九十百千萬万\d]+[部章节節卷回篇話话]\s*.{0,30}|Chapter\s+\d+[^\n]{0,30})/;
+  const chapters = [];
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    if (trimmed && trimmed.length < 60 && re.test(trimmed)) {
+      const pageIdx = Math.floor(i / linesPerPage);
+      if (!chapters.length || chapters[chapters.length - 1].page !== pageIdx) {
+        chapters.push({ title: trimmed.slice(0, 30), page: pageIdx });
+      }
+    }
+  }
+  return chapters;
+}
+
+/** Build the hidden jump/chapter/bookmark panel that attaches to the date element. */
+function buildNovelJumpPanel({ chapters, totalPages, getPage, getLines, getLinesPerPage, getBookmarks, goTo, addBookmark, removeBookmark }) {
+  const panel = el('div', { class: 'novel-jump-panel hidden' });
+
+  // ── Chapters ──────────────────────────────────────────────────────────────
+  if (chapters.length > 1) {
+    const sel = el('select', { class: 'novel-jump-chapter', title: 'Jump to chapter' });
+    sel.append(el('option', { value: '', text: '— Jump to chapter —' }));
+    for (const ch of chapters) {
+      const opt = document.createElement('option');
+      opt.value = ch.page;
+      opt.textContent = ch.title;
+      sel.append(opt);
+    }
+    sel.addEventListener('change', () => {
+      if (sel.value !== '') goTo(Number(sel.value));
+      sel.value = '';
+    });
+    panel.append(el('div', { class: 'novel-jump-section-label', text: 'Chapters' }));
+    panel.append(sel);
+  }
+
+  // ── Go to page ────────────────────────────────────────────────────────────
+  panel.append(el('div', { class: 'novel-jump-section-label', text: 'Go to page' }));
+  const pageRow = el('div', { class: 'novel-jump-row' });
+  const pageIn = el('input', { type: 'number', class: 'novel-jump-input', min: '1', max: String(totalPages), title: 'Page number' });
+  const totalSpan = el('span', { class: 'novel-jump-total', text: `/ ${totalPages}` });
+  const goBtn = el('button', { class: 'novel-jump-go', text: 'Go' });
+  goBtn.addEventListener('click', () => {
+    const n = parseInt(pageIn.value, 10);
+    if (Number.isFinite(n)) goTo(n - 1);
+  });
+  pageIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') goBtn.click(); e.stopPropagation(); });
+  pageRow.append(pageIn, totalSpan, goBtn);
+  panel.append(pageRow);
+
+  // ── Bookmarks ─────────────────────────────────────────────────────────────
+  panel.append(el('div', { class: 'novel-jump-section-label', text: 'Bookmarks' }));
+
+  // Bookmark list (rebuilt each open via refreshJumpPanel)
+  const bmList = el('div', { class: 'novel-bm-list' });
+  panel.append(bmList);
+
+  // "Add bookmark" row
+  const addRow = el('div', { class: 'novel-jump-row' });
+  const labelIn = el('input', { type: 'text', class: 'novel-bm-label-input', placeholder: 'Bookmark label (optional)', maxlength: '40' });
+  const addBtn = el('button', { class: 'novel-jump-go', text: '＋ Add' });
+  addBtn.addEventListener('click', () => {
+    addBookmark(labelIn.value.trim());
+    labelIn.value = '';
+    renderBmList(bmList, getBookmarks(), getPage, goTo, removeBookmark);
+  });
+  labelIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { addBtn.click(); e.stopPropagation(); } else e.stopPropagation(); });
+  addRow.append(labelIn, addBtn);
+  panel.append(addRow);
+
+  panel.addEventListener('click', (e) => e.stopPropagation());
+
+  // Store a reference so mountInlineNovel can refresh on open
+  panel._bmList = bmList;
+  panel._getPage = getPage;
+  panel._goTo = goTo;
+  panel._removeBookmark = removeBookmark;
+  panel._getBookmarks = getBookmarks;
+
+  return panel;
+}
+
+/** Re-render the bookmark list inside the panel (called each time it opens). */
+function refreshJumpPanel(panel, bookmarks, getPage) {
+  if (!panel._bmList) return;
+  renderBmList(panel._bmList, bookmarks, getPage, panel._goTo, panel._removeBookmark);
+}
+
+function renderBmList(bmList, bookmarks, getPage, goTo, removeBookmark) {
+  bmList.textContent = '';
+  if (!bookmarks.length) {
+    bmList.append(el('span', { class: 'novel-bm-empty', text: 'No bookmarks yet' }));
+    return;
+  }
+  for (const bm of bookmarks) {
+    const isCurrent = bm.page === getPage();
+    const row = el('div', { class: `novel-bm-row${isCurrent ? ' current' : ''}` });
+    const lbl = el('button', { class: 'novel-bm-goto', text: bm.label || `p.${bm.page + 1}`, title: `Go to page ${bm.page + 1}` });
+    lbl.addEventListener('click', () => goTo(bm.page));
+    const del = el('button', { class: 'novel-bm-del', text: '✕', title: 'Remove bookmark' });
+    del.addEventListener('click', () => {
+      removeBookmark(bm.page);
+      row.remove();
+      if (!bmList.children.length) bmList.append(el('span', { class: 'novel-bm-empty', text: 'No bookmarks yet' }));
+    });
+    row.append(lbl, del);
+    bmList.append(row);
+  }
+}
+
+async function loadNovelText(state, mail) {
+  if (typeof mail.config?.text === 'string' && mail.config.text.length) return mail.config.text;
+  if (mail.config?.sourceFileId && state.backend) {
+    const file = await state.backend.getFile(mail.config.sourceFileId);
+    if (!file) throw new Error('Source file not found');
+    return file.blob.text();
+  }
+  if (mail.config?.source) return loadText(mail.config.source);
+  return '(no source provided)';
+}
+
+function isTypingTarget(target) {
+  return /^(INPUT|TEXTAREA|SELECT)$/.test(target?.tagName || '') || target?.isContentEditable;
+}
+
+function clampNumber(value, min, max, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(n)));
 }
 
 /* Host interface used by boss-key */
 export const host = {
   setPanic(on) {
     if (!currentView) return;
-    currentView.attachmentsEl.style.display = on ? 'none' : '';
+    currentView.attachmentsEl?.style && (currentView.attachmentsEl.style.display = on ? 'none' : '');
+    currentInlineNovel?.setPanic?.(on);
     if (on) currentRunner?.pause?.(); else currentRunner?.resume?.();
   },
   getCurrent() { return { runner: currentRunner, view: currentView }; }

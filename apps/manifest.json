@@ -131,6 +131,116 @@
       "ownerName": "Outlook Admin",
       "visibility": "public",
       "monochrome": "none"
+    },
+    {
+      "id": "pong",
+      "folder": "inbox",
+      "type": "local",
+      "entry": "apps/pong/index.js",
+      "sender": {
+        "name": "Office Wellness",
+        "email": "wellness@contoso.com",
+        "title": "Workplace Programs",
+        "company": "Contoso Ltd."
+      },
+      "recipient": "All Staff",
+      "subject": "Reminder: take a 5-minute eye break — interactive exercise attached",
+      "preview": "Per Workplace Wellness, please complete the attached short reflex exercise to reduce screen fatigue this week...",
+      "date": "Wed 11:02 AM",
+      "template": "default",
+      "config": { "maxScore": 7 },
+      "ownerId": "admin",
+      "ownerName": "Outlook Admin",
+      "visibility": "public",
+      "monochrome": "none"
+    },
+    {
+      "id": "tetris",
+      "folder": "inbox",
+      "type": "local",
+      "entry": "apps/tetris/index.js",
+      "sender": {
+        "name": "Logistics Planning",
+        "email": "logistics@contoso.com",
+        "title": "Operations Coordinator",
+        "company": "Contoso Ltd."
+      },
+      "recipient": "Alex Chen",
+      "subject": "Container stacking optimisation — interactive worksheet (Q3)",
+      "preview": "Attached please find the latest stacking optimisation worksheet. Manual review encouraged before the warehouse audit...",
+      "date": "Wed 9:18 AM",
+      "template": "report",
+      "config": {},
+      "ownerId": "admin",
+      "ownerName": "Outlook Admin",
+      "visibility": "public",
+      "monochrome": "none"
+    },
+    {
+      "id": "wordle",
+      "folder": "inbox",
+      "type": "local",
+      "entry": "apps/wordle/index.js",
+      "sender": {
+        "name": "Internal Comms",
+        "email": "comms@contoso.com",
+        "title": "Communications",
+        "company": "Contoso Ltd."
+      },
+      "recipient": "All Staff",
+      "subject": "Daily vocabulary check — please complete by EOD",
+      "preview": "As part of our quarterly communication standards, please complete the attached vocabulary recall exercise...",
+      "date": "Wed 8:45 AM",
+      "template": "default",
+      "config": { "length": 5, "tries": 6 },
+      "ownerId": "admin",
+      "ownerName": "Outlook Admin",
+      "visibility": "public",
+      "monochrome": "none"
+    },
+    {
+      "id": "snake",
+      "folder": "inbox",
+      "type": "local",
+      "entry": "apps/snake/index.js",
+      "sender": {
+        "name": "Network Operations",
+        "email": "netops@contoso.com",
+        "title": "Network Engineer",
+        "company": "Contoso Ltd."
+      },
+      "recipient": "Alex Chen",
+      "subject": "Packet routing simulation — interactive trace attached",
+      "preview": "Please review the attached packet trace simulation and confirm the path resolves correctly across nodes...",
+      "date": "Tue 3:21 PM",
+      "template": "default",
+      "config": {},
+      "ownerId": "admin",
+      "ownerName": "Outlook Admin",
+      "visibility": "public",
+      "monochrome": "none"
+    },
+    {
+      "id": "2048",
+      "folder": "inbox",
+      "type": "local",
+      "entry": "apps/2048/index.js",
+      "sender": {
+        "name": "Procurement",
+        "email": "procurement@contoso.com",
+        "title": "Procurement Analyst",
+        "company": "Contoso Ltd."
+      },
+      "recipient": "Alex Chen",
+      "subject": "Vendor consolidation matrix — please review tile assignments",
+      "preview": "Attached is the consolidation matrix for upcoming vendor reviews. Please drag tiles to merge duplicate entries...",
+      "date": "Tue 1:07 PM",
+      "template": "report",
+      "config": {},
+      "ownerId": "admin",
+      "ownerName": "Outlook Admin",
+      "visibility": "public",
+      "monochrome": "none"
     }
   ]
 }

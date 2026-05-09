@@ -13,10 +13,19 @@ export function showSettings(state) {
 
   const status = el('div', { class: 'auth-status' });
   const body = el('div');
-  const initial = state.userPrefs || defaultPrefsFromSettings(state.settings);
+  const defaults = defaultPrefsFromSettings(state.settingsDefaults || state.settings);
+  const initial = Object.assign({}, defaults, state.userPrefs || {}, {
+    theme: Object.assign({}, defaults.theme, state.userPrefs?.theme || {}),
+    display: Object.assign({}, defaults.display, state.userPrefs?.display || {}),
+    novelMail: Object.assign({}, defaults.novelMail, state.userPrefs?.novelMail || {})
+  });
 
   const brandIn  = input({ type: 'text', value: initial.brand || state.settings.topbar.brand, maxlength: '64' });
   const searchIn = input({ type: 'text', value: initial.searchPlaceholder || state.settings.topbar.searchPlaceholder, maxlength: '64' });
+  const recipientIn = input({ type: 'text', value: initial.recipientName || state.settings.user.displayName, maxlength: '64' });
+  const novelLinesIn = input({ type: 'number', value: initial.novelMail?.linesPerPage || 20, min: '5', max: '60', step: '1' });
+  const mailFontIn = input({ type: 'number', value: initial.display?.mailFontSize || 14, min: '12', max: '22', step: '1' });
+  const uiScaleIn = input({ type: 'number', value: initial.display?.uiScale || 100, min: '80', max: '130', step: '5' });
 
   const themeKeys = ['primary','primaryDark','background','panel','border','textPrimary','textSecondary','unread','hover','selected'];
   const colorIns = {};
@@ -35,6 +44,14 @@ export function showSettings(state) {
     el('div', { class: 'settings-section', text: 'Brand' }),
     field('Tab + topbar text', brandIn),
     field('Search placeholder', searchIn),
+    el('div', { class: 'settings-section', text: 'Mail identity' }),
+    field('Receiver name', recipientIn),
+    el('div', { class: 'settings-section', text: 'Reading' }),
+    field('Novel lines per page', novelLinesIn),
+    el('div', { class: 'row settings-row' }, [
+      field('Mail font size', mailFontIn),
+      field('UI scale (%)', uiScaleIn)
+    ]),
     el('div', { class: 'settings-section', text: 'Theme colours' }),
     themeGrid,
     status
@@ -58,6 +75,14 @@ export function showSettings(state) {
     const prefs = {
       brand: brandIn.value.trim(),
       searchPlaceholder: searchIn.value.trim(),
+      recipientName: recipientIn.value.trim(),
+      display: {
+        mailFontSize: clampNumber(mailFontIn.value, 12, 22, 14),
+        uiScale: clampNumber(uiScaleIn.value, 80, 130, 100)
+      },
+      novelMail: {
+        linesPerPage: clampNumber(novelLinesIn.value, 5, 60, 20)
+      },
       theme: Object.fromEntries(themeKeys.map(k => [k, colorIns[k].value]))
     };
     save.disabled = true; status.textContent = '';
@@ -88,4 +113,10 @@ function hex6(v) {
   }
   if (/^#([0-9a-f]{8})$/i.test(v)) return v.slice(0, 7).toLowerCase();
   return '#000000';
+}
+
+function clampNumber(value, min, max, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(n)));
 }

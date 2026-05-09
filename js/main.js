@@ -24,7 +24,7 @@ async function bootstrap() {
   const user = await backend.currentUser();
 
   const state = {
-    settings, folders, categories, templates,
+    settings, settingsDefaults: JSON.parse(JSON.stringify(settings)), folders, categories, templates,
     adminApps: manifest.apps || [],
     backend, user, userPrefs: {},
     currentFolder: null, currentCategory: null, search: '',

@@ -92,7 +92,9 @@ swapping the backend.
 
 Click **New mail**. Three modes:
 
-1. **Novel** — paste text (free). Paid users may attach a `.txt` file.
+1. **Novel** — paste text (free). Paid users may attach a `.txt` file. Novel
+  mails render the current page directly in the email body; use Left/Right to
+  change pages.
 2. **Game (URL)** — any iframe-embeddable URL (itch.io, web games, …).
 3. **Game (ROM)** — paid only. Pick a core (GBA / GB / NES / SNES / Genesis
    / N64 / PSX / Arcade / …) and upload a ROM file. Powered by
@@ -122,7 +124,8 @@ subject / preview / sender.
 ## Stealth features
 
 - **Boss key** — press `Esc` twice within 600 ms (configurable). The
-  attachment area silently disappears; the innocent business email stays.
+  attachment area silently disappears; inline novel text swaps to innocent
+  business email copy.
   No on-screen indicator gives it away. Press the combo again to restore.
 - **Auto-mute** — `<audio>`/`<video>` and `AudioContext` gain are muted by
   default. Toggle with `Alt+M`.

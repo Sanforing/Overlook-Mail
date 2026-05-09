@@ -51,3 +51,33 @@ export function applyThemeVars(theme) {
 
 export function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 export function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+/**
+ * Tiny shared leaderboard for built-in games. Stored under a reserved
+ * "mailId" namespace through the existing backend save-state surface so it
+ * works for both LocalBackend (IndexedDB) and RemoteBackend (server).
+ *
+ *   await getLeaderboard(backend, 'pong');
+ *   await addScore(backend, 'pong', { name: 'AC', score: 12 });
+ */
+const LB_KEY = (gameId) => `__leaderboard__:${gameId}`;
+
+export async function getLeaderboard(backend, gameId, limit = 10) {
+  if (!backend?.loadState) return [];
+  try {
+    const data = await backend.loadState(LB_KEY(gameId));
+    if (!Array.isArray(data)) return [];
+    return data.slice(0, limit);
+  } catch { return []; }
+}
+
+export async function addScore(backend, gameId, entry, max = 10) {
+  if (!backend?.loadState || !backend?.saveState) return [];
+  let list = [];
+  try { const d = await backend.loadState(LB_KEY(gameId)); if (Array.isArray(d)) list = d; } catch {}
+  list.push(Object.assign({ at: Date.now() }, entry));
+  list.sort((a, b) => (b.score || 0) - (a.score || 0));
+  list = list.slice(0, max);
+  try { await backend.saveState(LB_KEY(gameId), list); } catch {}
+  return list;
+}
