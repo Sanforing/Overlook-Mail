@@ -88,6 +88,7 @@ export default class ExcelMazeApp extends StealthAppBase {
     };
 
     this._onKey = (e) => {
+      if (this.paused || !document.body.contains(root) || isTypingTarget(e.target)) return;
       const k = e.key.toLowerCase();
       const map = { arrowup: [-1, 0], w: [-1, 0], arrowdown: [1, 0], s: [1, 0], arrowleft: [0, -1], a: [0, -1], arrowright: [0, 1], d: [0, 1] };
       const m = map[k];
@@ -105,3 +106,4 @@ export default class ExcelMazeApp extends StealthAppBase {
 
 function colName(i) { let s = ''; i++; while (i > 0) { const r = (i - 1) % 26; s = String.fromCharCode(65 + r) + s; i = Math.floor((i - 1) / 26); } return s; }
 function escape(c) { return ({ '<':'&lt;','>':'&gt;','&':'&amp;' })[c] || c; }
+function isTypingTarget(target) { return /^(INPUT|TEXTAREA|SELECT)$/.test(target?.tagName || '') || target?.isContentEditable; }

@@ -32,7 +32,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   background: var(--primary); color: #fff;
   display: flex; align-items: center; padding: 0 12px; gap: 12px;
 }
-.topbar .waffle, .topbar .gear, .topbar .bell { width: 36px; height: 36px; border: 0; background: transparent; color: #fff; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; }
+.topbar .waffle, .topbar .gear, .topbar .bell { width: 42px; height: 42px; border: 0; background: transparent; color: #fff; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; }
 .topbar .waffle:hover, .topbar .gear:hover, .topbar .bell:hover { background: rgba(255,255,255,.12); }
 .topbar .brand { font-weight: 600; font-size: 15px; letter-spacing: .2px; min-width: 70px; }
 .topbar .search { flex: 1; max-width: 720px; height: 32px; border-radius: 4px; border: 0; padding: 0 12px 0 32px;
@@ -56,16 +56,36 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* ===== Sidebar ===== */
 .sidebar { padding: 8px 4px; gap: 2px; }
-.sidebar .new-mail { margin: 4px 8px 12px; height: 32px; border: 1px solid var(--border); border-radius: 2px; background: var(--panel); color: var(--primary-dark); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; }
-.sidebar .new-mail:hover { background: var(--hover); }
+.sidebar .new-mail {
+  margin: 12px 12px 16px;
+  height: 52px;
+  border: none;
+  border-radius: 16px;
+  background: #c2e7ff;
+  color: #001d35;
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 22px;
+  align-self: flex-start;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.1);
+  transition: box-shadow .15s, background .15s;
+}
+.sidebar .new-mail:hover { background: #a8d8f5; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+.sidebar .new-mail .icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sidebar .new-mail .icon svg { width: 22px; height: 22px; }
 .sidebar .folder {
-  display: flex; align-items: center; gap: 10px; padding: 6px 12px; margin: 0 4px;
-  border-radius: 4px; font-size: 14px; cursor: pointer; user-select: none; color: var(--text-primary);
+  display: flex; align-items: center; gap: 10px; padding: 5px 12px; margin: 0 4px;
+  border-radius: 20px; font-size: 14px; cursor: pointer; user-select: none; color: var(--text-primary);
 }
 .sidebar .folder:hover { background: var(--hover); }
 .sidebar .folder.active { background: var(--selected); font-weight: 600; }
-.sidebar .folder .icon { width: 20px; text-align: center; }
-.sidebar .folder .count { margin-left: auto; color: var(--text-secondary); font-size: 12px; }
+.sidebar .folder .icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0; }
+.sidebar .folder .icon svg { width: 20px; height: 20px; }
+.sidebar .folder.active .icon { color: var(--primary-dark); }
+.sidebar .folder .count { margin-left: auto; color: var(--text-secondary); font-size: 12px; font-weight: 400; }
 
 /* ===== Email list ===== */
 .list { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
@@ -85,13 +105,26 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .list .item .subject { grid-column: 1 / -1; font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .list .item.unread .subject { color: var(--unread); font-weight: 600; }
 .list .item .preview { grid-column: 1 / -1; font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.list .item .important { color: #c4314b; font-size: 11px; margin-left: 6px; }
+.list .item .mail-labels-row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.mail-label { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600;
+  color: #fff; background: var(--label-color, #888); white-space: nowrap; }
 
 /* ===== Reader ===== */
 .reader { border-left: 1px solid var(--border); }
 .reader .reader-toolbar { height: 40px; display: flex; align-items: center; gap: 4px; padding: 0 12px; border-bottom: 1px solid var(--border); }
 .reader .reader-toolbar button { height: 28px; padding: 0 10px; border: 0; background: transparent; border-radius: 4px; font-size: 13px; color: var(--text-primary); }
 .reader .reader-toolbar button:hover { background: var(--hover); }
+.reader .reader-toolbar .label-toolbar-btn { border: 1px solid var(--border); }
+
+/* Label picker menu */
+.label-menu { position: fixed; z-index: 9999; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.18); padding: 4px 0; min-width: 150px; }
+.label-menu-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 14px;
+  background: none; border: none; cursor: pointer; font-size: 13px; color: var(--text-primary); text-align: left; }
+.label-menu-item:hover { background: var(--hover); }
+.label-menu-item.checked { font-weight: 700; }
+.label-menu-item.checked::after { content: '✓'; margin-left: auto; color: var(--text-secondary); font-size: 12px; }
+.label-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .reader .scroll {
   overflow-y: auto; flex: 1; padding: 24px 32px 80px; max-width: 100%;
 }
@@ -463,6 +496,56 @@ textarea.control { height: auto; padding: 8px 10px; resize: vertical; min-height
 .theme-grid .field { margin-bottom: 4px; }
 .color-control { padding: 0; height: 32px; width: 100%; cursor: pointer; }
 
+/* Mailbox manager */
+.mailbox-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.mailbox-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px;
+  background: var(--background); border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
+.mailbox-row .icon { width: 18px; height: 18px; display: flex; align-items: center; color: var(--text-secondary); }
+.mailbox-row .icon svg { width: 18px; height: 18px; }
+.mailbox-add-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.mailbox-add-row .field-label-small { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+.icon-btn { background: none; border: none; cursor: pointer; color: var(--text-secondary);
+  font-size: 12px; padding: 2px 6px; border-radius: 3px; }
+.icon-btn:hover { background: var(--hover); color: var(--text-primary); }
+
+/* Icon picker */
+.icon-picker-wrap { position: static; }
+.icon-picker-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 10px;
+  border: 1px solid var(--border); border-radius: 4px;
+  background: var(--panel); cursor: pointer;
+}
+.icon-picker-btn:hover { background: var(--hover); }
+.icon-picker-btn .icon { width: 18px; height: 18px; display: flex; align-items: center; }
+.icon-picker-btn .icon svg { width: 18px; height: 18px; }
+.icon-picker-drop {
+  position: fixed; z-index: 9999;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.18);
+  display: none;
+  grid-template-columns: repeat(4, 36px); gap: 4px;
+}
+.icon-picker-drop.open { display: grid; }
+.icon-option {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid transparent; border-radius: 6px;
+  background: transparent; cursor: pointer;
+  color: var(--text-primary);
+}
+.icon-option svg { width: 20px; height: 20px; }
+.icon-option:hover { background: var(--hover); border-color: var(--border); }
+.icon-option.selected { background: var(--selected); border-color: var(--primary); }
+
+/* Add mailbox sidebar button */
+.add-mailbox-btn { display: flex; align-items: center; gap: 8px; width: 100%;
+  background: none; border: none; cursor: pointer; padding: 5px 12px 5px 16px;
+  color: var(--text-secondary); font-size: 12px; text-align: left;
+  border-top: 1px solid var(--border); margin-top: 4px; }
+.add-mailbox-btn:hover { background: var(--hover); color: var(--text-primary); }
+
 .compose .row { display: flex; gap: 12px; }
 .compose .row .field { flex: 1; }
 
@@ -475,3 +558,204 @@ textarea.control { height: auto; padding: 8px 10px; resize: vertical; min-height
 /* ===== Misc ===== */
 .empty { padding: 32px; text-align: center; color: var(--text-secondary); font-size: 13px; }
 .list .items > .empty { background: transparent; }
+
+/* ===== Acknowledge button ===== */
+.reader .reader-toolbar .ack-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--border); padding: 0 10px; height: 28px;
+  border-radius: 14px; background: transparent;
+}
+.reader .reader-toolbar .ack-btn:hover { background: var(--hover); }
+.reader .reader-toolbar .ack-btn.acked {
+  background: #e6f4ea; border-color: #34a853; color: #1e7e34;
+}
+.reader .reader-toolbar .ack-btn .ack-icon { display: inline-flex; }
+
+/* ===== Comments thread ===== */
+.comments-thread {
+  margin: 24px 0 8px; padding: 16px; border-top: 1px solid var(--border);
+  background: var(--surface, #fafafa);
+}
+.comments-heading { margin: 0 0 8px; font-size: 14px; color: var(--text-primary); }
+.comments-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.comments-empty { color: var(--text-secondary); font-size: 13px; padding: 8px 0; }
+.comment-item {
+  background: #fff; border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 10px;
+}
+.comment-meta {
+  display: flex; gap: 8px; align-items: baseline;
+  font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;
+}
+.comment-name { font-weight: 600; color: var(--text-primary); }
+.comment-text { font-size: 13px; color: var(--text-primary); white-space: pre-wrap; }
+.comments-form { display: flex; gap: 8px; align-items: flex-start; }
+.comments-input {
+  flex: 1; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border);
+  border-radius: 8px; font: inherit; resize: vertical;
+}
+.comments-send {
+  padding: 8px 14px; border: 0; border-radius: 8px;
+  background: var(--primary, #0078d4); color: #fff; cursor: pointer;
+}
+.comments-send:disabled { opacity: .6; cursor: default; }
+.comments-hint { color: var(--text-secondary); font-size: 13px; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(20px);
+  background: #323232; color: #fff; padding: 10px 16px; border-radius: 6px;
+  font-size: 13px; opacity: 0; transition: opacity .2s, transform .2s;
+  z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== Disclaimer ===== */
+.disclaimer-body { max-height: 60vh; overflow: auto; }
+.disclaimer-text {
+  white-space: pre-wrap; font: inherit; color: var(--text-primary);
+  background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px;
+  padding: 12px; margin: 0;
+}
+
+/* ===== Tutorial / spotlight overlay ===== */
+.tut-overlay {
+  position: fixed; inset: 0; z-index: 10000; pointer-events: none;
+  background: rgba(0, 0, 0, 0.55);
+}
+.tut-cutout {
+  position: absolute; box-shadow: 0 0 0 9999px rgba(0,0,0,.55);
+  border-radius: 10px; outline: 2px solid #fff; pointer-events: none;
+  background: transparent; transition: top .2s, left .2s, width .2s, height .2s;
+}
+.tut-card {
+  position: absolute; pointer-events: auto;
+  box-sizing: border-box;
+  background: #fff; color: var(--text-primary);
+  border-radius: 10px; padding: 16px; box-shadow: 0 12px 32px rgba(0,0,0,.3);
+  font-size: 14px;
+}
+.tut-step  { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+.tut-title { margin: 0 0 6px; font-size: 15px; }
+.tut-body  { margin: 0 0 12px; line-height: 1.4; }
+.tut-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.tut-actions button {
+  padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px;
+  background: #fff; cursor: pointer; font-size: 13px;
+}
+.tut-actions .tut-skip { margin-right: auto; color: var(--text-secondary); }
+.tut-actions .tut-next {
+  background: var(--primary, #0078d4); color: #fff; border-color: var(--primary, #0078d4);
+}
+.tut-actions button:disabled { opacity: .5; cursor: default; }
+
+/* ================================================================== */
+/* Ad placements (1)–(5). Slot badges are toggled in JS via             */
+/* settings.ads.showSlotLabel — they exist so the dev/owner can verify */
+/* placements during testing.                                          */
+/* ================================================================== */
+
+.ad-slot-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  color: #8a4a00;
+  background: #fff4ce;
+  border: 1px solid #f2c94c;
+  border-radius: 8px;
+  vertical-align: middle;
+  letter-spacing: .3px;
+}
+
+/* (1) Sponsored inbox row — looks identical to a real inbox item, with a
+       small "Ad" pill in the labels row + the test "(1)" badge. */
+.list .item.ad-item {
+  background: #fffaf3;
+}
+.list .item.ad-item:hover { background: #fff3df; }
+.list .item.ad-item .mail-label.ad-tag {
+  --label-color: #8a4a00;
+  background: #fff4ce;
+  border-color: #f2c94c;
+  color: #8a4a00;
+}
+
+/* (2) Suggested attachment under the subject line — narrow horizontal
+       card, sits between the subject and the email-meta header. */
+.ad-undersubject {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+  background: #fffaf3;
+  border: 1px solid #f2c94c;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.ad-undersubject-icon {
+  width: 28px; height: 28px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff4ce; border-radius: 4px; font-size: 16px;
+}
+.ad-undersubject-copy { flex: 1; min-width: 0; }
+.ad-undersubject-headline { font-weight: 600; color: var(--text-primary); }
+.ad-undersubject-body { color: var(--text-secondary); font-size: 12px; margin-top: 2px; }
+
+/* (3) Topbar promoted-app tile — small pill in the topbar between
+       spacer and gear, mirrors the look of an Office app tile. */
+.ad-topbar-tile {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  margin-right: 6px;
+  background: rgba(255,255,255,.14);
+  color: #fff;
+  border: 0;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ad-topbar-tile:hover { background: rgba(255,255,255,.22); }
+.ad-topbar-icon { font-size: 14px; }
+.ad-topbar-tile .ad-slot-badge {
+  /* invert badge for dark topbar */
+  color: #fff; background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.3);
+}
+
+/* (4) Sticky strip pinned at the bottom of the reader pane.
+       Always in viewport → highest viewability. Dismissible. */
+.ad-sticky-strip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #fffaf3;
+  border-top: 1px solid #f2c94c;
+  font-size: 13px;
+}
+.ad-sticky-icon { font-size: 16px; }
+.ad-sticky-text { flex: 1; color: var(--text-primary); }
+.ad-sticky-cta {
+  height: 28px; padding: 0 12px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--primary); background: var(--primary); color: #fff;
+  border-radius: 4px; cursor: pointer;
+}
+.ad-sticky-cta:hover { background: var(--primary-dark); }
+.ad-sticky-close {
+  width: 24px; height: 24px; padding: 0; font-size: 18px; line-height: 1;
+  background: transparent; border: 0; color: var(--text-secondary); cursor: pointer;
+  border-radius: 4px;
+}
+.ad-sticky-close:hover { background: rgba(0,0,0,.06); }
+
+/* (5) Below-attachment banner — already styled by .att-ad-wrap; only the
+       slot badge is added inline by JS so no extra rules needed. */
+

@@ -4,7 +4,7 @@ import { initBossKey } from './core/boss-key.js';
 import { initMute } from './core/mute.js';
 import { createBackend, registerBackend } from './core/backend.js';
 import { RemoteBackend } from './core/remote-backend.js';
-import { applyUserPrefs } from './core/prefs-ui.js';
+import { applyUserPrefs, loadLocalPrefs } from './core/prefs-ui.js';
 
 registerBackend('remote', RemoteBackend);
 
@@ -24,7 +24,9 @@ async function bootstrap() {
   const user = await backend.currentUser();
 
   const state = {
-    settings, settingsDefaults: JSON.parse(JSON.stringify(settings)), folders, categories, templates,
+    settings, settingsDefaults: JSON.parse(JSON.stringify(settings)),
+    builtinFolders: folders,
+    folders, categories, templates,
     adminApps: manifest.apps || [],
     backend, user, userPrefs: {},
     currentFolder: null, currentCategory: null, search: '',
@@ -32,12 +34,15 @@ async function bootstrap() {
   };
   window.__stealth = state;
 
+  // Load prefs: backend (for signed-in users) → localStorage (guests/free fallback).
+  let prefs = {};
   if (user && typeof backend.getPrefs === 'function') {
-    try {
-      const prefs = await backend.getPrefs();
-      applyUserPrefs(state, prefs);
-    } catch { /* keep defaults */ }
+    try { prefs = (await backend.getPrefs()) || {}; } catch { prefs = {}; }
   }
+  if (!Object.keys(prefs).length) {
+    prefs = loadLocalPrefs();
+  }
+  applyUserPrefs(state, prefs);
 
   initMute(state);
   await initUI(state);

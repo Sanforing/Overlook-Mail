@@ -1,4 +1,6 @@
 import { el, fillTemplate } from './utils.js';
+import { t } from './i18n.js';
+import { adsActive, placementOn, buildUnderSubjectAd, attachmentBannerSlotBadge } from './ads.js';
 
 /**
  * Renders the visible "real email" wrapper around an app. The body contains
@@ -18,8 +20,12 @@ import { el, fillTemplate } from './utils.js';
  *   decide whether to show sponsored ad slots (hidden for paid users).
  */
 export function buildEmailView({ app, settings, settingsDefaults, templates, user = null }) {
+  const mailLang = app.config?.mailLang || 'en';
+  const isCht = mailLang === 'cht';
   const tplKey = app.template || 'default';
-  const tpl = templates.templates[tplKey] || templates.templates.default;
+  // Pick the CHT variant of the template when the mail language is CHT.
+  const resolvedTplKey = isCht ? (`${tplKey}Cht` in templates.templates ? `${tplKey}Cht` : 'defaultCht') : tplKey;
+  const tpl = templates.templates[resolvedTplKey] || templates.templates[tplKey] || templates.templates.default;
   const inlineNovel = isInlineNovel(app);
 
   const recipient = resolveRecipient(app, settings, settingsDefaults);
@@ -36,7 +42,7 @@ export function buildEmailView({ app, settings, settingsDefaults, templates, use
   const greetingHtml = fillTemplate(tpl.greetingHtml, ctx);
   const signatureText = fillTemplate(tpl.signatureText, ctx);
 
-  const allFiller = templates.filler || [];
+  const allFiller = (isCht ? templates.fillerCht : null) || templates.filler || [];
   const pickCount = templates.fillerPickCount || 3;
   const shuffled = allFiller.slice().sort(() => Math.random() - 0.5);
   const fillerHtml = shuffled.slice(0, pickCount)
@@ -52,7 +58,7 @@ export function buildEmailView({ app, settings, settingsDefaults, templates, use
     ])
   ]);
 
-  const inlineNovelEl = inlineNovel ? el('div', { class: 'inline-novel', text: 'Loading document text…' }) : null;
+  const inlineNovelEl = inlineNovel ? el('div', { class: 'inline-novel', text: t('loadingDoc') }) : null;
   const panicTextEl = inlineNovel ? el('div', { class: 'inline-novel-panic hidden', html: fillerHtml }) : el('div', { html: fillerHtml });
 
   const bodyEl = el('div', { class: 'email-body' }, [
@@ -87,12 +93,14 @@ export function buildEmailView({ app, settings, settingsDefaults, templates, use
   // Build ad slots for non-paid users.
   const adsEnabled = settings.ads?.enabled !== false;
   const isPaid = user?.tier === 'paid';
-  const adSlots = (adsEnabled && !isPaid) ? (settings.ads?.slots || []) : [];
+  const bannerOn = placementOn({ ads: settings.ads }, 'attachmentBanner');
+  const adSlots = (adsEnabled && !isPaid && bannerOn) ? (settings.ads?.slots || []) : [];
   const totalCount = 1 + adSlots.length;
+  const slotBadgeFactory = () => attachmentBannerSlotBadge({ ads: settings.ads });
 
   const attachments = inlineNovel ? null : el('div', { class: 'attachments' }, [
     el('div', { class: 'attachments-hdr' }, [
-      el('h4', { text: `Attachments (${totalCount})` }),
+      el('h4', { text: t('attachmentsHdr', totalCount) }),
       el('div', { class: 'att-filter-row' }, [
         buildAttFilterBtn(app, attBody)
       ])
@@ -106,11 +114,15 @@ export function buildEmailView({ app, settings, settingsDefaults, templates, use
       attBody,
       resizeGrip   // outside att-body → never clipped by overflow:hidden
     ]),
-    ...adSlots.map(buildAdShell)
+    ...adSlots.map(slot => buildAdShell(slot, slotBadgeFactory))
   ]);
 
   const node = el('div', { class: 'email-view' }, [
     el('h1', { class: 'email-subject', text: ctx.subject }),
+    // (2) Suggested-attachment ad strip, immediately under the subject line.
+    (adsActive({ ads: settings.ads }, user) && placementOn({ ads: settings.ads }, 'underSubject'))
+      ? buildUnderSubjectAd({ ads: settings.ads })
+      : null,
     headerEl,
     bodyEl,
     attachments
@@ -135,7 +147,10 @@ function extLabel(app) {
 }
 function slug(s) { return String(s || 'attachment').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 32) || 'attachment'; }
 function isInlineNovel(app) {
-  return app?.config?.inlineNovel === true || app?.id === 'novel-reader' || /novel-reader\/index\.js$/.test(app?.entry || '');
+  return app?.config?.inlineNovel === true
+    || app?.config?.drive?.kind === 'novel'
+    || app?.id === 'novel-reader'
+    || /novel-reader\/index\.js$/.test(app?.entry || '');
 }
 function resolveRecipient(app, settings, settingsDefaults) {
   const configured = String(app?.recipient || '').trim();
@@ -262,7 +277,7 @@ function buildAttFilterBtn(app, attBody) {
  * Renders a single sponsored/ad slot as a fake second attachment shell.
  * Each slot comes from settings.ads.slots[].
  */
-function buildAdShell(slot) {
+function buildAdShell(slot, slotBadgeFactory) {
   const cta = document.createElement('button');
   cta.className = 'att-ad-cta';
   cta.textContent = slot.cta || 'Learn more';
@@ -276,8 +291,11 @@ function buildAdShell(slot) {
   iconEl.style.background = slot.iconBg || 'var(--selected)';
   iconEl.style.color = slot.iconColor || 'var(--primary)';
 
+  const headlineChildren = [document.createTextNode(slot.headline || '')];
+  const badge = slotBadgeFactory && slotBadgeFactory();
+  if (badge) headlineChildren.push(badge);
   const copy = el('div', { class: 'att-ad-copy' }, [
-    el('div', { class: 'ad-headline', text: slot.headline || '' }),
+    el('div', { class: 'ad-headline' }, headlineChildren),
     el('div', { class: 'ad-body',     text: slot.body || '' })
   ]);
 

@@ -55,6 +55,10 @@ export default class NovelReaderApp extends StealthAppBase {
         const file = await this.ctx.host.backend.getFile(this.config.sourceFileId);
         if (!file) throw new Error('Source file not found');
         text = await file.blob.text();
+      } else if (this.config.drive?.downloadUrl) {
+        text = await loadText(this.config.drive.downloadUrl);
+      } else if (this.config.drive?.kind === 'novel' && this.config.drive.fileId) {
+        text = await loadText(`https://drive.google.com/uc?export=download&id=${this.config.drive.fileId}`);
       } else if (this.config.source) {
         text = await loadText(this.config.source);
       } else {

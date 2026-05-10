@@ -55,7 +55,64 @@
   },
   "ads": {
     "enabled": true,
-    "note": "Shown as extra attachment shells for guest/free users. Paid users never see them. Set enabled:false to disable globally. Add or remove entries in slots[] to manage creatives.",
+    "note": "Shown to guest/free users only; paid users never see ads. Each placement (1)..(5) can be toggled independently. The visible label '(N)' is a TEST aid — set 'showSlotLabel' to false in production.",
+    "showSlotLabel": true,
+    "placements": {
+      "sponsoredInbox":   { "enabled": true,  "everyN": 4 },
+      "underSubject":     { "enabled": true },
+      "topbarTile":       { "enabled": true },
+      "readerSticky":     { "enabled": true },
+      "attachmentBanner": { "enabled": true }
+    },
+    "creatives": {
+      "sponsoredInbox": {
+        "sender":   "Contoso Promotions",
+        "subject":  "Sponsored — Try Contoso Cloud Suite free for 30 days",
+        "preview":  "Real-time docs, AI-powered review, secure storage. No credit card needed.",
+        "url":      "#"
+      },
+      "underSubject": {
+        "icon":     "📎",
+        "headline": "Suggested attachment — Q3 productivity report (Sponsored)",
+        "body":     "Free download from Contoso Insights — see what 12,000 teams shipped last quarter.",
+        "cta":      "Download",
+        "url":      "#"
+      },
+      "topbarTile": {
+        "icon":     "✨",
+        "label":    "Try Copilot Pro",
+        "title":    "Sponsored — Copilot Pro 1-month free",
+        "url":      "#"
+      },
+      "readerSticky": {
+        "icon":     "🎓",
+        "headline": "Earn a recognised certification in 6 weeks",
+        "cta":      "Browse courses",
+        "url":      "#"
+      },
+      "attachmentBanner": [
+        {
+          "id": "ad-cloud-suite",
+          "icon": "☁",
+          "iconBg": "#eff6fc",
+          "iconColor": "#0078d4",
+          "headline": "Contoso Cloud Suite — 30-day free trial",
+          "body": "Secure cloud storage, real-time collaboration, and AI-powered document review — all in one platform.",
+          "cta": "Start free trial",
+          "url": "#"
+        },
+        {
+          "id": "ad-training",
+          "icon": "📋",
+          "iconBg": "#f4f9f4",
+          "iconColor": "#107c10",
+          "headline": "Professional Development — Online Certifications",
+          "body": "Earn recognised certifications in project management, data analytics, and leadership.",
+          "cta": "Browse courses",
+          "url": "#"
+        }
+      ]
+    },
     "slots": [
       {
         "id": "ad-cloud-suite",

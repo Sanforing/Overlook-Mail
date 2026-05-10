@@ -90,9 +90,19 @@ const TYPE_LOADERS = {
       const frame = document.createElement('iframe');
       frame.className = 'app-host';
       frame.src = app.url;
-      frame.setAttribute('sandbox', app.sandbox || 'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals');
-      frame.setAttribute('referrerpolicy', 'no-referrer');
-      frame.allow = app.allow || '';
+      const isYouTube = app.config?.video?.provider === 'youtube';
+      if (isYouTube) {
+        // YouTube's own embed code uses no sandbox — adding one breaks playback
+        // (error 153 / player configuration error). Instead grant only the
+        // feature-policy permissions YouTube actually needs.
+        frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
+        frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+        frame.setAttribute('allowfullscreen', '');
+      } else {
+        frame.setAttribute('sandbox', app.sandbox || 'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals');
+        frame.setAttribute('referrerpolicy', app.referrerPolicy || 'no-referrer');
+        frame.allow = app.allow || '';
+      }
       container.appendChild(frame);
       frame.addEventListener('load', () => injectIframeKeyBridge(frame));
       const teardownGuard = installArrowKeyGuard(container);

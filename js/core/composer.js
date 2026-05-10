@@ -2,24 +2,32 @@ import { openModal, field, input, select, textarea, btn, notice } from './modal.
 import { el } from './utils.js';
 import { canUse } from './backend.js';
 import { showAuth } from './auth-ui.js';
+import { runOnceTutorial, runComposeTutorial } from './tutorial.js';
+import { t, getLang } from './i18n.js';
 
-const MONOCHROME = [
-  { value: 'none',      label: 'None' },
-  { value: 'grayscale', label: 'Greyscale' },
-  { value: 'sepia',     label: 'Sepia (paper)' },
-  { value: 'blue',      label: 'Outlook blue tint' },
-  { value: 'green',     label: 'Old terminal green' }
-];
+function monochromeOptions() {
+  return [
+    { value: 'none',      label: t('monoNone') },
+    { value: 'grayscale', label: t('monoGray') },
+    { value: 'sepia',     label: t('monoSepia') },
+    { value: 'blue',      label: t('monoBlue') },
+    { value: 'green',     label: t('monoGreen') }
+  ];
+}
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-function resolveSubject(raw, templates, camouflage) {
+function resolveSubject(raw, templates, camouflage, mailLang) {
   const keyword = raw.trim();
+  const isCht = mailLang === 'cht';
   if (!keyword) {
-    return pick(templates.defaultSubjects || ['(no subject)']);
+    const list = isCht ? (templates.defaultSubjectsCht || templates.defaultSubjects || ['(no subject)'])
+                       : (templates.defaultSubjects || ['(no subject)']);
+    return pick(list);
   }
   if (!camouflage) return keyword;
-  const wrappers = templates.subjectWrappers || [];
+  const wrappers = isCht ? (templates.subjectWrappersCht || templates.subjectWrappers || [])
+                         : (templates.subjectWrappers || []);
   if (!wrappers.length) return keyword;
   return pick(wrappers).replace('{keyword}', keyword);
 }
@@ -31,27 +39,48 @@ export function showCompose(state, { onCreated } = {}) {
   const cores = state.settings.emulator?.cores || [];
   const tpls = state.templates || {};
   let mode = 'novel';
+  let mailLang = getLang(); // default mail language matches UI language
 
-  const senderNames = tpls.defaultSenderNames || ['IT Support'];
-  const senderTitles = tpls.defaultSenderTitles || ['Senior Manager'];
+  // Resolved sender pools (language-aware)
+  function senderNames() {
+    return mailLang === 'cht'
+      ? (tpls.defaultSenderNamesCht || tpls.defaultSenderNames || ['資訊科技支援'])
+      : (tpls.defaultSenderNames || ['IT Support']);
+  }
+  function senderTitles() {
+    return mailLang === 'cht'
+      ? (tpls.defaultSenderTitlesCht || tpls.defaultSenderTitles || ['資深經理'])
+      : (tpls.defaultSenderTitles || ['Senior Manager']);
+  }
 
   const subject = input({ placeholder: `e.g. "${pick(tpls.defaultSubjects || ['Project update'])}" (leave blank for random)` });
-  const camoCheck = el('input', { type: 'checkbox', id: 'camo-toggle', checked: true, title: 'Wrap your subject in a corporate-sounding phrase' });
+  const camoCheck = el('input', { type: 'checkbox', id: 'camo-toggle', checked: true, title: t('camoLabel') });
   camoCheck.checked = true;
-  const camoLabel = el('label', { class: 'camo-toggle', htmlFor: 'camo-toggle' }, [camoCheck, el('span', { text: 'Camouflage subject' })]);
-  const senderName = input({ placeholder: `leave blank for random (e.g. ${pick(senderNames)})` });
-  const senderTitle = input({ placeholder: `leave blank for random (e.g. ${pick(senderTitles)})` });
+  const camoLabel = el('label', { class: 'camo-toggle', htmlFor: 'camo-toggle' }, [camoCheck, el('span', { text: t('camoLabel') })]);
+  const senderName = input({ placeholder: `leave blank for random (e.g. ${pick(senderNames())})` });
+  const senderTitle = input({ placeholder: `leave blank for random (e.g. ${pick(senderTitles())})` });
   const visibility = select([
-    { value: 'private', label: 'Private (only me)', selected: true },
-    { value: 'public',  label: 'Public (searchable in Community)' }
+    { value: 'private', label: t('visPrivate'), selected: true },
+    { value: 'public',  label: t('visCommunity') }
   ]);
-  const monochrome = select(MONOCHROME);
-  const folder = select((state.folders || []).map(f => ({ value: f.id, label: f.name, selected: f.id === 'mine' })));
+  const monochrome = select(monochromeOptions());
+  const mailLangSel = select([
+    { value: 'en',  label: t('langEn'),  selected: mailLang !== 'cht' },
+    { value: 'cht', label: t('langCht'), selected: mailLang === 'cht' }
+  ]);
+  mailLangSel.addEventListener('change', () => { mailLang = mailLangSel.value; });
+  const folder = select((state.folders || []).map(f => ({
+    value: f.id,
+    label: f.custom ? f.name : (t('folder_' + f.id) || f.name),
+    selected: f.id === 'mine'
+  })));
 
   // ----- Mode-specific fields -----
-  const novelText = textarea({ placeholder: 'Paste novel/article text here…' });
+  const novelText = textarea({ placeholder: t('placeholderNovel') });
   const novelFile = input({ type: 'file', accept: '.txt,text/plain' });
+  const novelDriveUrl = input({ type: 'url', placeholder: 'https://drive.google.com/file/d/…/view' });
   const gameUrl   = input({ type: 'url', placeholder: 'https://itch.io/embed-upload/…' });
+  const videoUrl  = input({ type: 'url', placeholder: 'https://www.youtube.com/watch?v=…' });
   const romFile   = input({ type: 'file', accept: '.gba,.gb,.gbc,.nes,.smc,.sfc,.md,.gen,.smd,.n64,.z64,.iso,.cue,.zip' });
   const romCore   = select(cores.map(c => ({ value: c.id, label: c.label })));
 
@@ -60,27 +89,36 @@ export function showCompose(state, { onCreated } = {}) {
   function modeBody() {
     if (mode === 'novel') {
       const paidNotice = canUse(me, 'novelUpload', state.settings) ? null
-        : notice('Free tier: paste text below. Upload .txt/.epub requires Paid.', 'warn');
+        : notice(t('noticeFreeTier'), 'warn');
       return el('div', null, [
         paidNotice,
-        field('Paste text', novelText),
-        canUse(me, 'novelUpload', state.settings) ? field('…or upload a file', novelFile) : null
+        field(t('fieldPasteText'), novelText),
+        canUse(me, 'novelUpload', state.settings) ? field(t('fieldUploadFile'), novelFile) : null,
+        notice(t('noticeDriveNovel'), 'info'),
+        field(t('fieldDriveUrl'), novelDriveUrl)
       ]);
     }
     if (mode === 'game-url') {
       return el('div', null, [
-        notice('Any URL that can be embedded in an iframe (CSP/X-Frame-Options of the target apply).', 'info'),
-        field('Game URL', gameUrl)
+        notice(t('noticeIframe'), 'info'),
+        field(t('fieldGameUrl'), gameUrl)
+      ]);
+    }
+    if (mode === 'video') {
+      return el('div', null, [
+        notice(t('noticeVideo'), 'info'),
+        field(t('fieldVideoUrl'), videoUrl)
       ]);
     }
     if (mode === 'game-rom') {
       if (!canUse(me, 'romUpload', state.settings)) {
-        return el('div', null, [notice('ROM upload requires a Paid account. Upgrade in the avatar menu.', 'error')]);
+        return el('div', null, [notice(t('noticeRomPaidWall'), 'error')]);
       }
       return el('div', null, [
-        notice('You are responsible for the legality of any ROM you upload. Do not upload content you do not own.', 'warn'),
-        field('Emulator core', romCore),
-        field('ROM file', romFile)
+        notice(t('noticeRomLegal'), 'warn'),
+        field(t('fieldEmulatorCore'), romCore),
+        field(t('fieldRomFile'), romFile),
+        notice(t('noticeDriveRom'), 'info')
       ]);
     }
   }
@@ -88,85 +126,141 @@ export function showCompose(state, { onCreated } = {}) {
   // ----- Layout -----
   const body = el('div', { class: 'compose' });
   const tabs = el('div', { class: 'compose-tabs' }, [
-    tab('novel', 'Novel'),
-    tab('game-url', 'Game (URL)'),
-    tab('game-rom', 'Game (ROM)')
+    tab('novel', t('tabNovel')),
+    tab('game-url', t('tabGameUrl')),
+    tab('game-rom', t('tabGameRom')),
+    tab('video', t('tabVideo'))
   ]);
   const dynamic = el('div');
   function tab(id, label) {
-    const t = el('button', { class: `tab ${mode === id ? 'active' : ''}`, text: label, onclick: () => { mode = id; refresh(); } });
-    return t;
+    const btn = el('button', { class: `tab ${mode === id ? 'active' : ''}`, text: label, onclick: () => { mode = id; refresh(); } });
+    return btn;
   }
   function refresh() {
-    tabs.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['novel','game-url','game-rom'][i] === mode));
+    tabs.querySelectorAll('.tab').forEach((btn, i) => btn.classList.toggle('active', ['novel','game-url','game-rom','video'][i] === mode));
     dynamic.innerHTML = ''; dynamic.appendChild(modeBody());
   }
   refresh();
 
   const subjectField = el('div', { class: 'field' }, [
-    el('div', { class: 'field-label-row' }, [el('span', { text: 'Subject' }), camoLabel]),
+    el('div', { class: 'field-label-row' }, [el('span', { text: t('fieldSubject') }), camoLabel]),
     subject
   ]);
 
   body.append(
     tabs,
     subjectField,
-    el('div', { class: 'row' }, [field('Sender name', senderName), field('Sender title', senderTitle)]),
-    el('div', { class: 'row' }, [field('Folder', folder), field('Visibility', visibility), field('Monochrome filter', monochrome)]),
+    el('div', { class: 'row' }, [field(t('fieldSenderName'), senderName), field(t('fieldSenderTitle'), senderTitle)]),
+    el('div', { class: 'row' }, [field(t('fieldFolder'), folder), field(t('fieldVisibility'), visibility), field(t('fieldMonochrome'), monochrome), field(t('fieldMailLang'), mailLangSel)]),
     dynamic,
     status
   );
 
-  const submit = btn('Send to my Inbox', { primary: true });
-  const cancel = btn('Cancel', { onClick: () => m.close() });
-  const m = openModal({ title: 'New mail', body, footer: el('div', { class: 'modal-actions' }, [cancel, submit]), width: 640 });
+  const submit = btn(t('sendInbox'), { primary: true });
+  const cancel = btn(t('cancel'), { onClick: () => m.close() });
+  const m = openModal({ title: t('composeTitle'), body, footer: el('div', { class: 'modal-actions' }, [cancel, submit]), width: 640 });
+
+  // First-time-only walkthrough of the compose modal.
+  runOnceTutorial(state, 'composeTutorialShown', () => runComposeTutorial());
 
   submit.addEventListener('click', async () => {
     submit.disabled = true; status.textContent = '';
     try {
-      const resolvedSubject = resolveSubject(subject.value, tpls, camoCheck.checked);
-      const resolvedName = senderName.value.trim() || pick(senderNames);
-      const resolvedTitle = senderTitle.value.trim() || pick(senderTitles);
+      const resolvedSubject = resolveSubject(subject.value, tpls, camoCheck.checked, mailLang);
+      const resolvedName = senderName.value.trim() || pick(senderNames());
+      const resolvedTitle = senderTitle.value.trim() || pick(senderTitles());
+      // Visibility rules:
+      //  - Uploaded novel file or uploaded ROM → forced PRIVATE (potentially
+      //    copyrighted material we do not want to redistribute).
+      //  - Any URL-based mail (game URL, YouTube video) → user choice.
+      //  - Pasted novel text → user choice.
+      const isUploadedNovel = mode === 'novel'
+        && canUse(me, 'novelUpload', state.settings)
+        && novelFile.files?.[0];
+      const isUploadedRom   = mode === 'game-rom' && romFile.files?.[0];
+      let resolvedVisibility = visibility.value;
+      if (isUploadedNovel || isUploadedRom) resolvedVisibility = 'private';
       const base = {
         subject: resolvedSubject,
         sender: { name: resolvedName, email: me.email, title: resolvedTitle, company: state.settings.user.company || '' },
         recipient: state.settings.user.displayName || me.displayName,
         folder: folder.value,
-        visibility: visibility.value,
+        visibility: resolvedVisibility,
         monochrome: monochrome.value,
         date: 'Today'
       };
       let mail;
       if (mode === 'novel') {
-        const cfg = {
-          inlineNovel: true,
-          fontSize: state.settings.display?.mailFontSize || 14,
-          wordsPerPage: state.settings.novelMail?.wordsPerPage || 280
-        };
-        if (canUse(me, 'novelUpload', state.settings) && novelFile.files?.[0]) {
-          const f = novelFile.files[0];
-          const stored = await state.backend.putBlob(f);
-          cfg.sourceFileId = stored.id;
-          base.preview = `Attached: ${f.name}`;
+        // Drive-link path takes precedence over upload/paste. It stores no
+        // bytes on our server and still renders through the inline novel
+        // reader instead of the attachment iframe preview.
+        const driveRaw = novelDriveUrl.value.trim();
+        if (driveRaw) {
+          const driveId = extractDriveFileId(driveRaw);
+          if (!driveId) throw new Error(t('errBadDriveUrl'));
+          const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+          base.preview = `Drive: ${driveRaw}`;
+          mail = await state.backend.create(Object.assign(base, {
+            type: 'local',
+            entry: 'apps/novel-reader/index.js',
+            config: {
+              inlineNovel: true,
+              mailLang,
+              fontSize: state.settings.display?.mailFontSize || 14,
+              wordsPerPage: state.settings.novelMail?.wordsPerPage || 280,
+              source: downloadUrl,
+              drive: { provider: 'gdrive', fileId: driveId, originalUrl: driveRaw, downloadUrl, kind: 'novel' }
+            }
+          }));
         } else {
-          const text = novelText.value;
-          if (!text.trim()) throw new Error('Provide text or upload a file.');
-          cfg.text = text;
-          base.preview = text.slice(0, 80).replace(/\s+/g, ' ');
+          const cfg = {
+            inlineNovel: true,
+            mailLang,
+            fontSize: state.settings.display?.mailFontSize || 14,
+            wordsPerPage: state.settings.novelMail?.wordsPerPage || 280
+          };
+          if (canUse(me, 'novelUpload', state.settings) && novelFile.files?.[0]) {
+            const f = novelFile.files[0];
+            const stored = await state.backend.putBlob(f);
+            cfg.sourceFileId = stored.id;
+            base.preview = `Attached: ${f.name}`;
+          } else {
+            const text = novelText.value;
+            if (!text.trim()) throw new Error(t('errNoText'));
+            cfg.text = text;
+            base.preview = text.slice(0, 80).replace(/\s+/g, ' ');
+          }
+          mail = await state.backend.create(Object.assign(base, { type: 'local', entry: 'apps/novel-reader/index.js', config: cfg }));
         }
-        mail = await state.backend.create(Object.assign(base, { type: 'local', entry: 'apps/novel-reader/index.js', config: cfg }));
       } else if (mode === 'game-url') {
         const url = gameUrl.value.trim();
-        if (!/^https?:\/\//i.test(url)) throw new Error('Enter a valid http(s) URL.');
+        if (!/^https?:\/\//i.test(url)) throw new Error(t('errBadUrl'));
         base.preview = `Embedded: ${url}`;
-        mail = await state.backend.create(Object.assign(base, { type: 'iframe', url, config: {} }));
+        mail = await state.backend.create(Object.assign(base, { type: 'iframe', url, config: { mailLang } }));
+      } else if (mode === 'video') {
+        const raw = videoUrl.value.trim();
+        const videoId = extractYouTubeId(raw);
+        if (!videoId) throw new Error(t('errBadYouTube'));
+        // Use the standard YouTube embed. Error 153 can happen when the
+        // player does not receive an allowed referrer, so this mail sets a
+        // YouTube-friendly referrer policy below.
+        const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0`;
+        base.preview = `▶ YouTube: ${raw}`;
+        mail = await state.backend.create(Object.assign(base, {
+          type: 'iframe',
+          url: embedUrl,
+          allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+          sandbox: 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation',
+          referrerPolicy: 'strict-origin-when-cross-origin',
+          config: { mailLang, video: { provider: 'youtube', videoId, originalUrl: raw } }
+        }));
       } else if (mode === 'game-rom') {
-        if (!canUse(me, 'romUpload', state.settings)) throw new Error('ROM upload requires Paid.');
+        if (!canUse(me, 'romUpload', state.settings)) throw new Error(t('errRomPaid'));
         const f = romFile.files?.[0];
-        if (!f) throw new Error('Pick a ROM file.');
+        if (!f) throw new Error(t('errNoRom'));
         const stored = await state.backend.putBlob(f);
         base.preview = `ROM: ${f.name} (${romCore.value})`;
-        mail = await state.backend.create(Object.assign(base, { type: 'emulator', config: { fileId: stored.id, core: romCore.value, name: f.name } }));
+        mail = await state.backend.create(Object.assign(base, { type: 'emulator', config: { fileId: stored.id, core: romCore.value, name: f.name, mailLang } }));
       }
       m.close();
       onCreated?.(mail);
@@ -174,4 +268,58 @@ export function showCompose(state, { onCreated } = {}) {
       status.appendChild(notice(err.message, 'error'));
     } finally { submit.disabled = false; }
   });
+}
+
+/**
+ * Extract a YouTube video ID from any of these forms:
+ *   https://www.youtube.com/watch?v=ID
+ *   https://youtu.be/ID
+ *   https://www.youtube.com/shorts/ID
+ *   https://www.youtube.com/embed/ID
+ *   raw 11-char ID
+ * Returns the ID string or null if not recognised.
+ */
+function extractYouTubeId(raw) {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  // Bare 11-char ID
+  if (/^[A-Za-z0-9_-]{11}$/.test(trimmed)) return trimmed;
+  let url;
+  try { url = new URL(trimmed); } catch { return null; }
+  const host = url.hostname.replace(/^www\./, '');
+  if (host === 'youtu.be') {
+    const id = url.pathname.slice(1);
+    return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
+  }
+  if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
+    if (url.pathname === '/watch') {
+      const id = url.searchParams.get('v') || '';
+      return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
+    }
+    const m = url.pathname.match(/^\/(embed|shorts|v|live)\/([A-Za-z0-9_-]{11})/);
+    if (m) return m[2];
+  }
+  return null;
+}
+
+/**
+ * Extract a Google Drive file ID from any of:
+ *   https://drive.google.com/file/d/FILEID/view
+ *   https://drive.google.com/file/d/FILEID/preview
+ *   https://drive.google.com/open?id=FILEID
+ *   https://drive.google.com/uc?id=FILEID&export=download
+ *   https://docs.google.com/(document|spreadsheets|presentation)/d/FILEID/edit
+ * Returns the ID or null. We do NOT accept arbitrary IDs without a Drive host
+ * because that would let users paste arbitrary strings.
+ */
+function extractDriveFileId(raw) {
+  if (!raw) return null;
+  let url;
+  try { url = new URL(String(raw).trim()); } catch { return null; }
+  const host = url.hostname.replace(/^www\./, '');
+  if (host !== 'drive.google.com' && host !== 'docs.google.com') return null;
+  const m = url.pathname.match(/\/(?:file|document|spreadsheets|presentation)\/d\/([A-Za-z0-9_-]{10,})/);
+  if (m) return m[1];
+  const id = url.searchParams.get('id') || '';
+  return /^[A-Za-z0-9_-]{10,}$/.test(id) ? id : null;
 }

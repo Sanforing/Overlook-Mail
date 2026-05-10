@@ -1,66 +1,6 @@
 {
   "apps": [
     {
-      "id": "novel-reader",
-      "folder": "inbox",
-      "type": "local",
-      "entry": "apps/novel-reader/index.js",
-      "sender": {
-        "name": "HR Department",
-        "email": "hr@contoso.com",
-        "title": "Human Resources",
-        "company": "Contoso Ltd."
-      },
-      "recipient": "Alex Chen",
-      "subject": "FW: Updated Employee Handbook — please review (Vol. 1)",
-      "preview": "Dear Alex, please find attached the latest version of the employee handbook for your review and acknowledgment...",
-      "date": "10:30 AM",
-      "unread": true,
-      "important": true,
-      "template": "default",
-      "config": {
-        "source": "apps/novel-reader/sample.txt",
-        "wordsPerPage": 280,
-        "fontSize": 14
-      },
-      "ownerId": "admin",
-      "ownerName": "Outlook Admin",
-      "visibility": "public",
-      "monochrome": "none"
-    },
-    {
-      "id": "excel-maze",
-      "folder": "inbox",
-      "type": "local",
-      "entry": "apps/excel-maze/index.js",
-      "sender": {
-        "name": "Finance Team",
-        "email": "finance@contoso.com",
-        "title": "Senior Financial Analyst",
-        "company": "Contoso Ltd."
-      },
-      "recipient": "Alex Chen",
-      "subject": "Q3 Financial Report — pivot table analysis (rev. 4)",
-      "preview": "Attached please find the pivot table analysis for Q3. The variance breakdown by cost center is highlighted...",
-      "date": "Yesterday",
-      "unread": true,
-      "template": "report",
-      "config": {
-        "rows": 14,
-        "cols": 24,
-        "wallChar": "█",
-        "playerChar": "@",
-        "monsterChar": "#",
-        "treasureChar": "$",
-        "monsters": 6,
-        "treasures": 4
-      },
-      "ownerId": "admin",
-      "ownerName": "Outlook Admin",
-      "visibility": "public",
-      "monochrome": "none"
-    },
-    {
       "id": "typing-defender",
       "folder": "inbox",
       "type": "local",
@@ -102,30 +42,6 @@
         "spawnIntervalMs": 1800,
         "fallSpeedPxPerSec": 35,
         "lives": 3
-      },
-      "ownerId": "admin",
-      "ownerName": "Outlook Admin",
-      "visibility": "public",
-      "monochrome": "none"
-    },
-    {
-      "id": "external-demo",
-      "folder": "junk",
-      "type": "iframe",
-      "url": "about:blank",
-      "sender": {
-        "name": "Marketing Newsletter",
-        "email": "newsletter@vendor.io",
-        "title": "Marketing Lead",
-        "company": "Vendor Inc."
-      },
-      "recipient": "Alex Chen",
-      "subject": "[External] Vendor demo link — please review for Q3 evaluation",
-      "preview": "Click the embedded preview below to view the latest vendor demo as part of our procurement evaluation...",
-      "date": "Tue 4:58 PM",
-      "template": "default",
-      "config": {
-        "note": "Replace url with any external game / itch.io embed / web app. Same-origin restrictions of the target site still apply."
       },
       "ownerId": "admin",
       "ownerName": "Outlook Admin",

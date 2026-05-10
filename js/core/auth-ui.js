@@ -1,5 +1,6 @@
 import { openModal, field, input, btn, notice } from './modal.js';
 import { el } from './utils.js';
+import { t } from './i18n.js';
 
 export function showAuth(state, { onSignedIn } = {}) {
   let mode = 'login'; // | 'register'
@@ -10,10 +11,10 @@ export function showAuth(state, { onSignedIn } = {}) {
     body.innerHTML = '';
     body.append(
       oauthRow(state, status, onSignedIn, () => m.close()),
-      el('div', { class: 'auth-divider', text: 'or' }),
+      el('div', { class: 'auth-divider', text: t('authOr') }),
       el('div', { class: 'auth-tabs' }, [
-        el('button', { class: `tab ${mode === 'login' ? 'active' : ''}`, text: 'Sign in', onclick: () => { mode = 'login'; render(); } }),
-        el('button', { class: `tab ${mode === 'register' ? 'active' : ''}`, text: 'Create account', onclick: () => { mode = 'register'; render(); } })
+        el('button', { class: `tab ${mode === 'login' ? 'active' : ''}`, text: t('tabSignIn'), onclick: () => { mode = 'login'; render(); } }),
+        el('button', { class: `tab ${mode === 'register' ? 'active' : ''}`, text: t('tabCreateAccount'), onclick: () => { mode = 'register'; render(); } })
       ]),
       form()
     );
@@ -23,19 +24,19 @@ export function showAuth(state, { onSignedIn } = {}) {
   function form() {
     const wrap = el('form', { class: 'auth-form' });
     const email = input({ type: 'email', placeholder: 'name@contoso.com', required: true });
-    const pass  = input({ type: 'password', placeholder: 'Password', required: true, minlength: '4' });
-    const name  = mode === 'register' ? input({ type: 'text', placeholder: 'Display name', required: true }) : null;
+    const pass  = input({ type: 'password', placeholder: t('fieldPassword'), required: true, minlength: '4' });
+    const name  = mode === 'register' ? input({ type: 'text', placeholder: t('fieldDisplayName'), required: true }) : null;
     const tier  = mode === 'register' ? el('select', { class: 'control' }, [
-      el('option', { value: 'free', text: 'Free' }),
-      el('option', { value: 'paid', text: 'Paid (demo: instant upgrade)' })
+      el('option', { value: 'free', text: t('tierFree') }),
+      el('option', { value: 'paid', text: t('tierPaid') })
     ]) : null;
 
-    wrap.append(field('Email', email), field('Password', pass));
-    if (name) wrap.append(field('Display name', name));
-    if (tier) wrap.append(field('Tier', tier));
+    wrap.append(field(t('fieldEmail'), email), field(t('fieldPassword'), pass));
+    if (name) wrap.append(field(t('fieldDisplayName'), name));
+    if (tier) wrap.append(field(t('fieldTier'), tier));
     wrap.append(status);
 
-    const submit = btn(mode === 'login' ? 'Sign in' : 'Create account', { primary: true });
+    const submit = btn(mode === 'login' ? t('tabSignIn') : t('tabCreateAccount'), { primary: true });
     submit.type = 'submit';
     wrap.append(el('div', { class: 'modal-actions' }, [submit]));
 
@@ -43,9 +44,17 @@ export function showAuth(state, { onSignedIn } = {}) {
       e.preventDefault();
       submit.disabled = true; status.textContent = '';
       try {
+        if (mode === 'register') {
+          const ok = await showDisclaimer();
+          if (!ok) { submit.disabled = false; return; }
+        }
         const u = mode === 'login'
           ? await state.backend.login({ email: email.value.trim(), password: pass.value })
           : await state.backend.register({ email: email.value.trim(), password: pass.value, displayName: name.value.trim(), tier: tier.value });
+        if (mode === 'register') {
+          // Mark this user as needing the tutorial (consumed by onSignedIn caller).
+          u.__justRegistered = true;
+        }
         m.close();
         onSignedIn?.(u);
       } catch (err) {
@@ -55,7 +64,7 @@ export function showAuth(state, { onSignedIn } = {}) {
     return wrap;
   }
 
-  const m = openModal({ title: 'Outlook account', body, width: 420 });
+  const m = openModal({ title: t('authTitle'), body, width: 420 });
   render();
 }
 
@@ -76,8 +85,8 @@ function oauthRow(state, status, onSignedIn, closeModal) {
     onclick: () => startOAuth(state, id, status, onSignedIn, closeModal)
   });
   row.append(
-    make('google',   'Continue with Google',   '#4285f4'),
-    make('linkedin', 'Continue with LinkedIn', '#0a66c2')
+    make('google',   t('btnContinueGoogle'),   '#4285f4'),
+    make('linkedin', t('btnContinueLinkedIn'), '#0a66c2')
   );
   return row;
 }
@@ -126,4 +135,27 @@ function startOAuth(state, provider, status, onSignedIn, closeModal) {
     });
   }
   window.addEventListener('message', onMessage);
+}
+
+/* --- Disclaimer modal (shown before account creation) --- */
+function showDisclaimer() {
+  return new Promise((resolve) => {
+    let settled = false;
+    // IMPORTANT: settle BEFORE calling m.close(), because openModal will fire
+    // its own onClose hook which would otherwise resolve(false) first and
+    // make the agree button look like decline.
+    const finish = (ok) => { if (settled) return; settled = true; resolve(ok); };
+    const body = el('div', { class: 'disclaimer-body' }, [
+      el('pre', { class: 'disclaimer-text', text: t('disclaimerBody') })
+    ]);
+    const decline = btn(t('disclaimerDecline'), { onClick: () => { finish(false); m.close(); } });
+    const agree   = btn(t('disclaimerAgree'),   { primary: true, onClick: () => { finish(true);  m.close(); } });
+    const m = openModal({
+      title: t('disclaimerTitle'),
+      body,
+      footer: el('div', { class: 'modal-actions' }, [decline, agree]),
+      width: 520,
+      onClose: () => finish(false)
+    });
+  });
 }

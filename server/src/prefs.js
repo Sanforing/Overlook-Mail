@@ -32,6 +32,16 @@ function sanitize(prefs) {
   if (typeof prefs?.brand === 'string') out.brand = prefs.brand.slice(0, SCHEMA.brand.max);
   if (typeof prefs?.searchPlaceholder === 'string') out.searchPlaceholder = prefs.searchPlaceholder.slice(0, SCHEMA.searchPlaceholder.max);
   if (typeof prefs?.recipientName === 'string') out.recipientName = prefs.recipientName.slice(0, SCHEMA.recipientName.max);
+  if (prefs?.uiLang === 'cht' || prefs?.uiLang === 'en') out.uiLang = prefs.uiLang;
+  if (Array.isArray(prefs?.customFolders)) {
+    out.customFolders = prefs.customFolders.slice(0, 50).filter(f =>
+      f && typeof f.id === 'string' && typeof f.name === 'string' && f.id.length <= 64 && f.name.length > 0
+    ).map(f => ({
+      id: f.id.slice(0, 64),
+      name: f.name.slice(0, 64),
+      icon: (typeof f.icon === 'string' ? f.icon.slice(0, 8) : '📁')
+    }));
+  }
   if (prefs?.display && typeof prefs.display === 'object') {
     const uiScale = clampNumber(prefs.display.uiScale, 80, 130);
     const mailFontSize = clampNumber(prefs.display.mailFontSize, 12, 22);

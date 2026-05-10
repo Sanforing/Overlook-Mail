@@ -1,4 +1,21 @@
 {
+  "fillerCht": [
+    "根據上次跨部門協調會議的結論，Q3 OKR 所列出的各項優先事項已獲確認。交付項目矩陣已在共用工作區中更新，目前正等待利害關係人簽核，待確認後將進行下週四的關卡審查。",
+    "就督導委員會所列行動項目，請查閱下附之整合版風險登錄冊。其中兩項已升報至執行贊助人，請即處理。我們將於週一再次召開會議追蹤緩解進度。",
+    "附件為執行摘要、各業務單位詳細財務分析及最新人員編制預測。上述數字仍須經財務稽核確認，在管理會計部門驗證前請視為草稿版本。",
+    "我們已與採購及法務部門就第三方廠商入職流程完成同步確認。修訂版 SLA 範本將另行發送。請各功能主管於本週五下班前確認收件。",
+    "提醒：本季度合規培訓課程現已於企業學習入口上線。所有全職員工均須完成。若未能於截止日期前完成，將於下次稽核週期中列入紀錄。",
+    "謹此跟進上週全員大會的相關討論。行動記錄已分享給各部門主管。請確保您所負責的章節完成審閱，並於週三中午前提交至 PMO。",
+    "基礎架構遷移已進入第二階段。停機時段將至少提前 48 小時公告。若任何關鍵業務流程可能受影響，請與您的 IT 聯絡窗口確認因應措施。",
+    "請注意，差旅及費用報銷政策更新版將於下月一日起生效。收據須於 30 日內提交；逾期申請將需副總裁層級核准，且無法保證獲得受理。",
+    "人才發展團隊提醒各位員工，年中績效校準週期將於本週五開放。請在主管審核窗口開啟前，於 Workday 完成個人自評。",
+    "資訊安全團隊偵測到針對企業帳戶的網路釣魚攻擊有所增加。請勿點擊不明寄件人的連結。如有疑問，請先將郵件轉寄至 security@contoso.com 再採取任何行動。",
+    "設施管理團隊將於本週四上午 09:00 至 12:00 期間，針對 12 至 18 樓進行空氣品質及人體工學評估。第 10 樓協作中心備有臨時座位可供使用。",
+    "財務部門已完成本期初步結帳作業。差異分析報告已附件供管理層查閱。請勿對外流通，本文件為待董事會批准之內部草稿。",
+    "提醒您佇列中仍有一筆待核准項目：該申請已擱置 5 個工作天。請登入核准入口並完成處理，以免依政策 SOP-07 自動升報至您的直屬主管。",
+    "EMEA 領導論壇的共用通訊群組清單已更新。若您認為自己被誤移除或誤加入，請使用自助服務入口參考編號 IT-DL-MAINT 向 IT 提出工單。",
+    "法務團隊已即時發布修訂版保密協議範本。依舊版簽署的協議仍屬有效，但所有新案件必須使用法務內部網頁上的最新範本。"
+  ],
   "filler": [
     "Per our last sync, the cross-functional alignment workshop confirmed the priorities outlined in the Q3 OKRs. The deliverables matrix has been updated in the shared workspace and is awaiting stakeholder sign-off before the gate review next Thursday.",
     "Following up on the action items from the steering committee, please find below the consolidated risk register. Note that two items have been escalated to the executive sponsor for immediate attention. We will reconvene on Monday to track mitigation progress.",
@@ -29,6 +46,18 @@
     "Heads up: system maintenance window this weekend",
     "RE: Resource request — pending your approval"
   ],
+  "defaultSubjectsCht": [
+    "FW：必要確認事項，請於今日下班前完成",
+    "RE：上週同步會議後續事項，煩請查閱",
+    "【提醒】合規培訓，完成期限已逾",
+    "季度更新，會議記錄及後續步驟附件如下",
+    "RE：您的申請，相關團隊更新說明",
+    "僅供參考：流程變更，下週一起生效",
+    "全員大會摘要，錄影及投影片現已上線",
+    "【必要行動】政策確認，截止日期為本週五",
+    "提醒：本週末系統維護作業",
+    "RE：資源申請，待您核准"
+  ],
   "subjectWrappers": [
     "FW: {keyword} — please review and action by EOD",
     "RE: {keyword} update — feedback needed before Thursday",
@@ -40,6 +69,18 @@
     "Heads up: {keyword} — process change effective Monday",
     "[REMINDER] {keyword} — please complete before EOD",
     "Daily digest: {keyword} — summary for your reference"
+  ],
+  "subjectWrappersCht": [
+    "FW：{keyword}，請查閱並於今日下班前完成行動",
+    "RE：{keyword} 更新，週四前需提供意見",
+    "【必要行動】{keyword}，請於本週五前完成確認",
+    "提醒：{keyword}，完成期限已逾",
+    "僅供參考：{keyword}，今日討論紀錄",
+    "Q3 計畫：{keyword}，對齊報告附件如下",
+    "RE：{keyword}，上週同步會議後續事項",
+    "提醒：{keyword}，流程變更下週一起生效",
+    "【提醒】{keyword}，請於今日下班前完成",
+    "每日摘要：{keyword}，供您參考"
   ],
   "defaultSenderNames": [
     "IT Support",
@@ -55,6 +96,20 @@
     "Workplace Experience",
     "Enterprise Services"
   ],
+  "defaultSenderNamesCht": [
+    "資訊科技支援",
+    "人才與文化部",
+    "企業傳播部",
+    "設施管理部",
+    "合規與風險部",
+    "財務營運部",
+    "人力資源團隊",
+    "數位職場部",
+    "資訊安全團隊",
+    "業務系統部",
+    "職場體驗部",
+    "企業服務部"
+  ],
   "defaultSenderTitles": [
     "Senior Manager",
     "Director, Operations",
@@ -69,18 +124,44 @@
     "Head of Compliance",
     "Senior Director, Finance"
   ],
+  "defaultSenderTitlesCht": [
+    "資深經理",
+    "營運總監",
+    "人力資源副總裁",
+    "資深業務分析師",
+    "資訊科技主管",
+    "幕僚長",
+    "專案經理",
+    "副總監",
+    "資深人才夥伴",
+    "首席顧問",
+    "合規主管",
+    "財務資深總監"
+  ],
   "templates": {
     "default": {
       "greetingHtml": "<p>Dear {recipient},</p><p>I hope this email finds you well. As per our previous discussion, please find the latest updates regarding <em>{subject}</em> below. Kindly review the attached materials at your earliest convenience and revert with comments before the next checkpoint.</p>",
       "signatureText": "Best regards,\n{senderName}\n{senderTitle}\n{senderCompany}\n\n— This email and any attachments are confidential and intended solely for the addressee."
     },
+    "defaultCht": {
+      "greetingHtml": "<p>敬愛的 {recipient}，</p><p>您好，希望此郵件能讓您一切安好。謹此提供最新的 <em>{subject}</em> 相關資訊，煩請查閱附件，並於下次里程碑確認前回覆意見。</p>",
+      "signatureText": "敬祝順頌商祺，\n{senderName}\n{senderTitle}\n{senderCompany}\n\n— 本郵件及任何附件均屬機密，僅供收件人使用。"
+    },
     "report": {
       "greetingHtml": "<p>Hi team,</p><p>Please find below the status report for <strong>{subject}</strong>. The summary highlights key metrics, blockers, and action items requiring follow-up before EOW.</p><p><strong>Executive Summary —</strong> Overall progress remains on track with minor deviations in scope. The risk register has been updated and a revised forecast attached for review.</p>",
       "signatureText": "Thanks,\n{senderName}\nSent from Outlook for Web"
     },
+    "reportCht": {
+      "greetingHtml": "<p>各位好，</p><p>以下為 <strong>{subject}</strong> 之進度報告。摘要列出關鍵指標、阻礙事項及本週需追蹤的行動項目。</p><p><strong>執行摘要 —</strong> 整體進度基本符合預期，範圍有輕微偏差。風險登錄冊已更新，修訂版預測已附件供查閱。</p>",
+      "signatureText": "謝謝，\n{senderName}\n透過 Outlook Web 版傳送"
+    },
     "minimal": {
       "greetingHtml": "<p>Hi {recipient},</p><p>See attachment.</p>",
       "signatureText": "Regards,\n{senderName}"
+    },
+    "minimalCht": {
+      "greetingHtml": "<p>您好 {recipient}，</p><p>請見附件。</p>",
+      "signatureText": "敬上，\n{senderName}"
     }
   }
 }
