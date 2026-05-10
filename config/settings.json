@@ -41,7 +41,7 @@
     "label": "Downloading attachment…"
   },
   "backend": {
-    "kind": "local",
+    "kind": "remote",
     "baseUrl": "",
     "note": "kind = 'local' (IndexedDB) or 'remote' (StealthBox server). For remote, set baseUrl to the server origin, e.g. https://your-vps.example.com. Empty baseUrl means same-origin (use when SERVE_STATIC_FROM is set on the server)."
   },
