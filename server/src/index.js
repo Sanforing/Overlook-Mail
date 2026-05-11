@@ -78,8 +78,12 @@ app.post('/api/auth/login', { preHandler: loginLimiter }, async (req, reply) => 
   const user = stmt.userByEmail.get(String(email).toLowerCase());
   const ok = user && await verifyPassword(user, String(password));
   if (!ok) return reply.code(401).send({ error: 'invalid credentials' });
+  // Auto-promote if email appears in ADMIN_EMAILS (handles cases where env was set after registration)
+  if (user.tier !== 'admin' && config.adminEmails.some(e => e.toLowerCase() === user.email?.toLowerCase())) {
+    stmt.setUserTier.run('admin', user.id);
+  }
   startSession(reply, user.id);
-  return publicUser(user);
+  return publicUser(stmt.userById.get(user.id));
 });
 
 app.post('/api/auth/logout', async (req, reply) => {

@@ -132,7 +132,7 @@
     }
 
     /* ── Right: mock inbox preview ── */
-    .preview { position: relative; perspective: 1500px; padding-top: 32px; }
+    .preview { position: relative; perspective: 1500px; padding-top: 8px; }
     .mock-window {
       background: #fff;
       border-radius: 10px;
@@ -216,22 +216,28 @@
     }
     .mock-jargon em { font-style: italic; color: #0078d4; }
 
-    /* Top caption — subtle text label above the mock window */
+    /* "Boring" pill — top-left corner of the mock window */
     .secret-tag {
       position: absolute;
-      top: -28px; left: 0; right: 0;
-      text-align: center;
-      color: rgba(255,255,255,0.55);
-      font-size: 12px; font-weight: 400;
-      letter-spacing: 0.2px;
+      top: 18px; left: -14px;
+      background: rgba(255,255,255,0.93);
+      color: #333;
+      padding: 6px 14px; border-radius: 999px;
+      font-size: 11px; font-weight: 600;
+      border: 1px solid rgba(0,0,0,0.12);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+      transform: rotate(-4deg);
+      z-index: 2;
+      white-space: nowrap;
       pointer-events: none;
     }
 
-    /* "Secretly a game" pill on the attachment */
-    .mock-attach-game-wrap { position: relative; width: 100%; }
+    /* "Secretly a game" pill on the attachment box */
+    .mock-attach { position: relative; }
+    .mock-attach-game-wrap { width: 100%; }
     .attach-secret-tag {
       position: absolute;
-      top: -14px; right: -6px;
+      top: -13px; right: -10px;
       background: #f5b400; color: #1a1a1a;
       padding: 5px 13px; border-radius: 999px;
       font-size: 11px; font-weight: 700;
@@ -373,9 +379,9 @@
               Action items have been pre-loaded — kindly confirm receipt.
             </div>
             <div class="mock-attach">
+              <div class="attach-secret-tag">↓ Secretly a game</div>
               <div class="mock-attach-title">📎 maintenance_log.doc</div>
               <div class="mock-attach-game-wrap">
-                <div class="attach-secret-tag">↓ Secretly a game</div>
                 <div class="mock-attach-game">
                   <canvas id="pongCanvas" width="256" height="88"></canvas>
                   <div class="pong-score"><span id="pongL">0</span> &nbsp;:&nbsp; <span id="pongR">0</span></div>
