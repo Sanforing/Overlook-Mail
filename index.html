@@ -132,7 +132,7 @@
     }
 
     /* ── Right: mock inbox preview ── */
-    .preview { position: relative; perspective: 1500px; }
+    .preview { position: relative; perspective: 1500px; padding-top: 32px; }
     .mock-window {
       background: #fff;
       border-radius: 10px;
@@ -213,20 +213,35 @@
       margin-bottom: 12px;
     }
     .mock-jargon em { font-style: italic; color: #0078d4; }
+
+    /* Top caption — subtle text label above the mock window */
     .secret-tag {
       position: absolute;
-      top: -12px; right: -8px;
+      top: -28px; left: 0; right: 0;
+      text-align: center;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px; font-weight: 400;
+      letter-spacing: 0.2px;
+      pointer-events: none;
+    }
+
+    /* "Secretly a game" pill on the attachment */
+    .mock-attach-game-wrap { position: relative; }
+    .attach-secret-tag {
+      position: absolute;
+      top: -14px; right: -6px;
       background: #f5b400; color: #1a1a1a;
-      padding: 8px 16px; border-radius: 999px;
-      font-size: 13px; font-weight: 700;
-      transform: rotate(8deg);
-      box-shadow: 0 6px 16px rgba(245,180,0,0.45);
-      z-index: 2;
+      padding: 5px 13px; border-radius: 999px;
+      font-size: 11px; font-weight: 700;
+      transform: rotate(5deg);
+      box-shadow: 0 4px 12px rgba(245,180,0,0.5);
+      z-index: 3;
+      white-space: nowrap;
       animation: wiggle 3s ease-in-out infinite;
     }
     @keyframes wiggle {
-      0%,100% { transform: rotate(8deg); }
-      50% { transform: rotate(4deg) translateY(-3px); }
+      0%,100% { transform: rotate(5deg); }
+      50% { transform: rotate(2deg) translateY(-2px); }
     }
 
     /* ===== Footer ===== */
@@ -312,7 +327,7 @@
 
     <!-- RIGHT: Mock inbox -->
     <section class="preview">
-      <div class="secret-tag">↓ Secretly a game</div>
+      <div class="secret-tag">A boring ordinary email box at first sight.</div>
       <div class="mock-window">
         <div class="mock-bar">
           <div class="mock-dot r"></div>
@@ -357,9 +372,12 @@
             </div>
             <div class="mock-attach">
               <div class="mock-attach-title">📎 maintenance_log.doc</div>
-              <div class="mock-attach-game">
-                <canvas id="pongCanvas" width="256" height="88"></canvas>
-                <div class="pong-score"><span id="pongL">0</span> &nbsp;:&nbsp; <span id="pongR">0</span></div>
+              <div class="mock-attach-game-wrap">
+                <div class="attach-secret-tag">↓ Secretly a game</div>
+                <div class="mock-attach-game">
+                  <canvas id="pongCanvas" width="256" height="88"></canvas>
+                  <div class="pong-score"><span id="pongL">0</span> &nbsp;:&nbsp; <span id="pongR">0</span></div>
+                </div>
               </div>
             </div>
           </div>

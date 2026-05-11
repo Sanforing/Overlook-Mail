@@ -148,9 +148,11 @@ class RemoteBackend {
 
   // ---- saves ----
   async saveState(mailId, data) {
+    if (!this._user) return null; // no-op when not signed in
     return this._req(`/api/saves/${encodeURIComponent(mailId)}`, { method: 'PUT', body: data });
   }
   async loadState(mailId) {
+    if (!this._user) return null; // skip 401 noise when guest
     try { return await this._req(`/api/saves/${encodeURIComponent(mailId)}`); }
     catch { return null; }
   }

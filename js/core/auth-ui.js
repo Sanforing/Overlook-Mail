@@ -51,7 +51,7 @@ export function showAuth(state, { onSignedIn } = {}) {
         }
         const u = mode === 'login'
           ? await state.backend.login({ email: email.value.trim(), password: pass.value })
-          : await state.backend.register({ email: email.value.trim(), password: pass.value, displayName: name.value.trim(), tier: tier.value });
+          : await state.backend.register({ email: email.value.trim(), password: pass.value, displayName: name.value.trim(), tier: tier?.value ?? 'free' });
         if (mode === 'register') {
           // Mark this user as needing the tutorial (consumed by onSignedIn caller).
           u.__justRegistered = true;
