@@ -184,8 +184,10 @@
     .mock-reader-sub { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
     .mock-reader-meta { font-size: 10px; color: #888; margin-bottom: 12px; }
     .mock-attach {
+      display: inline-block; /* shrink to content */
       border: 1px solid #d8e4ee; border-radius: 6px;
       padding: 10px; background: #f8fcff;
+      width: 280px; /* compact card, not full-width */
     }
     .mock-attach-title {
       font-size: 11px; font-weight: 600; color: #0078d4; margin-bottom: 6px;
@@ -198,7 +200,7 @@
     }
     .mock-attach-game canvas {
       display: block;
-      width: 50%; height: 100%;
+      width: 100%; height: 100%; /* fill the fixed-width card */
       image-rendering: pixelated;
     }
     .pong-score {
@@ -226,7 +228,7 @@
     }
 
     /* "Secretly a game" pill on the attachment */
-    .mock-attach-game-wrap { position: relative; }
+    .mock-attach-game-wrap { position: relative; width: 100%; }
     .attach-secret-tag {
       position: absolute;
       top: -14px; right: -6px;
