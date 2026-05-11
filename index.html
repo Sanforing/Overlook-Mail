@@ -288,8 +288,8 @@
       Overlook Mail
     </div>
     <div class="nav-actions">
-      <span class="nav-honest" onclick="document.getElementById('honestModal').classList.add('show')" data-zh="⚠ 誠實呆呢">
-        ⚠ Honest talk
+      <span class="nav-honest" onclick="document.getElementById('honestModal').classList.add('show')" data-zh="關於我們">
+        About
       </span>
     </div>
   </nav>
@@ -297,8 +297,8 @@
   <main>
     <!-- LEFT: Pitch -->
     <section class="pitch">
-      <h1 data-zh="看似在忙。<br/>其實在玩。">Look busy.<br/>Actually be playing.</h1>
-      <p class="punch" data-zh="一個陰地裡是遊樂場的電子信箱。你點開的每一封「郵件」，可能是一本小說、一款遊戲、或一段 YouTube 影片——外表看起來却<strong>完全</strong>像公司郵箱。你還可以帶上自己的 ROM，載入最愛的復古經典，在上司總以為你在檢視 Q3 報告的時候，光明正大地攻略地下城。">
+      <h1 data-zh="看似在忙，<br/>其實在玩。">Look busy.<br/>Actually be playing.</h1>
+      <p class="punch" data-zh="表面是個電子信箱，暗地裡是遊樂場。你點開的每一封「郵件」，都是精心偽裝的一本小說、一款遊戲、或一段 YouTube 影片——外表看起來卻完全像一個普通郵箱。我們還有模擬器，你可以帶上自己的 ROM，在上司以為你在檢視 Q3 報告的時候，光明正大地享受上班時間。">
         An inbox that's secretly a playground. Every "email" you click is a novel,
         a game, or a YouTube video — wrapped in a UI that looks <strong>100%</strong> like
         corporate webmail. Bring your own ROMs, load up your favorite retro classics,
@@ -310,7 +310,7 @@
         <span class="chip"><span>📖</span><span data-zh="小說">Novels</span></span>
         <span class="chip"><span>🎮</span><span data-zh="遊戲">Games</span></span>
         <span class="chip"><span>📺</span><span>YouTube</span></span>
-        <span class="chip"><span>🕹</span><span data-zh="復古 ROM">Retro ROMs</span></span>
+        <span class="chip"><span>🕹</span><span data-zh="模擬器 ROM">Emulator ROMs</span></span>
       </div>
 
       <div class="cta-row">
@@ -383,21 +383,23 @@
   </main>
 
   <footer>
-    <span data-zh="永久免費 · 獨立作品">Free forever · Independent project</span> ·
-    <a onclick="document.getElementById('honestModal').classList.add('show')" data-zh="誠實呆呢">Honest talk</a>
+    <span data-zh="© 2026 Playwithspect · 保留所有權利">© 2026 Playwithspect · All rights reserved</span> ·
+    <a onclick="document.getElementById('honestModal').classList.add('show')" data-zh="關於我們">About</a>
   </footer>
 
-  <!-- Honest talk modal -->
+  <!-- About / contact modal -->
   <div class="modal-bg" id="honestModal" onclick="if(event.target===this)this.classList.remove('show')">
     <div class="modal">
-      <h2 data-zh="⚠ 誠實呆呢">⚠ Honest talk</h2>
+      <h2 data-zh="關於我們">About</h2>
       <h3 data-zh="這個網站是什麼">What this is</h3>
       <p data-zh="一個以娛樂及教育用途為主的網頁應用。收件匣裡的每一封「郵件」，其實都是一個小型瀏覽器應用、小說、影片或遊戲。純粋為了好玩。">A parody/educational web app. Every "email" in the inbox is actually a small browser app, novel, video, or game. Made for fun.</p>
       <h3 data-zh="這個網站不是什麼">What this is not</h3>
       <p data-zh="這<strong>不是</strong>真正的電子郵件服務 — 你無法寄出或收到實際郵件。並非任何售產品，與任何電子郵件服務商並無關聯。">This is <strong>not</strong> a real email service — you can't send or receive actual mail. This is an independent project and is not affiliated with, endorsed by, or connected to any commercial email provider.</p>
       <h3 data-zh="請負責任地使用">Use it responsibly</h3>
       <p data-zh="請勿上傳非法或你不擁有的版權內容。任何你標記為「公開」的內容都可被其他使用者看見。我們保留移除違規內容的權利。">Don't upload illegal or copyrighted content you don't own. Anything you mark "Public" can be seen by other users. We may remove content that breaks these rules.</p>
-      <button class="modal-close" onclick="document.getElementById('honestModal').classList.remove('show')" data-zh="收到">Got it</button>
+      <h3 data-zh="聯絡我們">Contact us</h3>
+      <p data-zh="查詢、廣告或合作事宜，請電郵 <a href=&quot;mailto:sanforing@playwithspect.com&quot;>sanforing@playwithspect.com</a>">For any enquiry, advertising, or cooperation, please email <a href="mailto:sanforing@playwithspect.com">sanforing@playwithspect.com</a>.</p>
+      <button class="modal-close" onclick="document.getElementById('honestModal').classList.remove('show')" data-zh="關閉">Close</button>
     </div>
   </div>
 
@@ -408,6 +410,13 @@
       const langs = (navigator.languages && navigator.languages.length)
         ? navigator.languages : [navigator.language || 'en'];
       const isZh = langs.some(l => /^zh\b/i.test(l));
+      // Persist for the inbox app (i18n.js reads __i18n_lang on load) so the
+      // detected language carries over when the user enters /app.
+      try {
+        if (!localStorage.getItem('__i18n_lang')) {
+          localStorage.setItem('__i18n_lang', isZh ? 'cht' : 'en');
+        }
+      } catch {}
       if (!isZh) return;
       document.documentElement.lang = 'zh-Hant';
       document.title = 'Overlook Mail — 看似在忙，其實在玩';
