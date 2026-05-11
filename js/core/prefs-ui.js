@@ -1,5 +1,5 @@
 import { applyThemeVars } from './utils.js';
-import { setLang } from './i18n.js';
+import { setLang, getLang } from './i18n.js';
 
 const LS_PREFS_KEY = 'stealthbox:prefs';
 
@@ -51,7 +51,9 @@ export function defaultPrefsFromSettings(settings) {
     brand: settings.topbar?.brand || settings.appName || 'Overlook Mail',
     searchPlaceholder: settings.topbar?.searchPlaceholder || 'Search',
     recipientName: settings.user?.displayName || 'Alex Chen',
-    uiLang: 'en',
+    // Inherit the language already detected by i18n.js (which reads
+    // localStorage at module load — set by landing's auto-detect script).
+    uiLang: getLang() || 'en',
     customFolders: [],
     theme: Object.assign({}, settings.theme || {}),
     display: Object.assign({ uiScale: 100, mailFontSize: 14 }, settings.display || {}),

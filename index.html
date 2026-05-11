@@ -264,6 +264,40 @@
     .modal h2 { font-size: 22px; margin-bottom: 16px; }
     .modal h3 { font-size: 14px; margin-top: 16px; margin-bottom: 6px; color: #0078d4; }
     .modal p { font-size: 14px; line-height: 1.6; color: #444; }
+
+    /* Contact card — stands apart from the about-list above */
+    .contact-card {
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(0,120,212,0.08) 0%, rgba(245,180,0,0.10) 100%);
+      border: 1px solid rgba(0,120,212,0.15);
+      text-align: center;
+    }
+    .contact-card .contact-title {
+      font-size: 13px; font-weight: 700; color: #0078d4;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      margin-bottom: 6px;
+    }
+    .contact-card .contact-lead {
+      font-size: 13px; color: #555; margin-bottom: 14px; line-height: 1.5;
+    }
+    .contact-email-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border-radius: 999px;
+      background: #fff; color: #0078d4;
+      font-weight: 600; font-size: 14px;
+      text-decoration: none;
+      border: 1px solid rgba(0,120,212,0.25);
+      box-shadow: 0 2px 8px rgba(0,30,80,0.08);
+      transition: transform .12s, box-shadow .12s, background .12s;
+    }
+    .contact-email-btn:hover {
+      transform: translateY(-1px);
+      background: #0078d4; color: #fff;
+      box-shadow: 0 6px 18px rgba(0,120,212,0.35);
+      text-decoration: none;
+    }
     .modal-close {
       margin-top: 20px; padding: 10px 24px; background: #0078d4;
       color: #fff; border: none; border-radius: 4px; cursor: pointer;
@@ -397,8 +431,14 @@
       <p data-zh="這<strong>不是</strong>真正的電子郵件服務 — 你無法寄出或收到實際郵件。並非任何售產品，與任何電子郵件服務商並無關聯。">This is <strong>not</strong> a real email service — you can't send or receive actual mail. This is an independent project and is not affiliated with, endorsed by, or connected to any commercial email provider.</p>
       <h3 data-zh="請負責任地使用">Use it responsibly</h3>
       <p data-zh="請勿上傳非法或你不擁有的版權內容。任何你標記為「公開」的內容都可被其他使用者看見。我們保留移除違規內容的權利。">Don't upload illegal or copyrighted content you don't own. Anything you mark "Public" can be seen by other users. We may remove content that breaks these rules.</p>
-      <h3 data-zh="聯絡我們">Contact us</h3>
-      <p data-zh="查詢、廣告或合作事宜，請電郵 <a href=&quot;mailto:sanforing@playwithspect.com&quot;>sanforing@playwithspect.com</a>">For any enquiry, advertising, or cooperation, please email <a href="mailto:sanforing@playwithspect.com">sanforing@playwithspect.com</a>.</p>
+      <div class="contact-card">
+        <div class="contact-title" data-zh="聯絡我們">Contact us</div>
+        <div class="contact-lead" data-zh="查詢、廣告或合作事宜，歡迎來信。">For any enquiry, advertising, or cooperation — we'd love to hear from you.</div>
+        <a class="contact-email-btn" href="mailto:sanforing@playwithspect.com">
+          <span>✉</span>
+          <span>sanforing@playwithspect.com</span>
+        </a>
+      </div>
       <button class="modal-close" onclick="document.getElementById('honestModal').classList.remove('show')" data-zh="關閉">Close</button>
     </div>
   </div>
