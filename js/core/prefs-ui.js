@@ -48,7 +48,7 @@ export function applyUserPrefs(state, prefs) {
 
 export function defaultPrefsFromSettings(settings) {
   return {
-    brand: settings.topbar?.brand || settings.appName || 'Outlook',
+    brand: settings.topbar?.brand || settings.appName || 'Overlook Mail',
     searchPlaceholder: settings.topbar?.searchPlaceholder || 'Search',
     recipientName: settings.user?.displayName || 'Alex Chen',
     uiLang: 'en',

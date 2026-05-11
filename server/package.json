@@ -2,7 +2,7 @@
   "name": "stealthbox-server",
   "version": "1.0.0",
   "private": true,
-  "description": "Backend for StealthBox: Outlook-disguised browser apps platform.",
+  "description": "Backend for Overlook Mail: a webmail-disguised browser apps platform.",
   "type": "module",
   "engines": { "node": ">=18.17" },
   "scripts": {

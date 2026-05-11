@@ -1,6 +1,6 @@
-# Overlook Mail — Outlook-disguised Browser Apps Platform
+# Overlook Mail — Webmail-disguised Browser Apps Platform
 
-Looks 100% like Microsoft Outlook on the web. Each "email" in the inbox is
+Looks 100% like a corporate webmail client. Each "email" in the inbox is
 actually a game, novel chapter, or any embedded web app. Built with vanilla
 JS + a single CSS file + Split.js + EmulatorJS (both via CDN). Zero build
 step.
@@ -129,7 +129,7 @@ subject / preview / sender.
   No on-screen indicator gives it away. Press the combo again to restore.
 - **Auto-mute** — `<audio>`/`<video>` and `AudioContext` gain are muted by
   default. Toggle with `Alt+M`.
-- **Fake loading** — iframe and emulator apps open behind a faux Outlook
+- **Fake loading** — iframe and emulator apps open behind a faux webmail
   "Downloading attachment…" spinner.
 - **Scroll-to-play** — every email opens with a real-looking greeting +
   filler paragraphs + signature *above* the embedded app, mounted inside

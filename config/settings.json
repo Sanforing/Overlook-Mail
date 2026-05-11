@@ -1,5 +1,5 @@
 {
-  "appName": "Outlook",
+  "appName": "Overlook Mail",
   "user": {
     "displayName": "Your Name",
     "email": "user@example.com",
@@ -7,7 +7,7 @@
     "company": "Your Company"
   },
   "topbar": {
-    "brand": "Outlook",
+    "brand": "Overlook Mail",
     "searchPlaceholder": "Search"
   },
   "display": {

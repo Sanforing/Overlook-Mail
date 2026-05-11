@@ -7,7 +7,7 @@ import { el, getLeaderboard, addScore } from '../../js/core/utils.js';
  *   • Local 2P — left = W/S, right = ↑/↓.
  *
  * Tracks high scores per mode in the shared leaderboard. Visuals match the
- * Outlook theme (white background, blue accents) so the game still reads as
+ * Overlook Mail theme (white background, blue accents) so the game still reads as
  * an attached document preview at a glance.
  */
 export default class PongApp extends StealthAppBase {

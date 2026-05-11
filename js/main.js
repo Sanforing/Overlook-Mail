@@ -18,7 +18,7 @@ async function bootstrap() {
   ]);
 
   applyThemeVars(settings.theme);
-  document.title = settings.appName || 'Outlook';
+  document.title = settings.appName || 'Overlook Mail';
 
   const backend = createBackend(settings);
   const user = await backend.currentUser();

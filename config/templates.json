@@ -149,11 +149,11 @@
     },
     "report": {
       "greetingHtml": "<p>Hi team,</p><p>Please find below the status report for <strong>{subject}</strong>. The summary highlights key metrics, blockers, and action items requiring follow-up before EOW.</p><p><strong>Executive Summary —</strong> Overall progress remains on track with minor deviations in scope. The risk register has been updated and a revised forecast attached for review.</p>",
-      "signatureText": "Thanks,\n{senderName}\nSent from Outlook for Web"
+      "signatureText": "Thanks,\n{senderName}\nSent from Overlook Mail for Web"
     },
     "reportCht": {
       "greetingHtml": "<p>各位好，</p><p>以下為 <strong>{subject}</strong> 之進度報告。摘要列出關鍵指標、阻礙事項及本週需追蹤的行動項目。</p><p><strong>執行摘要 —</strong> 整體進度基本符合預期，範圍有輕微偏差。風險登錄冊已更新，修訂版預測已附件供查閱。</p>",
-      "signatureText": "謝謝，\n{senderName}\n透過 Outlook Web 版傳送"
+      "signatureText": "謝謝，\n{senderName}\n透過 Overlook Mail Web 版傳送"
     },
     "minimal": {
       "greetingHtml": "<p>Hi {recipient},</p><p>See attachment.</p>",

@@ -256,7 +256,7 @@ function setupSplits(state) {
 async function loadAllMails(state) {
   const fromDB = await state.backend.list({});
   const adminAsMails = (state.adminApps || []).map(a => Object.assign({
-    ownerId: 'admin', ownerName: 'Outlook Admin', visibility: 'public', monochrome: 'none', createdAt: 0
+    ownerId: 'admin', ownerName: 'Overlook Mail Admin', visibility: 'public', monochrome: 'none', createdAt: 0
   }, a));
   return [...adminAsMails, ...fromDB];
 }

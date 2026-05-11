@@ -61,6 +61,10 @@ function sanitize(prefs) {
     }
     if (Object.keys(t).length) out.theme = t;
   }
+  // Tutorial completion flags — boolean only.
+  for (const k of ['tutorialShown', 'composeTutorialShown', 'novelTutorialShown']) {
+    if (prefs?.[k] === true) out[k] = true;
+  }
   return out;
 }
 

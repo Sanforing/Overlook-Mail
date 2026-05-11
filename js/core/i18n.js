@@ -94,7 +94,7 @@ const LOCALES = {
     monoNone:            'None',
     monoGray:            'Greyscale',
     monoSepia:           'Sepia (paper)',
-    monoBlue:            'Outlook blue tint',
+    monoBlue:            'Overlook Mail blue tint',
     monoGreen:           'Old terminal green',
     fieldPasteText:      'Paste text',
     placeholderNovel:    'Paste novel/article text here…',
@@ -114,7 +114,7 @@ const LOCALES = {
     errNoRom:            'Pick a ROM file.',
 
     /* ── Auth modal ── */
-    authTitle:           'Outlook account',
+    authTitle:           'Overlook Mail account',
     tabSignIn:           'Sign in',
     tabCreateAccount:    'Create account',
     authOr:              'or',
@@ -183,7 +183,7 @@ const LOCALES = {
 
     /* ── Disclaimer + tutorial ── */
     disclaimerTitle:           'Welcome — please read first',
-    disclaimerBody:            'This is a parody Outlook-style web app. It is NOT a real Microsoft product and is not affiliated with Microsoft in any way. By creating an account you agree that:\n\n• You will not upload illegal, harmful, or copyrighted content you do not own.\n• Any URL you embed (and any mail marked Public) is publicly visible to other users; you are solely responsible for what you share.\n• Your data is stored securely on our servers. You may delete your account and all associated data at any time.\n• You will respect other users — no harassment, spam, or abuse.',
+    disclaimerBody:            'This is a parody webmail-style web app. It is an independent project and is NOT affiliated with any commercial email provider. By creating an account you agree that:\n\n• You will not upload illegal, harmful, or copyrighted content you do not own.\n• Any URL you embed (and any mail marked Public) is publicly visible to other users; you are solely responsible for what you share.\n• Your data is stored securely on our servers. You may delete your account and all associated data at any time.\n• You will respect other users — no harassment, spam, or abuse.',
     disclaimerAgree:           'I have read and agree',
     disclaimerDecline:         'Cancel',
     tutorialNext:              'Next',
@@ -306,7 +306,7 @@ const LOCALES = {
     monoNone:            '無',
     monoGray:            '灰階',
     monoSepia:           '復古棕（紙張）',
-    monoBlue:            'Outlook 藍色調',
+    monoBlue:            'Overlook Mail 藍色調',
     monoGreen:           '舊終端機綠',
     fieldPasteText:      '貼上文字',
     placeholderNovel:    '在此貼上小說／文章文字…',
@@ -326,7 +326,7 @@ const LOCALES = {
     errNoRom:            '請選擇 ROM 檔案。',
 
     /* ── Auth modal ── */
-    authTitle:           'Outlook 帳戶',
+    authTitle:           'Overlook Mail 帳戶',
     tabSignIn:           '登入',
     tabCreateAccount:    '建立帳戶',
     authOr:              '或',
@@ -395,7 +395,7 @@ const LOCALES = {
 
     /* ── Disclaimer + tutorial ── */
     disclaimerTitle:           '歡迎 — 請先閱讀',
-    disclaimerBody:            '這是一個模仿性質的 Outlook 風格網頁應用，並非真正的 Microsoft 產品，也與 Microsoft 完全無關。建立帳戶即表示你同意：\n\n• 不會上傳違法、有害或非自有的版權內容。\n• 任何嵌入的網址（以及任何標記為「公開」的郵件）會被其他使用者看到；你需獨自為分享內容負責。\n• 你的資料安全地儲存在我們的伺服器上。你可以隨時刪除帳戶及所有相關資料。\n• 尊重其他使用者 — 不騷擾、不發垃圾訊息、不濫用。',
+    disclaimerBody:            '這是一個仿微模擬網頁電郵的網頁應用，為獨立作品，與任何商業電郵服務商並無關聯。建立帳戶即表示你同意：\n\n• 不會上傳違法、有害或非自有的版權內容。\n• 任何嵌入的網址（以及任何標記為「公開」的郵件）會被其他使用者看到；你需獨自為分享內容負責。\n• 你的資料安全地儲存在我們的伺服器上。你可以隨時刪除帳戶及所有相關資料。\n• 尊重其他使用者 — 不騷擾、不發垃圾訊息、不濫用。',
     disclaimerAgree:           '我已閱讀並同意',
     disclaimerDecline:         '取消',
     tutorialNext:              '下一步',

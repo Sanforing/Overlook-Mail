@@ -44,7 +44,7 @@
         "lives": 3
       },
       "ownerId": "admin",
-      "ownerName": "Outlook Admin",
+      "ownerName": "Overlook Mail Admin",
       "visibility": "public",
       "monochrome": "none"
     },
@@ -66,7 +66,7 @@
       "template": "default",
       "config": { "maxScore": 7 },
       "ownerId": "admin",
-      "ownerName": "Outlook Admin",
+      "ownerName": "Overlook Mail Admin",
       "visibility": "public",
       "monochrome": "none"
     },
@@ -88,7 +88,7 @@
       "template": "report",
       "config": {},
       "ownerId": "admin",
-      "ownerName": "Outlook Admin",
+      "ownerName": "Overlook Mail Admin",
       "visibility": "public",
       "monochrome": "none"
     },
@@ -110,7 +110,7 @@
       "template": "default",
       "config": { "length": 5, "tries": 6 },
       "ownerId": "admin",
-      "ownerName": "Outlook Admin",
+      "ownerName": "Overlook Mail Admin",
       "visibility": "public",
       "monochrome": "none"
     },
@@ -132,7 +132,7 @@
       "template": "default",
       "config": {},
       "ownerId": "admin",
-      "ownerName": "Outlook Admin",
+      "ownerName": "Overlook Mail Admin",
       "visibility": "public",
       "monochrome": "none"
     },
@@ -154,7 +154,7 @@
       "template": "report",
       "config": {},
       "ownerId": "admin",
-      "ownerName": "Outlook Admin",
+      "ownerName": "Overlook Mail Admin",
       "visibility": "public",
       "monochrome": "none"
     }

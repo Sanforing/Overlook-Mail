@@ -1,7 +1,7 @@
 import { randInt } from './utils.js';
 
 /**
- * Show an Outlook-style "Downloading attachment…" overlay for a brief
+ * Show a webmail-style "Downloading attachment…" overlay for a brief
  * randomized period. Configured via settings.fakeLoading.
  */
 export function withFakeLoading(settings, app, fn) {
