@@ -412,10 +412,10 @@
       const isZh = langs.some(l => /^zh\b/i.test(l));
       // Persist for the inbox app (i18n.js reads __i18n_lang on load) so the
       // detected language carries over when the user enters /app.
+      // Always overwrite — the landing page is the authoritative source for
+      // browser-detected language. Users can still override inside the app.
       try {
-        if (!localStorage.getItem('__i18n_lang')) {
-          localStorage.setItem('__i18n_lang', isZh ? 'cht' : 'en');
-        }
+        localStorage.setItem('__i18n_lang', isZh ? 'cht' : 'en');
       } catch {}
       if (!isZh) return;
       document.documentElement.lang = 'zh-Hant';
