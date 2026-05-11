@@ -23,7 +23,7 @@ export function showAuth(state, { onSignedIn } = {}) {
 
   function form() {
     const wrap = el('form', { class: 'auth-form' });
-    const email = input({ type: 'email', placeholder: 'name@contoso.com', required: true });
+    const email = input({ type: 'email', placeholder: 'name@example.com', required: true });
     const pass  = input({ type: 'password', placeholder: t('fieldPassword'), required: true, minlength: '4' });
     const name  = mode === 'register' ? input({ type: 'text', placeholder: t('fieldDisplayName'), required: true }) : null;
     const isLocalDev = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);

@@ -81,7 +81,7 @@
         "title": "Operations Coordinator",
         "company": "Contoso Ltd."
       },
-      "recipient": "Alex Chen",
+      "recipient": "You",
       "subject": "Container stacking optimisation — interactive worksheet (Q3)",
       "preview": "Attached please find the latest stacking optimisation worksheet. Manual review encouraged before the warehouse audit...",
       "date": "Wed 9:18 AM",
@@ -125,7 +125,7 @@
         "title": "Network Engineer",
         "company": "Contoso Ltd."
       },
-      "recipient": "Alex Chen",
+      "recipient": "You",
       "subject": "Packet routing simulation — interactive trace attached",
       "preview": "Please review the attached packet trace simulation and confirm the path resolves correctly across nodes...",
       "date": "Tue 3:21 PM",
@@ -147,7 +147,7 @@
         "title": "Procurement Analyst",
         "company": "Contoso Ltd."
       },
-      "recipient": "Alex Chen",
+      "recipient": "You",
       "subject": "Vendor consolidation matrix — please review tile assignments",
       "preview": "Attached is the consolidation matrix for upcoming vendor reviews. Please drag tiles to merge duplicate entries...",
       "date": "Tue 1:07 PM",

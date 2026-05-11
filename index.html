@@ -191,15 +191,27 @@
       font-size: 11px; font-weight: 600; color: #0078d4; margin-bottom: 6px;
     }
     .mock-attach-game {
-      height: 130px; background: #1a1a2e; border-radius: 4px;
-      display: grid; place-items: center;
-      color: #ffeb3b; font-family: monospace; font-size: 22px;
-      letter-spacing: 3px;
-      box-shadow: inset 0 0 30px rgba(0,200,255,0.25);
+      height: 130px; background: #0d1018; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: inset 0 0 30px rgba(0,200,255,0.18);
       position: relative; overflow: hidden;
     }
-    .pac { animation: chomp 0.5s infinite; }
-    @keyframes chomp { 50% { transform: scaleX(-1); } }
+    .mock-attach-game canvas {
+      display: block; width: 100%; height: 100%;
+      image-rendering: pixelated;
+    }
+    .pong-score {
+      position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+      color: #fff; font-family: 'SF Mono', Consolas, monospace;
+      font-size: 14px; letter-spacing: 4px; opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .mock-jargon {
+      font-size: 11px; line-height: 1.5; color: #444;
+      margin-bottom: 12px;
+    }
+    .mock-jargon em { font-style: italic; color: #0078d4; }
     .secret-tag {
       position: absolute;
       top: -12px; right: -8px;
@@ -305,7 +317,7 @@
           <div class="mock-dot r"></div>
           <div class="mock-dot y"></div>
           <div class="mock-dot g"></div>
-          <div class="mock-url">🔒 outlook.office.com/mail/inbox</div>
+          <div class="mock-url">🔒 overlookmail.site/</div>
         </div>
         <div class="mock-app">
           <div class="mock-side">
@@ -334,11 +346,19 @@
           </div>
           <div class="mock-reader">
             <div class="mock-reader-sub">FW: System maintenance — please action</div>
-            <div class="mock-reader-meta">it-support@contoso.com · 9:42 AM</div>
+            <div class="mock-reader-meta">it-support@playwithspect.com · 9:42 AM</div>
+            <div class="mock-jargon">
+              Hi team,<br/><br/>
+              Per our quarterly cadence, please <em>circle back</em> on the deliverables outlined in the
+              attached log to ensure alignment with stakeholder bandwidth. Synergies across workstreams
+              should be leveraged to optimize EOD throughput.<br/><br/>
+              Action items have been pre-loaded — kindly confirm receipt.
+            </div>
             <div class="mock-attach">
               <div class="mock-attach-title">📎 maintenance_log.exe</div>
               <div class="mock-attach-game">
-                <span>● ● ●&nbsp;<span class="pac">ᗧ</span>···· ᗣ</span>
+                <canvas id="pongCanvas" width="320" height="120"></canvas>
+                <div class="pong-score"><span id="pongL">0</span> &nbsp;:&nbsp; <span id="pongR">0</span></div>
               </div>
             </div>
           </div>
@@ -365,6 +385,95 @@
       <button class="modal-close" onclick="document.getElementById('honestModal').classList.remove('show')">Got it</button>
     </div>
   </div>
+
+  <!-- Pong AI vs AI demo for the mock attachment -->
+  <script>
+    (function pongDemo() {
+      const cv = document.getElementById('pongCanvas');
+      if (!cv) return;
+      const ctx = cv.getContext('2d');
+      const W = cv.width, H = cv.height;
+      const PADDLE_W = 4, PADDLE_H = 26;
+      const scoreL = document.getElementById('pongL');
+      const scoreR = document.getElementById('pongR');
+
+      const state = {
+        ball: { x: W/2, y: H/2, vx: 1.6, vy: 1.0, r: 3 },
+        left:  { y: H/2 - PADDLE_H/2, speed: 1.4 },
+        right: { y: H/2 - PADDLE_H/2, speed: 1.5 },
+        scoreL: 0, scoreR: 0
+      };
+
+      function reset(dir) {
+        state.ball.x = W/2; state.ball.y = H/2;
+        state.ball.vx = (dir || (Math.random() < 0.5 ? -1 : 1)) * 1.6;
+        state.ball.vy = (Math.random() * 1.6 - 0.8);
+      }
+
+      // Tiny imperfection so the AIs don't play forever
+      function aiMove(p, ballY) {
+        const center = p.y + PADDLE_H / 2;
+        const target = ballY + (Math.random() - 0.5) * 8;
+        if (target < center - 1) p.y -= p.speed;
+        else if (target > center + 1) p.y += p.speed;
+        p.y = Math.max(2, Math.min(H - PADDLE_H - 2, p.y));
+      }
+
+      function tick() {
+        const b = state.ball;
+        b.x += b.vx; b.y += b.vy;
+
+        if (b.y < b.r || b.y > H - b.r) { b.vy *= -1; b.y = Math.max(b.r, Math.min(H - b.r, b.y)); }
+
+        // Left paddle (column ~10)
+        if (b.x - b.r < 14 && b.y > state.left.y && b.y < state.left.y + PADDLE_H && b.vx < 0) {
+          b.vx = Math.abs(b.vx) * 1.03;
+          b.vy += ((b.y - (state.left.y + PADDLE_H/2)) / PADDLE_H) * 1.2;
+        }
+        // Right paddle (column ~W-14)
+        if (b.x + b.r > W - 14 && b.y > state.right.y && b.y < state.right.y + PADDLE_H && b.vx > 0) {
+          b.vx = -Math.abs(b.vx) * 1.03;
+          b.vy += ((b.y - (state.right.y + PADDLE_H/2)) / PADDLE_H) * 1.2;
+        }
+        // Cap speed
+        b.vx = Math.max(-3.2, Math.min(3.2, b.vx));
+        b.vy = Math.max(-2.4, Math.min(2.4, b.vy));
+
+        // Score
+        if (b.x < -10) { state.scoreR++; scoreR.textContent = state.scoreR; reset(1); }
+        else if (b.x > W + 10) { state.scoreL++; scoreL.textContent = state.scoreL; reset(-1); }
+
+        aiMove(state.left,  b.y);
+        aiMove(state.right, b.y);
+
+        draw();
+        requestAnimationFrame(tick);
+      }
+
+      function draw() {
+        ctx.fillStyle = '#0d1018';
+        ctx.fillRect(0, 0, W, H);
+
+        // Centre dashed line
+        ctx.fillStyle = 'rgba(255,255,255,0.18)';
+        for (let y = 4; y < H; y += 10) ctx.fillRect(W/2 - 1, y, 2, 5);
+
+        // Paddles
+        ctx.fillStyle = '#50b4ff';
+        ctx.fillRect(10, state.left.y, PADDLE_W, PADDLE_H);
+        ctx.fillStyle = '#ff7a59';
+        ctx.fillRect(W - 10 - PADDLE_W, state.right.y, PADDLE_W, PADDLE_H);
+
+        // Ball
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(state.ball.x, state.ball.y, state.ball.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      tick();
+    })();
+  </script>
 
 </body>
 </html>

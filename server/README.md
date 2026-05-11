@@ -1,7 +1,7 @@
-# StealthBox Backend
+# Overlook Mail Backend
 
 A small, self-contained Node.js + Fastify + SQLite server that stores users,
-mails, files, game saves and per-user UI preferences for the StealthBox
+mails, files, game saves and per-user UI preferences for the Overlook Mail
 front-end. Designed to run on a single VPS with no external services beyond
 optional OAuth providers.
 
@@ -130,7 +130,7 @@ Create `/etc/systemd/system/stealthbox.service`:
 
 ```ini
 [Unit]
-Description=StealthBox backend
+Description=Overlook Mail backend
 After=network.target
 
 [Service]

@@ -66,8 +66,13 @@ export const config = {
   },
   allowRegistration: bool(env.ALLOW_REGISTRATION, true),
   defaultTier: env.DEFAULT_TIER || 'free',
+  adminEmails: list(env.ADMIN_EMAILS),
   isProd: env.NODE_ENV === 'production'
 };
+
+if (config.isProd && !env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET must be set in production');
+}
 
 export function providerEnabled(name) {
   if (name === 'google')   return !!(config.google.clientId && config.google.clientSecret);

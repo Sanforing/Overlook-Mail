@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Overlook Mail — Admin</title>
+<style>
+  :root {
+    --primary: #0078d4;
+    --primary-dark: #106ebe;
+    --background: #faf9f8;
+    --panel: #ffffff;
+    --border: #edebe9;
+    --text-primary: #201f1e;
+    --text-secondary: #605e5c;
+    --hover: #f3f2f1;
+    --selected: #deecf9;
+    --danger: #a4262c;
+    --danger-bg: #fde7e9;
+    --warn: #b88817;
+    --ok: #107c10;
+    --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: var(--font); color: var(--text-primary); background: var(--background); font-size: 14px; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  a { color: var(--primary); }
+
+  /* ── Layout ── */
+  .shell { display: grid; grid-template-rows: 48px 1fr; height: 100vh; }
+  .topbar {
+    background: var(--primary); color: #fff;
+    display: flex; align-items: center; padding: 0 16px; gap: 14px;
+    box-shadow: 0 1px 0 rgba(0,0,0,.1);
+  }
+  .topbar .brand {
+    font-weight: 600; font-size: 15px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .topbar .brand .dot {
+    width: 22px; height: 22px; border-radius: 4px; background: #fff; color: var(--primary);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .topbar .pill {
+    background: rgba(255,255,255,.18);
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: .5px; text-transform: uppercase;
+  }
+  .topbar .spacer { flex: 1; }
+  .topbar .me { font-size: 12px; opacity: .9; }
+  .topbar .me strong { font-weight: 600; }
+  .topbar .me a { color: #fff; opacity: .9; margin-left: 12px; text-decoration: underline; }
+
+  .main { display: grid; grid-template-columns: 220px 1fr; min-height: 0; }
+  .nav { background: var(--panel); border-right: 1px solid var(--border); padding: 12px 0; }
+  .nav button {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; border: 0; background: transparent;
+    padding: 10px 18px; text-align: left; font-size: 13.5px;
+    color: var(--text-primary); border-left: 3px solid transparent;
+  }
+  .nav button:hover { background: var(--hover); }
+  .nav button.active {
+    background: var(--selected); border-left-color: var(--primary);
+    color: var(--primary-dark); font-weight: 600;
+  }
+  .nav button .ic { width: 18px; opacity: .8; text-align: center; }
+  .nav .nav-section { padding: 14px 18px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--text-secondary); }
+
+  .content { overflow: auto; padding: 24px 28px; }
+  .page-title {
+    display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px;
+  }
+  .page-title h1 { font-size: 22px; font-weight: 600; margin: 0; }
+  .page-title .sub { color: var(--text-secondary); font-size: 13px; }
+
+  /* ── Cards ── */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+  .stat {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 4px; padding: 16px;
+  }
+  .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--text-secondary); margin-bottom: 8px; }
+  .stat .value { font-size: 28px; font-weight: 600; line-height: 1; }
+  .stat .sub { font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 4px;
+    margin-bottom: 18px;
+  }
+  .card-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-header h2 { margin: 0; font-size: 14px; font-weight: 600; }
+  .card-header .count { color: var(--text-secondary); font-size: 12px; }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    display: flex; gap: 10px; padding: 10px 16px;
+    border-bottom: 1px solid var(--border); background: #fafafa;
+    align-items: center;
+  }
+  .toolbar input[type="search"] {
+    flex: 1; height: 30px; padding: 0 10px;
+    border: 1px solid var(--border); border-radius: 2px;
+    font: inherit;
+  }
+  .toolbar input[type="search"]:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
+  .toolbar select {
+    height: 30px; padding: 0 6px;
+    border: 1px solid var(--border); border-radius: 2px; background: #fff;
+    font: inherit;
+  }
+
+  /* ── Tables ── */
+  .tbl-wrap { overflow: auto; max-height: 60vh; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    position: sticky; top: 0;
+    background: #f3f2f1; text-align: left; font-weight: 600;
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--text-secondary);
+  }
+  tbody td { padding: 8px 12px; border-bottom: 1px solid #f6f6f6; vertical-align: top; }
+  tbody tr:hover { background: var(--hover); }
+  tbody td.nowrap { white-space: nowrap; }
+  tbody td.muted { color: var(--text-secondary); font-size: 12px; }
+  tbody td .mono { font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; color: var(--text-secondary); }
+
+  /* ── Tier / visibility chips ── */
+  .chip {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 600; letter-spacing: .3px;
+    border: 1px solid transparent;
+  }
+  .chip.free  { background: #f3f2f1; color: #605e5c; }
+  .chip.paid  { background: #fff4ce; color: #8a6d00; }
+  .chip.admin { background: #deecf9; color: var(--primary-dark); }
+  .chip.public  { background: #dff6dd; color: var(--ok); }
+  .chip.private { background: #f3f2f1; color: var(--text-secondary); }
+
+  /* ── Buttons ── */
+  .btn {
+    height: 28px; padding: 0 12px;
+    border: 1px solid var(--border); background: #fff;
+    border-radius: 2px; font: inherit; line-height: 26px;
+  }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .btn.primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+  .btn.danger { color: var(--danger); border-color: #f1c1c4; }
+  .btn.danger:hover { background: var(--danger-bg); }
+  .btn.tiny { height: 24px; padding: 0 8px; font-size: 12px; line-height: 22px; }
+  .row-actions { display: inline-flex; gap: 6px; }
+  select.tier-select { height: 24px; font-size: 12px; padding: 0 4px; border: 1px solid var(--border); border-radius: 2px; background: #fff; }
+
+  /* ── Bars ── */
+  .bar-chart { display: flex; gap: 4px; align-items: flex-end; height: 80px; padding: 12px 16px 4px; }
+  .bar-chart .col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar-chart .col .bar {
+    width: 100%; background: var(--primary); border-radius: 2px 2px 0 0;
+    min-height: 2px; transition: height .3s;
+  }
+  .bar-chart .col .lbl { font-size: 9px; color: var(--text-secondary); }
+  .bar-chart .col .num { font-size: 10px; color: var(--text-primary); font-weight: 600; }
+
+  /* ── Empty / loading ── */
+  .empty, .loading {
+    padding: 40px 20px; text-align: center; color: var(--text-secondary); font-size: 13px;
+  }
+  .empty .icon { font-size: 40px; opacity: .5; margin-bottom: 12px; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #323130; color: #fff; padding: 10px 16px;
+    border-radius: 4px; font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.3);
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: var(--danger); }
+
+  /* ── Login gate ── */
+  .gate {
+    position: fixed; inset: 0; background: var(--background);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .gate .box {
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 32px; border-radius: 4px; max-width: 400px; width: 100%;
+    text-align: center;
+  }
+  .gate h2 { margin: 0 0 8px; font-size: 20px; }
+  .gate p { color: var(--text-secondary); font-size: 13px; margin: 8px 0 18px; }
+  .gate .actions { display: flex; gap: 10px; justify-content: center; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="shell" id="shell" hidden>
+  <div class="topbar">
+    <div class="brand"><span class="dot">O</span> Overlook Mail</div>
+    <span class="pill">Admin</span>
+    <div class="spacer"></div>
+    <div class="me" id="me"></div>
+  </div>
+
+  <div class="main">
+    <nav class="nav">
+      <div class="nav-section">Overview</div>
+      <button data-page="dashboard" class="active"><span class="ic">📊</span> Dashboard</button>
+      <div class="nav-section">Manage</div>
+      <button data-page="users"><span class="ic">👥</span> Users</button>
+      <button data-page="mails"><span class="ic">✉️</span> Mails</button>
+      <button data-page="files"><span class="ic">📎</span> Files</button>
+      <div class="nav-section">Tools</div>
+      <button id="refreshBtn"><span class="ic">🔄</span> Refresh</button>
+      <button onclick="location.href='/app'"><span class="ic">↩</span> Back to inbox</button>
+    </nav>
+
+    <main class="content">
+      <!-- Dashboard -->
+      <section class="page active" id="page-dashboard">
+        <div class="page-title">
+          <h1>Dashboard</h1>
+          <span class="sub">High-level activity across the platform.</span>
+        </div>
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="card">
+          <div class="card-header"><h2>Signups — last 14 days</h2></div>
+          <div class="bar-chart" id="signupChart"></div>
+        </div>
+      </section>
+
+      <!-- Users -->
+      <section class="page" id="page-users">
+        <div class="page-title">
+          <h1>Users</h1>
+          <span class="sub">Manage tier, ban, or delete user accounts.</span>
+        </div>
+        <div class="card">
+          <div class="toolbar">
+            <input type="search" id="usersSearch" placeholder="Search by name, email, or ID…" />
+            <select id="usersTierFilter">
+              <option value="">All tiers</option>
+              <option value="free">Free</option>
+              <option value="paid">Paid</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="tbl-wrap">
+            <table id="usersTable">
+              <thead><tr>
+                <th>User</th><th>Email</th><th>Tier</th><th>Joined</th><th>Actions</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mails -->
+      <section class="page" id="page-mails">
+        <div class="page-title">
+          <h1>Mails</h1>
+          <span class="sub">Browse and remove user-created mails.</span>
+        </div>
+        <div class="card">
+          <div class="toolbar">
+            <input type="search" id="mailsSearch" placeholder="Search subject, sender, owner…" />
+            <select id="mailsVizFilter">
+              <option value="">All visibilities</option>
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </select>
+            <select id="mailsTypeFilter">
+              <option value="">All types</option>
+              <option value="local">Local</option>
+              <option value="iframe">Iframe</option>
+              <option value="emulator">Emulator</option>
+            </select>
+          </div>
+          <div class="tbl-wrap">
+            <table id="mailsTable">
+              <thead><tr>
+                <th>Subject</th><th>Owner</th><th>Type</th><th>Visibility</th><th>Created</th><th>Actions</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Files -->
+      <section class="page" id="page-files">
+        <div class="page-title">
+          <h1>Files</h1>
+          <span class="sub">All uploaded files. Total storage shown above.</span>
+        </div>
+        <div class="card">
+          <div class="toolbar">
+            <input type="search" id="filesSearch" placeholder="Search filename or owner…" />
+          </div>
+          <div class="tbl-wrap">
+            <table id="filesTable">
+              <thead><tr>
+                <th>File</th><th>Owner</th><th>Type</th><th>Size</th><th>Uploaded</th><th>Actions</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Login gate -->
+<div class="gate" id="gate">
+  <div class="box">
+    <h2>Admin sign-in required</h2>
+    <p>Sign in with an account that has the <strong>admin</strong> tier to access this panel.</p>
+    <div id="gateMsg" style="color: var(--danger); font-size: 12px; margin-bottom: 12px;"></div>
+    <div class="actions">
+      <button class="btn primary" onclick="location.href='/app'">Sign in via inbox</button>
+      <button class="btn" onclick="location.reload()">Retry</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  /* ───────────────────────── State ───────────────────────── */
+  const state = {
+    me: null,
+    users: [],
+    mails: [],
+    files: [],
+    stats: null
+  };
+
+  /* ───────────────────────── HTTP helpers ───────────────────────── */
+  async function api(path, opts = {}) {
+    const res = await fetch(path, {
+      credentials: 'include',
+      headers: opts.body ? { 'content-type': 'application/json', ...(opts.headers || {}) } : (opts.headers || {}),
+      ...opts,
+      body: opts.body && typeof opts.body === 'object' ? JSON.stringify(opts.body) : opts.body
+    });
+    if (!res.ok) {
+      let msg = res.statusText;
+      try { msg = (await res.json()).error || msg; } catch {}
+      const err = new Error(msg); err.status = res.status; throw err;
+    }
+    if (res.status === 204) return null;
+    return res.json();
+  }
+
+  function toast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.toggle('error', isError);
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function fmtDate(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts);
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  function fmtBytes(n) {
+    if (n == null) return '—';
+    if (n < 1024) return n + ' B';
+    if (n < 1024*1024) return (n/1024).toFixed(1) + ' KB';
+    if (n < 1024*1024*1024) return (n/1024/1024).toFixed(1) + ' MB';
+    return (n/1024/1024/1024).toFixed(2) + ' GB';
+  }
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* ───────────────────────── Bootstrap / gate ───────────────────────── */
+  async function bootstrap() {
+    let me = null;
+    try { me = await api('/api/auth/me'); } catch {}
+    if (!me) {
+      document.getElementById('gateMsg').textContent = 'Not signed in.';
+      return;
+    }
+    if (me.tier !== 'admin') {
+      document.getElementById('gateMsg').textContent = `Signed in as ${me.email} (tier: ${me.tier}). Admin tier required.`;
+      return;
+    }
+    state.me = me;
+    document.getElementById('me').innerHTML =
+      `Signed in as <strong>${escapeHtml(me.displayName)}</strong> · ${escapeHtml(me.email)} <a href="#" id="logoutLink">Sign out</a>`;
+    document.getElementById('gate').remove();
+    document.getElementById('shell').hidden = false;
+
+    document.getElementById('logoutLink').onclick = async (e) => {
+      e.preventDefault();
+      try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
+      location.reload();
+    };
+
+    wireNav();
+    document.getElementById('refreshBtn').onclick = () => loadAll();
+    await loadAll();
+  }
+
+  function wireNav() {
+    document.querySelectorAll('.nav button[data-page]').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + btn.dataset.page).classList.add('active');
+      };
+    });
+  }
+
+  /* ───────────────────────── Data loading ───────────────────────── */
+  async function loadAll() {
+    try {
+      const [stats, users, mails, files] = await Promise.all([
+        api('/api/admin/stats'),
+        api('/api/admin/users'),
+        api('/api/admin/mails'),
+        api('/api/admin/files')
+      ]);
+      state.stats = stats;
+      state.users = users;
+      state.mails = mails;
+      state.files = files;
+      renderDashboard();
+      renderUsers();
+      renderMails();
+      renderFiles();
+    } catch (e) {
+      toast('Load failed: ' + e.message, true);
+    }
+  }
+
+  /* ───────────────────────── Dashboard ───────────────────────── */
+  function renderDashboard() {
+    const s = state.stats;
+    const tierMap = Object.fromEntries((s.users.byTier || []).map(r => [r.tier, r.n]));
+    const vizMap  = Object.fromEntries((s.mails.byVisibility || []).map(r => [r.visibility, r.n]));
+
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat"><div class="label">Total users</div><div class="value">${s.users.total}</div>
+        <div class="sub">${tierMap.free||0} free · ${tierMap.paid||0} paid · ${tierMap.admin||0} admin</div></div>
+      <div class="stat"><div class="label">Mails</div><div class="value">${s.mails.total}</div>
+        <div class="sub">${vizMap.public||0} public · ${vizMap.private||0} private</div></div>
+      <div class="stat"><div class="label">Files</div><div class="value">${s.files.total}</div>
+        <div class="sub">${fmtBytes(s.files.bytes)} total storage</div></div>
+      <div class="stat"><div class="label">Signups (14d)</div>
+        <div class="value">${s.signupsPerDay.reduce((a,b)=>a+b.count,0)}</div>
+        <div class="sub">avg ${(s.signupsPerDay.reduce((a,b)=>a+b.count,0)/14).toFixed(1)}/day</div></div>
+    `;
+
+    const max = Math.max(1, ...s.signupsPerDay.map(d => d.count));
+    document.getElementById('signupChart').innerHTML = s.signupsPerDay.map(d => `
+      <div class="col" title="${d.date}: ${d.count} signups">
+        <div class="num">${d.count || ''}</div>
+        <div class="bar" style="height: ${(d.count / max) * 60 + 2}px"></div>
+        <div class="lbl">${d.date.slice(5)}</div>
+      </div>
+    `).join('');
+  }
+
+  /* ───────────────────────── Users ───────────────────────── */
+  function renderUsers() {
+    const q    = document.getElementById('usersSearch').value.trim().toLowerCase();
+    const tier = document.getElementById('usersTierFilter').value;
+    const rows = state.users.filter(u => {
+      if (tier && u.tier !== tier) return false;
+      if (q) {
+        const hay = (u.displayName + ' ' + (u.email||'') + ' ' + u.id).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    const tbody = document.querySelector('#usersTable tbody');
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="icon">👤</div>No users match.</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(u => {
+      const isMe = u.id === state.me.id;
+      return `
+      <tr>
+        <td>
+          <div>${escapeHtml(u.displayName)}${isMe ? ' <span class="chip admin" style="margin-left:6px">YOU</span>' : ''}</div>
+          <div class="mono">${escapeHtml(u.id)}</div>
+        </td>
+        <td>${escapeHtml(u.email || '—')}</td>
+        <td>
+          <select class="tier-select" data-uid="${escapeHtml(u.id)}" ${isMe ? 'disabled' : ''}>
+            <option value="free"  ${u.tier==='free' ?'selected':''}>Free</option>
+            <option value="paid"  ${u.tier==='paid' ?'selected':''}>Paid</option>
+            <option value="admin" ${u.tier==='admin'?'selected':''}>Admin</option>
+          </select>
+        </td>
+        <td class="muted nowrap">${fmtDate(u.createdAt)}</td>
+        <td><div class="row-actions">
+          <button class="btn tiny danger" data-del-user="${escapeHtml(u.id)}" ${isMe?'disabled':''}>Delete</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('.tier-select').forEach(sel => {
+      sel.onchange = async () => {
+        try {
+          await api(`/api/admin/users/${sel.dataset.uid}/tier`, { method: 'PATCH', body: { tier: sel.value } });
+          toast('Tier updated.');
+          await loadAll();
+        } catch (e) { toast('Failed: ' + e.message, true); }
+      };
+    });
+    tbody.querySelectorAll('[data-del-user]').forEach(btn => {
+      btn.onclick = async () => {
+        const u = state.users.find(x => x.id === btn.dataset.delUser);
+        if (!confirm(`Delete user "${u.displayName}" and ALL their mails/files? This cannot be undone.`)) return;
+        try {
+          await api(`/api/admin/users/${u.id}`, { method: 'DELETE' });
+          toast('User deleted.');
+          await loadAll();
+        } catch (e) { toast('Failed: ' + e.message, true); }
+      };
+    });
+  }
+
+  /* ───────────────────────── Mails ───────────────────────── */
+  function renderMails() {
+    const q   = document.getElementById('mailsSearch').value.trim().toLowerCase();
+    const viz = document.getElementById('mailsVizFilter').value;
+    const typ = document.getElementById('mailsTypeFilter').value;
+    const rows = state.mails.filter(m => {
+      if (viz && m.visibility !== viz) return false;
+      if (typ && m.type !== typ) return false;
+      if (q) {
+        const hay = (m.subject + ' ' + (m.sender||'') + ' ' + (m.ownerName||'') + ' ' + (m.ownerEmail||'')).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    const tbody = document.querySelector('#mailsTable tbody');
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="icon">✉️</div>No mails match.</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map(m => `
+      <tr>
+        <td>
+          <div>${escapeHtml(m.subject)}</div>
+          <div class="mono">${escapeHtml(m.sender || '')}</div>
+        </td>
+        <td>
+          <div>${escapeHtml(m.ownerName || '—')}</div>
+          <div class="muted">${escapeHtml(m.ownerEmail || '')}</div>
+        </td>
+        <td><span class="chip ${m.type === 'emulator' ? 'paid' : 'free'}">${escapeHtml(m.type)}</span></td>
+        <td><span class="chip ${m.visibility}">${escapeHtml(m.visibility)}</span></td>
+        <td class="muted nowrap">${fmtDate(m.createdAt)}</td>
+        <td><button class="btn tiny danger" data-del-mail="${escapeHtml(m.id)}">Delete</button></td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('[data-del-mail]').forEach(btn => {
+      btn.onclick = async () => {
+        if (!confirm('Delete this mail permanently?')) return;
+        try {
+          await api(`/api/admin/mails/${btn.dataset.delMail}`, { method: 'DELETE' });
+          toast('Mail deleted.');
+          await loadAll();
+        } catch (e) { toast('Failed: ' + e.message, true); }
+      };
+    });
+  }
+
+  /* ───────────────────────── Files ───────────────────────── */
+  function renderFiles() {
+    const q = document.getElementById('filesSearch').value.trim().toLowerCase();
+    const rows = state.files.filter(f => {
+      if (!q) return true;
+      const hay = (f.name + ' ' + (f.ownerName||'') + ' ' + (f.ownerEmail||'')).toLowerCase();
+      return hay.includes(q);
+    });
+
+    const tbody = document.querySelector('#filesTable tbody');
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="icon">📎</div>No files match.</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map(f => `
+      <tr>
+        <td>
+          <div>${escapeHtml(f.name)}</div>
+          <div class="mono">${escapeHtml(f.id)}</div>
+        </td>
+        <td>
+          <div>${escapeHtml(f.ownerName || '—')}</div>
+          <div class="muted">${escapeHtml(f.ownerEmail || '')}</div>
+        </td>
+        <td class="muted">${escapeHtml(f.type || '—')}</td>
+        <td class="nowrap">${fmtBytes(f.size)}</td>
+        <td class="muted nowrap">${fmtDate(f.createdAt)}</td>
+        <td>
+          <div class="row-actions">
+            <a class="btn tiny" href="/api/files/${encodeURIComponent(f.id)}/blob" target="_blank">Open</a>
+            <button class="btn tiny danger" data-del-file="${escapeHtml(f.id)}">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('[data-del-file]').forEach(btn => {
+      btn.onclick = async () => {
+        if (!confirm('Delete this file permanently? The file blob on disk is not removed; only the DB record is deleted.')) return;
+        try {
+          await api(`/api/admin/files/${btn.dataset.delFile}`, { method: 'DELETE' });
+          toast('File deleted.');
+          await loadAll();
+        } catch (e) { toast('Failed: ' + e.message, true); }
+      };
+    });
+  }
+
+  /* ───────────────────────── Filters ───────────────────────── */
+  ['usersSearch','usersTierFilter'].forEach(id => document.getElementById(id).addEventListener('input', renderUsers));
+  ['mailsSearch','mailsVizFilter','mailsTypeFilter'].forEach(id => document.getElementById(id).addEventListener('input', renderMails));
+  ['filesSearch'].forEach(id => document.getElementById(id).addEventListener('input', renderFiles));
+
+  bootstrap();
+</script>
+</body>
+</html>

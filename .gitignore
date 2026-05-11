@@ -1,5 +1,8 @@
 # Personal/test novel files
 *.txt
+!robots.txt
+!apps/novel-reader/sample.txt
+concept.md
 
 # Node
 node_modules/

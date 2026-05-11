@@ -1,0 +1,183 @@
+<!doctype html>
+<!--
+  OG IMAGE TEMPLATE — 1200 × 630 px
+  ──────────────────────────────────
+  To export as og-image.png:
+    1. Open this file in Chrome/Edge
+    2. Open DevTools → toggle device toolbar (Ctrl/Cmd+Shift+M)
+    3. Set custom size: 1200 × 630, pixel ratio = 1
+    4. Right-click the page → "Capture screenshot"
+    5. Save as og-image.png in the project root
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>OG Image — Overlook Mail</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0f1923;
+      color: #fff;
+      position: relative;
+    }
+
+    /* ── Blue accent bar ── */
+    .bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #0078d4 0%, #50b4ff 100%);
+    }
+
+    /* ── Faint fake-inbox lines (decoration) ── */
+    .inbox-bg {
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: 520px;
+      opacity: 0.07;
+    }
+    .row {
+      height: 52px;
+      border-bottom: 1px solid #fff;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+    }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: #0078d4; flex-shrink: 0; }
+    .lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .line { height: 10px; border-radius: 4px; background: #fff; }
+
+    /* ── Vertical divider ── */
+    .divider {
+      position: absolute;
+      right: 520px; top: 80px; bottom: 80px;
+      width: 1px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* ── Main content ── */
+    .content {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 680px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 72px;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+    .logo-icon {
+      width: 56px; height: 56px;
+      border-radius: 12px;
+      background: #0078d4;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; font-weight: 700;
+      letter-spacing: -1px;
+    }
+    .logo-name {
+      font-size: 26px;
+      font-weight: 600;
+      color: #e8e8e8;
+      letter-spacing: -0.3px;
+    }
+
+    h1 {
+      font-size: 52px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      color: #fff;
+      margin-bottom: 22px;
+    }
+    h1 em {
+      font-style: normal;
+      color: #50b4ff;
+    }
+
+    .tagline {
+      font-size: 20px;
+      color: #8fa8c0;
+      line-height: 1.5;
+      max-width: 480px;
+    }
+
+    /* ── Floating badge ── */
+    .badges {
+      display: flex;
+      gap: 12px;
+      margin-top: 36px;
+    }
+    .badge {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      background: rgba(0,120,212,0.25);
+      border: 1px solid rgba(0,120,212,0.5);
+      color: #7ecfff;
+    }
+
+    /* ── Domain ── */
+    .domain {
+      position: absolute;
+      bottom: 32px;
+      left: 72px;
+      font-size: 15px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bar"></div>
+
+  <!-- Faint inbox decoration on the right -->
+  <div class="inbox-bg">
+    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:60%"></div><div class="line" style="width:40%"></div></div></div>
+    <div class="row"><div class="avatar" style="background:#106ebe"></div><div class="lines"><div class="line" style="width:75%"></div><div class="line" style="width:30%"></div></div></div>
+    <div class="row"><div class="avatar" style="background:#005a9e"></div><div class="lines"><div class="line" style="width:50%"></div><div class="line" style="width:55%"></div></div></div>
+    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:80%"></div><div class="line" style="width:35%"></div></div></div>
+    <div class="row"><div class="avatar" style="background:#106ebe"></div><div class="lines"><div class="line" style="width:65%"></div><div class="line" style="width:45%"></div></div></div>
+    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:55%"></div><div class="line" style="width:50%"></div></div></div>
+    <div class="row"><div class="avatar" style="background:#005a9e"></div><div class="lines"><div class="line" style="width:70%"></div><div class="line" style="width:25%"></div></div></div>
+    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:45%"></div><div class="line" style="width:60%"></div></div></div>
+    <div class="row"><div class="avatar" style="background:#106ebe"></div><div class="lines"><div class="line" style="width:80%"></div><div class="line" style="width:30%"></div></div></div>
+    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:50%"></div><div class="line" style="width:40%"></div></div></div>
+    <div class="row"><div class="avatar" style="background:#005a9e"></div><div class="lines"><div class="line" style="width:65%"></div><div class="line" style="width:55%"></div></div></div>
+    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:75%"></div><div class="line" style="width:35%"></div></div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="content">
+    <div class="logo-row">
+      <div class="logo-icon">O</div>
+      <span class="logo-name">Overlook Mail</span>
+    </div>
+
+    <h1>Look busy.<br><em>Actually</em> be playing.</h1>
+
+    <p class="tagline">An inbox that's secretly a playground. Read novels, play games — in a UI that looks 100% like corporate webmail.</p>
+
+    <div class="badges">
+      <span class="badge">🎮 Games</span>
+      <span class="badge">📖 Novels</span>
+      <span class="badge">⌨️ Boss key</span>
+    </div>
+  </div>
+
+  <div class="domain">overlookmail.site</div>
+</body>
+</html>

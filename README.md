@@ -1,4 +1,4 @@
-# StealthBox — Outlook-disguised Browser Apps Platform
+# Overlook Mail — Outlook-disguised Browser Apps Platform
 
 Looks 100% like Microsoft Outlook on the web. Each "email" in the inbox is
 actually a game, novel chapter, or any embedded web app. Built with vanilla

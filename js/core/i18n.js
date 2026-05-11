@@ -183,7 +183,7 @@ const LOCALES = {
 
     /* ── Disclaimer + tutorial ── */
     disclaimerTitle:           'Welcome — please read first',
-    disclaimerBody:            'This is an educational/parody Outlook-style demo. It is NOT a real Microsoft product and is not affiliated with Microsoft. By creating an account you agree that:\n\n• You will not upload illegal, harmful, or copyrighted content you do not own.\n• Any URL you embed (and any mail marked Public) is publicly visible to other users; you are solely responsible for what you share.\n• Saved data is for demo purposes and may be reset without notice.\n• You will respect other users — no harassment, spam, or abuse.',
+    disclaimerBody:            'This is a parody Outlook-style web app. It is NOT a real Microsoft product and is not affiliated with Microsoft in any way. By creating an account you agree that:\n\n• You will not upload illegal, harmful, or copyrighted content you do not own.\n• Any URL you embed (and any mail marked Public) is publicly visible to other users; you are solely responsible for what you share.\n• Your data is stored securely on our servers. You may delete your account and all associated data at any time.\n• You will respect other users — no harassment, spam, or abuse.',
     disclaimerAgree:           'I have read and agree',
     disclaimerDecline:         'Cancel',
     tutorialNext:              'Next',
@@ -395,7 +395,7 @@ const LOCALES = {
 
     /* ── Disclaimer + tutorial ── */
     disclaimerTitle:           '歡迎 — 請先閱讀',
-    disclaimerBody:            '這是一個教育／模仿性質的 Outlook 風格示範產品，並非真正的 Microsoft 產品，也與 Microsoft 無關。建立帳戶即表示你同意：\n\n• 不會上傳違法、有害或非自有的版權內容。\n• 任何嵌入的網址（以及任何標記為「公開」的郵件）會被其他使用者看到；你需獨自為分享內容負責。\n• 此處儲存的資料僅供示範用途，可能會在未通知的情況下被重置。\n• 尊重其他使用者 — 不騷擾、不發垃圾訊息、不濫用。',
+    disclaimerBody:            '這是一個模仿性質的 Outlook 風格網頁應用，並非真正的 Microsoft 產品，也與 Microsoft 完全無關。建立帳戶即表示你同意：\n\n• 不會上傳違法、有害或非自有的版權內容。\n• 任何嵌入的網址（以及任何標記為「公開」的郵件）會被其他使用者看到；你需獨自為分享內容負責。\n• 你的資料安全地儲存在我們的伺服器上。你可以隨時刪除帳戶及所有相關資料。\n• 尊重其他使用者 — 不騷擾、不發垃圾訊息、不濫用。',
     disclaimerAgree:           '我已閱讀並同意',
     disclaimerDecline:         '取消',
     tutorialNext:              '下一步',

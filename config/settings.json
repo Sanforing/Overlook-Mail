@@ -1,10 +1,10 @@
 {
   "appName": "Outlook",
   "user": {
-    "displayName": "Alex Chen",
-    "email": "alex.chen@contoso.com",
-    "initials": "AC",
-    "company": "Contoso Ltd."
+    "displayName": "Your Name",
+    "email": "user@example.com",
+    "initials": "YN",
+    "company": "Your Company"
   },
   "topbar": {
     "brand": "Outlook",
@@ -43,7 +43,7 @@
   "backend": {
     "kind": "remote",
     "baseUrl": "",
-    "note": "kind = 'local' (IndexedDB) or 'remote' (StealthBox server). For remote, set baseUrl to the server origin, e.g. https://your-vps.example.com. Empty baseUrl means same-origin (use when SERVE_STATIC_FROM is set on the server)."
+    "note": "kind = 'local' (IndexedDB) or 'remote' (Overlook Mail server). For remote, set baseUrl to the server origin, e.g. https://your-vps.example.com. Empty baseUrl means same-origin (use when SERVE_STATIC_FROM is set on the server)."
   },
   "features": {
     "compose":      "free",
@@ -54,9 +54,9 @@
     "publicVisibility": "free"
   },
   "ads": {
-    "enabled": true,
+    "enabled": false,
     "note": "Shown to guest/free users only; paid users never see ads. Each placement (1)..(5) can be toggled independently. The visible label '(N)' is a TEST aid — set 'showSlotLabel' to false in production.",
-    "showSlotLabel": true,
+    "showSlotLabel": false,
     "placements": {
       "sponsoredInbox":   { "enabled": true,  "everyN": 4 },
       "underSubject":     { "enabled": true },
@@ -66,15 +66,15 @@
     },
     "creatives": {
       "sponsoredInbox": {
-        "sender":   "Contoso Promotions",
-        "subject":  "Sponsored — Try Contoso Cloud Suite free for 30 days",
-        "preview":  "Real-time docs, AI-powered review, secure storage. No credit card needed.",
+        "sender":   "Overlook Partner",
+        "subject":  "Sponsored — Your ad creative here",
+        "preview":  "Contact us at hello@overlookmail.site to advertise here.",
         "url":      "#"
       },
       "underSubject": {
         "icon":     "📎",
         "headline": "Suggested attachment — Q3 productivity report (Sponsored)",
-        "body":     "Free download from Contoso Insights — see what 12,000 teams shipped last quarter.",
+        "body":     "Sponsored content — contact us to place your ad here.",
         "cta":      "Download",
         "url":      "#"
       },
@@ -96,8 +96,8 @@
           "icon": "☁",
           "iconBg": "#eff6fc",
           "iconColor": "#0078d4",
-          "headline": "Contoso Cloud Suite — 30-day free trial",
-          "body": "Secure cloud storage, real-time collaboration, and AI-powered document review — all in one platform.",
+          "headline": "Partner Service — Your ad headline here",
+          "body": "Contact us at hello@overlookmail.site to place your sponsored content here.",
           "cta": "Start free trial",
           "url": "#"
         },
@@ -119,8 +119,8 @@
         "icon": "☁",
         "iconBg": "#eff6fc",
         "iconColor": "#0078d4",
-        "headline": "Contoso Cloud Suite — 30-day free trial",
-        "body": "Secure cloud storage, real-time collaboration, and AI-powered document review — all in one platform.",
+        "headline": "Partner Service — Your ad headline here",
+        "body": "Contact us at hello@overlookmail.site to place your sponsored content here.",
         "cta": "Start free trial",
         "url": "#"
       },

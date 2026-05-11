@@ -15,6 +15,8 @@ import { registerOAuth } from './oauth.js';
 import { registerMails } from './mails.js';
 import { registerFiles } from './files.js';
 import { registerPrefs } from './prefs.js';
+import { registerAdmin, bootstrapAdmins } from './admin.js';
+import { rateLimit } from './rate-limit.js';
 
 const app = Fastify({ logger: true, bodyLimit: 2 * 1024 * 1024 });
 
@@ -50,7 +52,12 @@ app.get('/api/meta', async () => ({
 }));
 
 /* ---------- Email + password auth ---------- */
-app.post('/api/auth/register', async (req, reply) => {
+// Brute-force protection: 5 failed attempts per minute per IP for login,
+// 5 registrations per hour per IP. Tweak via env if needed later.
+const loginLimiter    = rateLimit({ max: 5,  windowMs: 60_000,        scope: 'login' });
+const registerLimiter = rateLimit({ max: 5,  windowMs: 60 * 60_000,   scope: 'register' });
+
+app.post('/api/auth/register', { preHandler: registerLimiter }, async (req, reply) => {
   if (!config.allowRegistration) return reply.code(403).send({ error: 'registration disabled' });
   const { email, password, displayName, tier } = req.body || {};
   if (!email || !password || !displayName) return reply.code(400).send({ error: 'email, password, displayName required' });
@@ -65,7 +72,7 @@ app.post('/api/auth/register', async (req, reply) => {
   return publicUser(user);
 });
 
-app.post('/api/auth/login', async (req, reply) => {
+app.post('/api/auth/login', { preHandler: loginLimiter }, async (req, reply) => {
   const { email, password } = req.body || {};
   if (!email || !password) return reply.code(400).send({ error: 'email and password required' });
   const user = stmt.userByEmail.get(String(email).toLowerCase());
@@ -97,6 +104,7 @@ registerOAuth(app);
 registerMails(app);
 registerFiles(app);
 registerPrefs(app);
+registerAdmin(app);
 
 /* ---------- Optional static frontend ---------- */
 if (config.serveStaticFrom) {
@@ -122,7 +130,8 @@ if (config.serveStaticFrom) {
 
 /* ---------- Startup ---------- */
 stmt.pruneSessions.run(Date.now());
+bootstrapAdmins(config.adminEmails);
 
 app.listen({ port: config.port, host: config.host })
-  .then(addr => app.log.info(`StealthBox backend ready on ${addr}`))
+  .then(addr => app.log.info(`Overlook Mail backend ready on ${addr}`))
   .catch(err => { app.log.error(err); process.exit(1); });
