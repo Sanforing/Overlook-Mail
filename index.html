@@ -3,22 +3,368 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Outlook</title>
+  <title>Overlook Mail — Look busy. Actually be playing.</title>
+
+  <!-- ===== SEO ===== -->
+  <meta name="description" content="An inbox that's secretly a playground. Read novels, play games, watch videos in a UI that looks 100% like corporate webmail. Esc Esc to instantly hide." />
+  <meta name="keywords" content="office games, hidden games, fake email, browser games, read novels at work, stealth gaming, boss key" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0078d4" />
+  <link rel="canonical" href="https://overlookmail.site/" />
+
+  <!-- ===== Open Graph ===== -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Overlook Mail — Look busy. Actually be playing." />
+  <meta property="og:description" content="An inbox-shaped playground for office daydreamers. Novels, games, videos disguised as boring email." />
+  <meta property="og:url" content="https://overlookmail.site/" />
+  <meta property="og:site_name" content="Overlook Mail" />
+  <meta property="og:image" content="https://overlookmail.site/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Overlook Mail — Look busy. Actually be playing." />
+  <meta name="twitter:description" content="An inbox-shaped playground for office daydreamers." />
+  <meta name="twitter:image" content="https://overlookmail.site/og-image.png" />
+
   <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%230078d4'/><text x='16' y='22' font-family='Segoe UI,Arial' font-size='18' font-weight='700' fill='white' text-anchor='middle'>O</text></svg>" />
-  <link rel="stylesheet" href="css/styles.css" />
-  <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"Overlook Mail","url":"https://overlookmail.site","applicationCategory":"GameApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+  </script>
+
+  <style>
+    *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+      color: #1a1a1a;
+      background:
+        radial-gradient(circle at 18% 28%, rgba(0,120,212,0.20), transparent 50%),
+        radial-gradient(circle at 82% 72%, rgba(245,180,0,0.18), transparent 50%),
+        linear-gradient(135deg, #f6f9fc 0%, #eaf3fb 100%);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    /* ===== Top nav ===== */
+    .nav {
+      padding: 18px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 20px; font-weight: 700; color: #0078d4;
+    }
+    .brand-icon {
+      width: 32px; height: 32px; background: #0078d4; border-radius: 4px;
+      color: #fff; display: grid; place-items: center; font-size: 18px; font-weight: 700;
+    }
+    .nav-actions { display: flex; align-items: center; gap: 14px; font-size: 13px; }
+    .nav-honest {
+      background: rgba(245,180,0,0.18); color: #8a6500;
+      padding: 6px 14px; border-radius: 999px; font-weight: 600;
+      cursor: pointer; transition: background .15s; user-select: none;
+    }
+    .nav-honest:hover { background: rgba(245,180,0,0.32); }
+
+    /* ===== Hero stage ===== */
+    main {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 60px;
+      align-items: center;
+      padding: 0 60px;
+      min-height: 0;
+    }
+
+    /* ── Left: pitch ── */
+    .pitch h1 {
+      font-size: clamp(38px, 5.2vw, 66px);
+      font-weight: 800; line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 22px;
+      background: linear-gradient(135deg, #0078d4 0%, #1a1a1a 75%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .pitch .punch {
+      font-size: clamp(15px, 1.4vw, 18px);
+      color: #444; max-width: 480px;
+      margin-bottom: 28px; line-height: 1.55;
+    }
+    .features-row {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 999px;
+      background: #fff; border: 1px solid #d8e4ee;
+      font-size: 13px; font-weight: 600; color: #2c3e50;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .chip span:first-child { font-size: 16px; }
+
+    .cta-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 6px;
+      font-weight: 700; font-size: 16px;
+      text-decoration: none;
+      transition: transform .12s, box-shadow .12s;
+      cursor: pointer; border: none; font-family: inherit;
+    }
+    .btn-primary {
+      background: #0078d4; color: #fff;
+      box-shadow: 0 8px 20px rgba(0,120,212,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,120,212,0.45); }
+    .btn-ghost { background: transparent; color: #444; border: 1px solid #c8d4df; }
+    .btn-ghost:hover { background: #fff; }
+    .esc-tip {
+      margin-top: 20px; font-size: 12px; color: #777;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .kbd {
+      display: inline-block; padding: 2px 8px; margin: 0 2px;
+      border-radius: 4px; background: #fff; border: 1px solid #ccc;
+      font-family: 'SF Mono', Consolas, monospace; font-size: 11px;
+      box-shadow: 0 2px 0 #ccc; color: #333;
+    }
+
+    /* ── Right: mock inbox preview ── */
+    .preview { position: relative; perspective: 1500px; }
+    .mock-window {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow:
+        0 30px 60px -15px rgba(0,30,80,0.35),
+        0 8px 24px rgba(0,30,80,0.15);
+      overflow: hidden;
+      transform: rotateY(-8deg) rotateX(4deg);
+      transition: transform .4s ease;
+    }
+    .preview:hover .mock-window { transform: rotateY(-3deg) rotateX(2deg); }
+    .mock-bar {
+      background: #f3f3f3; padding: 8px 12px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .mock-dot { width: 11px; height: 11px; border-radius: 50%; background: #d0d0d0; }
+    .mock-dot.r { background: #ff5f57; }
+    .mock-dot.y { background: #ffbd2e; }
+    .mock-dot.g { background: #28c840; }
+    .mock-url {
+      flex: 1; background: #fff; border-radius: 4px;
+      padding: 4px 12px; font-size: 11px; color: #666;
+      margin-left: 12px;
+    }
+    .mock-app {
+      display: grid; grid-template-columns: 36px 1fr 1.4fr;
+      height: 320px;
+    }
+    .mock-side {
+      background: #faf9f8; border-right: 1px solid #edebe9;
+      padding-top: 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .mock-side-icon { width: 22px; height: 22px; border-radius: 4px; background: #e5e5e5; }
+    .mock-side-icon.active { background: #0078d4; }
+    .mock-list { border-right: 1px solid #edebe9; overflow: hidden; }
+    .mock-list-hdr {
+      padding: 10px 12px; font-size: 12px; font-weight: 600; color: #323130;
+      border-bottom: 1px solid #edebe9;
+    }
+    .mock-mail { padding: 10px 12px; border-bottom: 1px solid #f3f2f1; }
+    .mock-mail.active { background: #e1efff; border-left: 3px solid #0078d4; padding-left: 9px; }
+    .mock-mail-from { font-size: 11px; font-weight: 600; color: #201f1e; }
+    .mock-mail-sub { font-size: 11px; color: #323130; margin-top: 2px; }
+    .mock-mail-prev { font-size: 10px; color: #605e5c; margin-top: 2px;
+                     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mock-reader { padding: 14px; font-size: 12px; }
+    .mock-reader-sub { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .mock-reader-meta { font-size: 10px; color: #888; margin-bottom: 12px; }
+    .mock-attach {
+      border: 1px solid #d8e4ee; border-radius: 6px;
+      padding: 10px; background: #f8fcff;
+    }
+    .mock-attach-title {
+      font-size: 11px; font-weight: 600; color: #0078d4; margin-bottom: 6px;
+    }
+    .mock-attach-game {
+      height: 130px; background: #1a1a2e; border-radius: 4px;
+      display: grid; place-items: center;
+      color: #ffeb3b; font-family: monospace; font-size: 22px;
+      letter-spacing: 3px;
+      box-shadow: inset 0 0 30px rgba(0,200,255,0.25);
+      position: relative; overflow: hidden;
+    }
+    .pac { animation: chomp 0.5s infinite; }
+    @keyframes chomp { 50% { transform: scaleX(-1); } }
+    .secret-tag {
+      position: absolute;
+      top: -12px; right: -8px;
+      background: #f5b400; color: #1a1a1a;
+      padding: 8px 16px; border-radius: 999px;
+      font-size: 13px; font-weight: 700;
+      transform: rotate(8deg);
+      box-shadow: 0 6px 16px rgba(245,180,0,0.45);
+      z-index: 2;
+      animation: wiggle 3s ease-in-out infinite;
+    }
+    @keyframes wiggle {
+      0%,100% { transform: rotate(8deg); }
+      50% { transform: rotate(4deg) translateY(-3px); }
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      padding: 14px 40px; font-size: 11px;
+      color: #888; text-align: center;
+      border-top: 1px solid rgba(0,0,0,0.05);
+    }
+    footer a { color: #0078d4; text-decoration: none; cursor: pointer; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ===== Honest dialog ===== */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: none; align-items: center; justify-content: center;
+      z-index: 100; padding: 20px;
+    }
+    .modal-bg.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 8px;
+      max-width: 540px; padding: 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .modal h2 { font-size: 22px; margin-bottom: 16px; }
+    .modal h3 { font-size: 14px; margin-top: 16px; margin-bottom: 6px; color: #0078d4; }
+    .modal p { font-size: 14px; line-height: 1.6; color: #444; }
+    .modal-close {
+      margin-top: 20px; padding: 10px 24px; background: #0078d4;
+      color: #fff; border: none; border-radius: 4px; cursor: pointer;
+      font-weight: 600; font-family: inherit;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 900px) {
+      html, body { overflow: auto; height: auto; }
+      main { grid-template-columns: 1fr; padding: 30px; gap: 40px; }
+      .preview { max-width: 480px; margin: 0 auto; }
+      .mock-window { transform: none; }
+      .nav { padding: 14px 20px; }
+    }
+  </style>
 </head>
 <body>
-  <div id="app" class="app-shell" aria-busy="true">
-    <header id="topbar" class="topbar"></header>
-    <main class="workspace">
-      <aside id="sidebar" class="pane sidebar"></aside>
-      <section id="list" class="pane list"></section>
-      <section id="reader" class="pane reader"></section>
-    </main>
-    <div id="fake-loader" class="fake-loader hidden" role="status" aria-live="polite"></div>
-    <div id="modal-root"></div>
+
+  <nav class="nav">
+    <div class="brand">
+      <span class="brand-icon">O</span>
+      Overlook Mail
+    </div>
+    <div class="nav-actions">
+      <span class="nav-honest" onclick="document.getElementById('honestModal').classList.add('show')">
+        ⚠ Honest talk
+      </span>
+    </div>
+  </nav>
+
+  <main>
+    <!-- LEFT: Pitch -->
+    <section class="pitch">
+      <h1>Look busy.<br/>Actually be playing.</h1>
+      <p class="punch">
+        An inbox that's secretly a playground. Every "email" you click is a novel,
+        a game, or a YouTube video — wrapped in a UI that looks <strong>100%</strong> like
+        corporate webmail.
+      </p>
+
+      <div class="features-row">
+        <span class="chip"><span>📖</span><span>Novels</span></span>
+        <span class="chip"><span>🎮</span><span>Games</span></span>
+        <span class="chip"><span>📺</span><span>YouTube</span></span>
+        <span class="chip"><span>🕹</span><span>Retro ROMs</span></span>
+      </div>
+
+      <div class="cta-row">
+        <a href="/app" class="btn btn-primary">Open Inbox →</a>
+        <a href="/app" class="btn btn-ghost">Try without account</a>
+      </div>
+
+      <div class="esc-tip">
+        Boss walking by? Tap <span class="kbd">Esc</span> <span class="kbd">Esc</span> — instantly hidden.
+      </div>
+    </section>
+
+    <!-- RIGHT: Mock inbox -->
+    <section class="preview">
+      <div class="secret-tag">↓ Secretly a game</div>
+      <div class="mock-window">
+        <div class="mock-bar">
+          <div class="mock-dot r"></div>
+          <div class="mock-dot y"></div>
+          <div class="mock-dot g"></div>
+          <div class="mock-url">🔒 outlook.office.com/mail/inbox</div>
+        </div>
+        <div class="mock-app">
+          <div class="mock-side">
+            <div class="mock-side-icon active"></div>
+            <div class="mock-side-icon"></div>
+            <div class="mock-side-icon"></div>
+            <div class="mock-side-icon"></div>
+          </div>
+          <div class="mock-list">
+            <div class="mock-list-hdr">Inbox</div>
+            <div class="mock-mail">
+              <div class="mock-mail-from">HR Department</div>
+              <div class="mock-mail-sub">Q3 Performance Review</div>
+              <div class="mock-mail-prev">Please review the attached…</div>
+            </div>
+            <div class="mock-mail active">
+              <div class="mock-mail-from">IT Support</div>
+              <div class="mock-mail-sub">FW: System maintenance</div>
+              <div class="mock-mail-prev">Please action by EOD…</div>
+            </div>
+            <div class="mock-mail">
+              <div class="mock-mail-from">Finance</div>
+              <div class="mock-mail-sub">Budget approval needed</div>
+              <div class="mock-mail-prev">Attached spreadsheet…</div>
+            </div>
+          </div>
+          <div class="mock-reader">
+            <div class="mock-reader-sub">FW: System maintenance — please action</div>
+            <div class="mock-reader-meta">it-support@contoso.com · 9:42 AM</div>
+            <div class="mock-attach">
+              <div class="mock-attach-title">📎 maintenance_log.exe</div>
+              <div class="mock-attach-game">
+                <span>● ● ●&nbsp;<span class="pac">ᗧ</span>···· ᗣ</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Free forever · Independent parody — not affiliated with Microsoft Corporation ·
+    <a onclick="document.getElementById('honestModal').classList.add('show')">Honest talk</a>
+  </footer>
+
+  <!-- Honest talk modal -->
+  <div class="modal-bg" id="honestModal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal">
+      <h2>⚠ Honest talk</h2>
+      <h3>What this is</h3>
+      <p>A parody/educational web app. Every "email" in the inbox is actually a small browser app, novel, video, or game. Made for fun.</p>
+      <h3>What this is not</h3>
+      <p>This is <strong>not</strong> a real email service — you can't send or receive actual mail. Not a Microsoft product, not affiliated with, endorsed by, or connected to Microsoft, Outlook, or Office 365 in any way.</p>
+      <h3>Use it responsibly</h3>
+      <p>Don't upload illegal or copyrighted content you don't own. Anything you mark "Public" can be seen by other users. We may remove content that breaks these rules.</p>
+      <button class="modal-close" onclick="document.getElementById('honestModal').classList.remove('show')">Got it</button>
+    </div>
   </div>
-  <script type="module" src="js/main.js"></script>
+
 </body>
 </html>

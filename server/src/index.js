@@ -104,8 +104,12 @@ if (config.serveStaticFrom) {
   if (existsSync(root)) {
     await app.register(fastifyStatic, { root, prefix: '/', wildcard: false, index: ['index.html'] });
     app.setNotFoundHandler((req, reply) => {
-      // SPA fallback for any non-API GET so deep-links resolve to index.html
       if (req.method === 'GET' && !req.url.startsWith('/api') && !req.url.startsWith('/auth')) {
+        // /app (clean URL) → inbox app
+        if (req.url === '/app' || req.url.startsWith('/app?')) {
+          return reply.sendFile('app.html');
+        }
+        // everything else → landing
         return reply.sendFile('index.html');
       }
       reply.code(404).send({ error: 'not found' });

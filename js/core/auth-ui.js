@@ -26,7 +26,8 @@ export function showAuth(state, { onSignedIn } = {}) {
     const email = input({ type: 'email', placeholder: 'name@contoso.com', required: true });
     const pass  = input({ type: 'password', placeholder: t('fieldPassword'), required: true, minlength: '4' });
     const name  = mode === 'register' ? input({ type: 'text', placeholder: t('fieldDisplayName'), required: true }) : null;
-    const tier  = mode === 'register' ? el('select', { class: 'control' }, [
+    const isLocalDev = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+    const tier  = (mode === 'register' && isLocalDev) ? el('select', { class: 'control' }, [
       el('option', { value: 'free', text: t('tierFree') }),
       el('option', { value: 'paid', text: t('tierPaid') })
     ]) : null;

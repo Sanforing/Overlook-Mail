@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Outlook</title>
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%230078d4'/><text x='16' y='22' font-family='Segoe UI,Arial' font-size='18' font-weight='700' fill='white' text-anchor='middle'>O</text></svg>" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+</head>
+<body>
+  <div id="app" class="app-shell" aria-busy="true">
+    <header id="topbar" class="topbar"></header>
+    <main class="workspace">
+      <aside id="sidebar" class="pane sidebar"></aside>
+      <section id="list" class="pane list"></section>
+      <section id="reader" class="pane reader"></section>
+    </main>
+    <div id="fake-loader" class="fake-loader hidden" role="status" aria-live="polite"></div>
+    <div id="modal-root"></div>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

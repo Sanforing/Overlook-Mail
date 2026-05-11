@@ -100,7 +100,8 @@ function openAvatarMenu(state, anchor) {
       ]),
       el('hr')
     );
-    if (state.user.tier !== 'paid') {
+    const isLocalDev = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+    if (state.user.tier !== 'paid' && isLocalDev) {
       menu.appendChild(el('button', { class: 'menu-item', text: t('upgradePaid'), onclick: async () => {
         state.user = await state.backend.upgradeCurrent('paid'); menu.remove(); renderTopbar(state);
       } }));
