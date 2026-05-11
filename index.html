@@ -160,7 +160,7 @@
     }
     .mock-app {
       display: grid; grid-template-columns: 36px 1fr 1.4fr;
-      height: 320px;
+      height: 420px;
     }
     .mock-side {
       background: #faf9f8; border-right: 1px solid #edebe9;
@@ -191,13 +191,15 @@
       font-size: 11px; font-weight: 600; color: #0078d4; margin-bottom: 6px;
     }
     .mock-attach-game {
-      height: 130px; background: #0d1018; border-radius: 4px;
+      height: 96px; background: #0d1018; border-radius: 4px;
       display: flex; align-items: center; justify-content: center;
       box-shadow: inset 0 0 30px rgba(0,200,255,0.18);
       position: relative; overflow: hidden;
     }
     .mock-attach-game canvas {
-      display: block; width: 100%; height: 100%;
+      display: block;
+      width: auto; height: 100%;
+      max-width: 100%;
       image-rendering: pixelated;
     }
     .pong-score {
@@ -355,9 +357,9 @@
               Action items have been pre-loaded — kindly confirm receipt.
             </div>
             <div class="mock-attach">
-              <div class="mock-attach-title">📎 maintenance_log.exe</div>
+              <div class="mock-attach-title">📎 maintenance_log.doc</div>
               <div class="mock-attach-game">
-                <canvas id="pongCanvas" width="320" height="120"></canvas>
+                <canvas id="pongCanvas" width="256" height="88"></canvas>
                 <div class="pong-score"><span id="pongL">0</span> &nbsp;:&nbsp; <span id="pongR">0</span></div>
               </div>
             </div>
