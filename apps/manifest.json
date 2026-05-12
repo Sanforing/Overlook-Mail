@@ -6,9 +6,9 @@
       "entry": "apps/typing-defender/index.js",
       "sender": {
         "name": "IT Support",
-        "email": "it-support@contoso.com",
+        "email": "it-support@playwithspect.com",
         "title": "Support Engineer",
-        "company": "Contoso Ltd."
+        "company": "Playwithspect Ltd."
       },
       "recipient": "All Staff",
       "subject": "URGENT: Action required — update your business glossary",
@@ -53,9 +53,9 @@
       "entry": "apps/pong/index.js",
       "sender": {
         "name": "Office Wellness",
-        "email": "wellness@contoso.com",
+        "email": "wellness@playwithspect.com",
         "title": "Workplace Programs",
-        "company": "Contoso Ltd."
+        "company": "Playwithspect Ltd."
       },
       "recipient": "All Staff",
       "subject": "Reminder: take a 5-minute eye break — interactive exercise attached",
@@ -74,9 +74,9 @@
       "entry": "apps/tetris/index.js",
       "sender": {
         "name": "Logistics Planning",
-        "email": "logistics@contoso.com",
+        "email": "logistics@playwithspect.com",
         "title": "Operations Coordinator",
-        "company": "Contoso Ltd."
+        "company": "Playwithspect Ltd."
       },
       "recipient": "You",
       "subject": "Container stacking optimisation — interactive worksheet (Q3)",
@@ -95,9 +95,9 @@
       "entry": "apps/wordle/index.js",
       "sender": {
         "name": "Internal Comms",
-        "email": "comms@contoso.com",
+        "email": "comms@playwithspect.com",
         "title": "Communications",
-        "company": "Contoso Ltd."
+        "company": "Playwithspect Ltd."
       },
       "recipient": "All Staff",
       "subject": "Daily vocabulary check — please complete by EOD",
@@ -116,9 +116,9 @@
       "entry": "apps/snake/index.js",
       "sender": {
         "name": "Network Operations",
-        "email": "netops@contoso.com",
+        "email": "netops@playwithspect.com",
         "title": "Network Engineer",
-        "company": "Contoso Ltd."
+        "company": "Playwithspect Ltd."
       },
       "recipient": "You",
       "subject": "Packet routing simulation — interactive trace attached",
@@ -137,9 +137,9 @@
       "entry": "apps/2048/index.js",
       "sender": {
         "name": "Procurement",
-        "email": "procurement@contoso.com",
+        "email": "procurement@playwithspect.com",
         "title": "Procurement Analyst",
-        "company": "Contoso Ltd."
+        "company": "Playwithspect Ltd."
       },
       "recipient": "You",
       "subject": "Vendor consolidation matrix — please review tile assignments",

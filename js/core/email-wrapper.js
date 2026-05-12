@@ -52,7 +52,7 @@ export function buildEmailView({ app, settings, settingsDefaults, templates, use
   const headerEl = el('div', { class: 'email-meta' }, [
     el('div', { class: 'pic', text: initialsOf(ctx.senderName) }),
     el('div', { class: 'meta-text' }, [
-      el('div', { class: 'from', text: `${ctx.senderName} <${ctx.senderEmail || 'noreply@contoso.com'}>` }),
+      el('div', { class: 'from', text: `${ctx.senderName} <${ctx.senderEmail || 'noreply@playwithspect.com'}>` }),
       el('div', { class: 'to', text: `To: ${ctx.recipient} <${settings.user.email}>` }),
       dateEl
     ])
