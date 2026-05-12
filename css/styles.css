@@ -251,7 +251,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   position: fixed; z-index: 1300;
   background: #fff; border: 1px solid var(--border);
   box-shadow: 0 8px 24px rgba(0,0,0,.18); border-radius: 4px;
-  min-width: 196px; padding: 4px 0;
+  min-width: 240px; padding: 4px 0;
 }
 .att-filter-menu .afm-section {
   font-size: 10px; font-weight: 700; color: var(--text-secondary);
@@ -264,6 +264,31 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .att-filter-menu .afm-item:hover { background: var(--hover); }
 .att-filter-menu .afm-item.active { color: var(--primary); font-weight: 600; }
 .att-filter-menu .afm-item .afm-check { width: 14px; font-size: 10px; text-align: center; flex-shrink: 0; }
+/* Slider row (Windows volume-bar style) */
+.att-filter-menu .afm-slider-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 12px 8px;
+}
+.att-filter-menu .afm-slider {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 4px; background: var(--border); border-radius: 2px; outline: none;
+  margin: 0;
+}
+.att-filter-menu .afm-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--primary); border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25); cursor: pointer;
+}
+.att-filter-menu .afm-slider::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--primary); border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25); cursor: pointer;
+}
+.att-filter-menu .afm-slider-val {
+  font-size: 11px; color: var(--text-secondary);
+  min-width: 36px; text-align: right; font-variant-numeric: tabular-nums;
+}
 /* ===== Sponsored / ad attachment shells ===== */
 .att-ad-wrap { margin-top: 12px; }
 .att-ad-badge {
@@ -313,25 +338,30 @@ button { font: inherit; color: inherit; cursor: pointer; }
   width: 100%; height: 100%; min-height: 0; display: block;
 }
 .attachment-shell iframe.app-host { border: 0; }
-/* Bottom-right corner resize grip — sits OUTSIDE att-body so it is never
-   clipped by att-body's overflow:hidden and remains reachable at any frame size. */
+/* Resize grip — sits OUTSIDE att-body so it is never clipped by
+   att-body's overflow:hidden and remains reachable at any frame size.
+   Anchored to the TOP-LEFT corner of the attachment shell so it never
+   overlaps the embedded app's own UI controls in the bottom-right. */
 .attachment-shell .att-resize {
-  position: absolute; bottom: 0; right: 0;
+  position: absolute;
   width: 18px; height: 18px;
   cursor: nwse-resize; z-index: 10;
-  /* Three stair-step lines — standard SE resize icon in pure CSS */
+  /* Three stair-step lines — standard NW resize icon in pure CSS */
   background-image:
-    linear-gradient(135deg,
+    linear-gradient(45deg,
       transparent 0 40%, var(--border) 40% 55%, transparent 55% 100%),
-    linear-gradient(135deg,
+    linear-gradient(45deg,
       transparent 0 55%, var(--border) 55% 70%, transparent 70% 100%),
-    linear-gradient(135deg,
+    linear-gradient(45deg,
       transparent 0 70%, var(--border) 70% 85%, transparent 85% 100%);
   background-size: 100% 100%;
   background-repeat: no-repeat;
-  border-radius: 0 0 3px 0;
   opacity: .55;
   transition: opacity .15s;
+}
+.attachment-shell .att-resize.att-resize-tl {
+  top: 0; left: 0;
+  border-radius: 3px 0 0 0;
 }
 .attachment-shell .att-resize:hover { opacity: 1; background-color: rgba(0,0,0,.04); }
 
@@ -377,6 +407,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   position: fixed; inset: 0; background: rgba(255,255,255,.86); z-index: 1000;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
   color: var(--text-primary); font-size: 14px;
+}
+.fake-loader.fake-loader-inline {
+  position: absolute; inset: 0; z-index: 5;
+  background: rgba(250,250,250,.96);
 }
 .fake-loader .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }

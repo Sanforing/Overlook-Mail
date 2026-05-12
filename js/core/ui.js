@@ -258,7 +258,32 @@ async function loadAllMails(state) {
   const adminAsMails = (state.adminApps || []).map(a => Object.assign({
     ownerId: 'admin', ownerName: 'Overlook Mail Admin', visibility: 'public', monochrome: 'none', createdAt: 0
   }, a));
-  return [...adminAsMails, ...fromDB];
+  const all = [...adminAsMails, ...fromDB];
+
+  // Resolve "shortcut" mails (forward without copy). A shortcut record has
+  // a `ref` field pointing at the original mail's id and only carries the
+  // user-specific fields (ownerId, folder, visibility, labels, date,
+  // forwarded-from metadata). We merge in the original's content fields so
+  // it renders identically without storing a duplicate copy of the body /
+  // attachment / config payload.
+  const byId = new Map(all.map(m => [m.id, m]));
+  const resolved = [];
+  for (const m of all) {
+    if (!m || !m.ref) { resolved.push(m); continue; }
+    const orig = byId.get(m.ref);
+    if (!orig) continue; // original was deleted — drop dangling shortcut
+    // Shortcut's own user-scoped fields take precedence; everything else
+    // (subject, sender, template, entry, url, rom, type, preview, config…)
+    // is inherited from the original.
+    resolved.push(Object.assign({}, orig, m, {
+      // Preserve a back-pointer so ack/comments key off the original mail
+      // (so all viewers of a shared/forwarded mail see the same thread).
+      refId: orig.id,
+      // Merge configs so forwardedFrom metadata isn't lost.
+      config: Object.assign({}, orig.config || {}, m.config || {})
+    }));
+  }
+  return resolved;
 }
 
 async function refreshList(state, { autoOpenFirst = false } = {}) {
@@ -280,7 +305,10 @@ async function refreshList(state, { autoOpenFirst = false } = {}) {
       return true;
     }
     if (cat === 'admin'     && m.ownerId !== 'admin') return false;
-    if (cat === 'community' && (m.ownerId === 'admin' || (me && m.ownerId === me.id) || m.visibility !== 'public')) return false;
+    // Community shows every public, non-admin mail — including ones the
+    // current user authored (so a freshly composed Public draft is
+    // discoverable from "From Community" too, not only from "Mine").
+    if (cat === 'community' && (m.ownerId === 'admin' || m.visibility !== 'public')) return false;
     if (cat === 'mine'      && (!me || m.ownerId !== me.id)) return false;
     if (m.visibility === 'private' && m.ownerId !== 'admin' && (!me || m.ownerId !== me.id)) return false;
     if (state.currentFolder && m.folder !== state.currentFolder) return false;
@@ -491,12 +519,13 @@ async function openMail(state, mail) {
   scroll.scrollTop = 0;
 
   // Prepare the factory (module import / blob-URL fetch) in the background.
-  // For iframe/emulator types the fake-loading overlay covers this time.
+  // For iframe/emulator types the fake-loading overlay covers this time —
+  // scoped to the attachment area so the rest of the email stays readable.
   let factory;
   await withFakeLoading(state.settings, mail, async () => {
     const ctx = { settings: state.settings, app: mail, host: { backend: state.backend, user: state.user } };
     factory = await createAppRunner(mail, ctx);
-  });
+  }, view.hostEl);
 
   // Factory is ready — enable the "Open Preview" button.
   const openBtn = splashEl.querySelector('.splash-open');
@@ -543,6 +572,9 @@ async function saveComments(state, mailId, data) {
 }
 
 function makeAckButton(state, mail) {
+  // Forwarded shortcuts share the original's ack thread, so key on refId
+  // when present (so a count of 5 appears for everyone, not per-shortcut).
+  const ackKey = mail.refId || mail.id;
   const btn = el('button', { class: 'ack-btn', title: t('ackTooltip') }, [
     el('span', { class: 'ack-icon', html:
       `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>` }),
@@ -551,7 +583,7 @@ function makeAckButton(state, mail) {
   ]);
   let busy = false;
   async function refresh() {
-    const data = await loadAck(state, mail.id);
+    const data = await loadAck(state, ackKey);
     const me = state.user;
     const acked = !!(me && data.ackedBy && data.ackedBy.includes(me.id));
     btn.classList.toggle('acked', acked);
@@ -562,7 +594,7 @@ function makeAckButton(state, mail) {
     if (busy) return;
     if (!state.user) { showAuth(state, { onSignedIn: async () => { await refresh(); } }); return; }
     busy = true;
-    const data = await loadAck(state, mail.id);
+    const data = await loadAck(state, ackKey);
     const acks = new Set(data.ackedBy || []);
     if (acks.has(state.user.id)) {
       acks.delete(state.user.id);
@@ -572,7 +604,7 @@ function makeAckButton(state, mail) {
       data.count = (data.count || 0) + 1;
     }
     data.ackedBy = [...acks];
-    await saveAck(state, mail.id, data);
+    await saveAck(state, ackKey, data);
     await refresh();
     busy = false;
   });
@@ -600,8 +632,12 @@ async function mountCommentsThread(state, mail, view, scroll) {
   // very bottom of the email view.
   view.node.appendChild(wrap);
 
+  // Comments thread is keyed on the original mail id so all forwarded
+  // shortcuts share the same conversation.
+  const commentsKey = mail.refId || mail.id;
+
   async function render() {
-    const data = await loadComments(state, mail.id);
+    const data = await loadComments(state, commentsKey);
     const list = wrap.querySelector('.comments-list');
     list.innerHTML = '';
     if (!data.entries || !data.entries.length) {
@@ -630,10 +666,10 @@ async function mountCommentsThread(state, mail, view, scroll) {
       const text = (ta.value || '').trim();
       if (!text) return;
       send.disabled = true;
-      const cur = await loadComments(state, mail.id);
+      const cur = await loadComments(state, commentsKey);
       cur.entries = cur.entries || [];
       cur.entries.push({ userId: state.user.id, name: state.user.displayName, text, ts: Date.now() });
-      await saveComments(state, mail.id, cur);
+      await saveComments(state, commentsKey, cur);
       ta.value = '';
       await render();
       send.disabled = false;
@@ -676,26 +712,25 @@ function openForwardDialog(state, mail) {
   submit.addEventListener('click', async () => {
     submit.disabled = true;
     try {
-      const copy = {
-        subject: mail.subject,
-        sender: mail.sender,
-        recipient: state.settings.user.displayName || state.user.displayName,
+      // Forward = SHORTCUT (reference), not a copy. We persist only the
+      // user-scoped fields here — owner, folder, label storage, etc. The
+      // original mail's body / attachment / config is shared and resolved
+      // at list time via `loadAllMails`. This means N forwards of the
+      // same mail consume O(1) storage for the heavy payload, not O(N).
+      // If `mail` was itself already a shortcut, point at the underlying
+      // original to avoid chains of references.
+      const targetRef = mail.refId || mail.ref || mail.id;
+      const shortcut = {
+        ref: targetRef,
         folder: sel.value,
         visibility: 'private',
-        monochrome: mail.monochrome || 'none',
-        type: mail.type,
-        entry: mail.entry,
-        url: mail.url,
-        rom: mail.rom,
-        template: mail.template,
-        preview: mail.preview,
         date: 'Today',
-        config: Object.assign({}, mail.config || {}, {
-          forwardedFrom: mail.id,
+        config: {
+          forwardedFrom: targetRef,
           forwardedFromOwner: mail.ownerName || mail.ownerId
-        })
+        }
       };
-      await state.backend.create(copy);
+      await state.backend.create(shortcut);
       m.close();
       await refreshList(state, {});
       flashToast(t('forwarded'));

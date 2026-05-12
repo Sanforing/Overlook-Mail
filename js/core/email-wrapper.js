@@ -78,9 +78,11 @@ export function buildEmailView({ app, settings, settingsDefaults, templates, use
 
   // The resize grip is a child of attachment-shell (NOT att-body) so it
   // lives outside the overflow:hidden clip region and is always reachable
-  // even when the frame is resized to a very small size.
+  // even when the frame is resized to a very small size. It is anchored to
+  // the TOP-LEFT corner of the attachment so it never overlaps the embedded
+  // app's own UI in the bottom-right.
   const resizeGrip = el('div', {
-    class: 'att-resize',
+    class: 'att-resize att-resize-tl',
     title: 'Drag to resize preview'
   });
   resizeGrip.addEventListener('mousedown', (e) => startResize(e, attBody));
@@ -97,6 +99,10 @@ export function buildEmailView({ app, settings, settingsDefaults, templates, use
   const adSlots = (adsEnabled && !isPaid && bannerOn) ? (settings.ads?.slots || []) : [];
   const totalCount = 1 + adSlots.length;
   const slotBadgeFactory = () => attachmentBannerSlotBadge({ ads: settings.ads });
+
+  // Apply previously saved opacity straight away (size restore happens
+  // separately via restoreFrameSize so it can run before the app mounts).
+  applySavedOpacity(attBody);
 
   const attachments = inlineNovel ? null : el('div', { class: 'attachments' }, [
     el('div', { class: 'attachments-hdr' }, [
@@ -240,7 +246,7 @@ function buildAttFilterBtn(app, attBody) {
     const rect = btn.getBoundingClientRect();
     Object.assign(menu.style, {
       top:  `${rect.bottom + 4}px`,
-      left: `${Math.min(rect.left, window.innerWidth - 210)}px`
+      left: `${Math.min(rect.left, window.innerWidth - 260)}px`
     });
 
     const section = document.createElement('div');
@@ -255,6 +261,62 @@ function buildAttFilterBtn(app, attBody) {
       item.addEventListener('click', () => { applyMono(key); menu.remove(); });
       menu.appendChild(item);
     }
+
+    // ----- Size slider (Windows volume-bar style) -----
+    const sizeSection = document.createElement('div');
+    sizeSection.className = 'afm-section';
+    sizeSection.textContent = 'Preview size';
+    menu.appendChild(sizeSection);
+
+    const sizeRow = document.createElement('div');
+    sizeRow.className = 'afm-slider-row';
+    const sizeVal = Math.round(currentSizeScale(attBody) * 100);
+    const sizeInput = document.createElement('input');
+    sizeInput.type = 'range'; sizeInput.min = '20'; sizeInput.max = '100'; sizeInput.step = '1';
+    sizeInput.value = String(sizeVal);
+    sizeInput.className = 'afm-slider';
+    const sizeLabel = document.createElement('span');
+    sizeLabel.className = 'afm-slider-val';
+    sizeLabel.textContent = sizeVal + '%';
+    sizeInput.addEventListener('input', () => {
+      const pct = parseInt(sizeInput.value, 10) || 100;
+      sizeLabel.textContent = pct + '%';
+      setSizeScale(attBody, pct / 100);
+    });
+    // Stop the click-outside-to-close handler from firing while dragging.
+    sizeInput.addEventListener('click', (ev) => ev.stopPropagation());
+    sizeInput.addEventListener('mousedown', (ev) => ev.stopPropagation());
+    sizeRow.appendChild(sizeInput);
+    sizeRow.appendChild(sizeLabel);
+    menu.appendChild(sizeRow);
+
+    // ----- Opacity slider -----
+    const opacitySection = document.createElement('div');
+    opacitySection.className = 'afm-section';
+    opacitySection.textContent = 'Opacity';
+    menu.appendChild(opacitySection);
+
+    const opacityRow = document.createElement('div');
+    opacityRow.className = 'afm-slider-row';
+    const curOpacity = parseFloat(attBody.style.opacity || '1') || 1;
+    const opacityVal = Math.round(curOpacity * 100);
+    const opacityInput = document.createElement('input');
+    opacityInput.type = 'range'; opacityInput.min = '10'; opacityInput.max = '100'; opacityInput.step = '1';
+    opacityInput.value = String(opacityVal);
+    opacityInput.className = 'afm-slider';
+    const opacityLabel = document.createElement('span');
+    opacityLabel.className = 'afm-slider-val';
+    opacityLabel.textContent = opacityVal + '%';
+    opacityInput.addEventListener('input', () => {
+      const pct = parseInt(opacityInput.value, 10) || 100;
+      opacityLabel.textContent = pct + '%';
+      setOpacity(attBody, pct / 100);
+    });
+    opacityInput.addEventListener('click', (ev) => ev.stopPropagation());
+    opacityInput.addEventListener('mousedown', (ev) => ev.stopPropagation());
+    opacityRow.appendChild(opacityInput);
+    opacityRow.appendChild(opacityLabel);
+    menu.appendChild(opacityRow);
 
     document.body.appendChild(menu);
     setTimeout(() => {
@@ -322,7 +384,7 @@ function buildAdShell(slot, slotBadgeFactory) {
 }
 
 /**
- * Bottom-right corner resize grip. Drag right/down = larger, left/up = smaller.
+ * Top-left corner resize grip. Drag left/up = larger, right/down = smaller.
  * The grip lives outside att-body so it's never hidden by overflow:hidden,
  * even when the frame is collapsed to a very small size.
  *
@@ -365,11 +427,11 @@ function startResize(e, body) {
   let lastW = startW, lastH = startH;
 
   const onMove = (ev) => {
+    // NW corner: drag left/up = larger, right/down = smaller (invert deltas).
     const dx = ev.clientX - startX;
     const dy = ev.clientY - startY;
-    // SE corner: drag right/down = larger.
-    lastW = Math.max(minW, Math.min(parentW, startW + dx));
-    lastH = Math.max(minH, startH + dy);
+    lastW = Math.max(minW, Math.min(parentW, startW - dx));
+    lastH = Math.max(minH, startH - dy);
     body.style.width      = lastW + 'px';
     body.style.height     = lastH + 'px';
     body.style.marginLeft = 'auto'; // keep frame right-aligned
@@ -393,4 +455,66 @@ function startResize(e, body) {
   };
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onUp);
+}
+
+/* ===================== Programmatic size + opacity (View toolbox) ===================== */
+
+const OPACITY_KEY = 'stlbx:frame-opacity';
+
+/** Read saved opacity (0..1) or null. */
+function loadSavedOpacity() {
+  try {
+    const v = parseFloat(localStorage.getItem(OPACITY_KEY) || '');
+    return Number.isFinite(v) ? Math.max(0.1, Math.min(1, v)) : null;
+  } catch { return null; }
+}
+/** Apply saved opacity to the attachment frame (no-op when none saved). */
+export function applySavedOpacity(body) {
+  const v = loadSavedOpacity();
+  if (v == null) return;
+  setOpacity(body, v);
+}
+function setOpacity(body, v) {
+  body.style.opacity = String(v);
+  try { localStorage.setItem(OPACITY_KEY, String(v)); } catch {}
+}
+
+/**
+ * Apply a uniform size scale (0.2..1) without dragging. Behaves the same as
+ * the corner-grip resize (locks host to natural px + applies transform:scale)
+ * and persists the resulting target dims so restoreFrameSize keeps them.
+ */
+function setSizeScale(body, scale) {
+  scale = Math.max(0.2, Math.min(1, scale));
+  if (!body._naturalW) {
+    body._naturalW = body.offsetWidth;
+    body._naturalH = body.offsetHeight;
+  }
+  const naturalW = body._naturalW, naturalH = body._naturalH;
+  const host = body.querySelector('.app-host');
+  if (host && !host._resizeLocked) {
+    host.style.width           = naturalW + 'px';
+    host.style.height          = naturalH + 'px';
+    host.style.transformOrigin = 'top left';
+    host.style.flexShrink      = '0';
+    host._resizeLocked         = true;
+  }
+  const newW = Math.max(80, Math.round(naturalW * scale));
+  const newH = Math.max(40, Math.round(naturalH * scale));
+  body.style.width      = newW + 'px';
+  body.style.height     = newH + 'px';
+  body.style.marginLeft = 'auto';
+  if (host) host.style.transform = scale >= 0.999 ? '' : `scale(${scale.toFixed(5)})`;
+  try {
+    localStorage.setItem(FRAME_KEY, JSON.stringify({
+      tw: newW, th: newH,
+      nw: Math.round(naturalW), nh: Math.round(naturalH)
+    }));
+  } catch {}
+}
+
+function currentSizeScale(body) {
+  const nw = body._naturalW || body.offsetWidth || 1;
+  const w  = body.offsetWidth || nw;
+  return Math.max(0.2, Math.min(1, w / nw));
 }

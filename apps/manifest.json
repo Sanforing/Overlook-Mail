@@ -2,7 +2,6 @@
   "apps": [
     {
       "id": "typing-defender",
-      "folder": "inbox",
       "type": "local",
       "entry": "apps/typing-defender/index.js",
       "sender": {
@@ -50,7 +49,6 @@
     },
     {
       "id": "pong",
-      "folder": "inbox",
       "type": "local",
       "entry": "apps/pong/index.js",
       "sender": {
@@ -72,7 +70,6 @@
     },
     {
       "id": "tetris",
-      "folder": "inbox",
       "type": "local",
       "entry": "apps/tetris/index.js",
       "sender": {
@@ -94,7 +91,6 @@
     },
     {
       "id": "wordle",
-      "folder": "inbox",
       "type": "local",
       "entry": "apps/wordle/index.js",
       "sender": {
@@ -116,7 +112,6 @@
     },
     {
       "id": "snake",
-      "folder": "inbox",
       "type": "local",
       "entry": "apps/snake/index.js",
       "sender": {
@@ -138,7 +133,6 @@
     },
     {
       "id": "2048",
-      "folder": "inbox",
       "type": "local",
       "entry": "apps/2048/index.js",
       "sender": {
