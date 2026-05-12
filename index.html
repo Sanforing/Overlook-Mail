@@ -322,7 +322,7 @@
       Overlook Mail
     </div>
     <div class="nav-actions">
-      <span class="nav-honest" onclick="document.getElementById('honestModal').classList.add('show')" data-zh="關於我們">
+      <span class="nav-honest" onclick="document.getElementById('honestModal').classList.add('show')" data-zh="關於我們" data-hk="關於我們">
         About
       </span>
     </div>
@@ -331,8 +331,8 @@
   <main>
     <!-- LEFT: Pitch -->
     <section class="pitch">
-      <h1 data-zh="看似在忙，<br/>其實在玩。">Look busy.<br/>Actually be playing.</h1>
-      <p class="punch" data-zh="表面是個電子信箱，暗地裡是遊樂場。你點開的每一封「郵件」，都是精心偽裝的一本小說、一款遊戲、或一段 YouTube 影片——外表看起來卻完全像一個普通郵箱。我們還有模擬器，你可以帶上自己的 ROM，在上司以為你在檢視 Q3 報告的時候，光明正大地享受上班時間。">
+      <h1 data-zh="看似在忙，<br/>其實在玩。" data-hk="睏落認真辦工，<br/>實情認真「扞」工。">Look busy.<br/>Actually be playing.</h1>
+      <p class="punch" data-zh="表面是個電子信箱，暗地裡是遊樂場。你點開的每一封「郵件」，都是精心偽裝的一本小說、一款遊戲、或一段 YouTube 影片——外表看起來卻完全像一個普通郵箱。我們還有模擬器，你可以帶上自己的 ROM，在上司以為你在檢視 Q3 報告的時候，光明正大地享受上班時間。" data-hk="Overlook Mail 表面上係一個普通 Email 信箱，但骨子裡其實係個蛇王樂園。你可以 Upload 自己想眠想玩噑內容，我哋幫你精心偽裝成一封封 Email。Inbox 內每封 Email，都係精心偽裝過噑一本小說、一電遊戲、或者一段 YouTube 片，但成個畫面望落就同平時用緊噑公司 Email 一模一樣。我哋仒內建埋模擬器，你可以自己放 ROM 上去，嗺老闆以為你對緊 Report 噑陣，光明正大咋享受返工噑 Me Time。">
         An inbox that's secretly a playground. Every "email" you click is a novel,
         a game, or a YouTube video — wrapped in a UI that looks <strong>100%</strong> like
         corporate webmail. Bring your own ROMs, load up your favorite retro classics,
@@ -341,17 +341,17 @@
       </p>
 
       <div class="features-row">
-        <span class="chip"><span>📖</span><span data-zh="小說">Novels</span></span>
-        <span class="chip"><span>🎮</span><span data-zh="遊戲">Games</span></span>
+        <span class="chip"><span>📖</span><span data-zh="小說" data-hk="小說">Novels</span></span>
+        <span class="chip"><span>🎮</span><span data-zh="遊戲" data-hk="電子遊戲">Games</span></span>
         <span class="chip"><span>📺</span><span>YouTube</span></span>
-        <span class="chip"><span>🕹</span><span data-zh="模擬器 ROM">Emulator ROMs</span></span>
+        <span class="chip"><span>🕹</span><span data-zh="模擬器 ROM" data-hk="模擬器 ROM">Emulator ROMs</span></span>
       </div>
 
       <div class="cta-row">
-        <a href="/app" class="btn btn-primary btn-hero" data-zh="打開信箱 →">Open Inbox →</a>
+        <a href="/app" class="btn btn-primary btn-hero" data-zh="打開信箱 →" data-hk="入去 Inbox →">Open Inbox →</a>
       </div>
 
-      <div class="esc-tip" data-zh="上司走過來？快按 <span class=&quot;kbd&quot;>Esc</span> <span class=&quot;kbd&quot;>Esc</span> — 立刻隱藏。">
+      <div class="esc-tip" data-zh="上司走過來？快按 <span class=&quot;kbd&quot;>Esc</span> <span class=&quot;kbd&quot;>Esc</span> — 立刻隱藏。" data-hk="老闆嚟喇？撳 <span class=&quot;kbd&quot;>Esc</span> <span class=&quot;kbd&quot;>Esc</span> — 即刻消失。">
         Boss walking by? Tap <span class="kbd">Esc</span> <span class="kbd">Esc</span> — instantly hidden.
       </div>
     </section>
@@ -449,30 +449,39 @@
     (function detectLang() {
       const langs = (navigator.languages && navigator.languages.length)
         ? navigator.languages : [navigator.language || 'en'];
-      const isZh = langs.some(l => /^zh\b/i.test(l));
-      // Persist for the inbox app (i18n.js reads __i18n_lang on load) so the
-      // detected language carries over when the user enters /app.
-      // Always overwrite — the landing page is the authoritative source for
-      // browser-detected language. Users can still override inside the app.
-      try {
-        localStorage.setItem('__i18n_lang', isZh ? 'cht' : 'en');
-      } catch {}
+
+      // zh-HK, zh-Yue, or yue = Cantonese / Hong Kong
+      const isHK = langs.some(l => /^zh-HK\b/i.test(l) || /^zh-Yue\b/i.test(l) || /^yue\b/i.test(l));
+      const isZh = isHK || langs.some(l => /^zh\b/i.test(l));
+
+      // Always persist for inbox — zh-HK still maps to 'cht' inside the app.
+      try { localStorage.setItem('__i18n_lang', isZh ? 'cht' : 'en'); } catch {}
+
       if (!isZh) return;
-      document.documentElement.lang = 'zh-Hant';
-      document.title = 'Overlook Mail — 看似在忙，其實在玩';
-      const setMeta = (sel, content) => {
-        const m = document.querySelector(sel);
-        if (m) m.setAttribute('content', content);
-      };
-      setMeta('meta[name="description"]',
-        '一個隱地裡是遊樂場的電子信箱。在看起來 100% 像公司郵箱的介面下讀小說、玩遊戲、看影片。連按 Esc Esc 立刻隱藏。');
-      setMeta('meta[property="og:title"]',     'Overlook Mail — 看似在忙，其實在玩');
-      setMeta('meta[name="twitter:title"]',    'Overlook Mail — 看似在忙，其實在玩');
-      setMeta('meta[property="og:description"]','一個藏滿小說、遊戲、影片的偽郵箱。');
-      setMeta('meta[name="twitter:description"]','一個藏滿小說、遊戲、影片的偽郵箱。');
-      document.querySelectorAll('[data-zh]').forEach(el => {
-        el.innerHTML = el.getAttribute('data-zh');
-      });
+
+      const setMeta = (sel, v) => { const m = document.querySelector(sel); if (m) m.setAttribute('content', v); };
+
+      if (isHK) {
+        document.documentElement.lang = 'zh-HK';
+        document.title = 'Overlook Mail — 睇落認真辦工，實情認真「扮」工';
+        setMeta('meta[name="description"]',      'Overlook Mail 表面係個普通 Email，骨子裡係個蛇王樂園。每封 Email 都係精心偽裝過嘅小說、Game 或 YouTube 片。');
+        setMeta('meta[property="og:title"]',     'Overlook Mail — 睇落認真辦工，實情認真「扮」工');
+        setMeta('meta[name="twitter:title"]',    'Overlook Mail — 睇落認真辦工，實情認真「扮」工');
+        setMeta('meta[property="og:description"]','蛇王樂園統統係個 Email。');
+        setMeta('meta[name="twitter:description"]','蛇王樂園統統係個 Email。');
+        // Apply HK text; for elements that have no data-hk, fall back to data-zh
+        document.querySelectorAll('[data-hk]').forEach(el => { el.innerHTML = el.getAttribute('data-hk'); });
+        document.querySelectorAll('[data-zh]:not([data-hk])').forEach(el => { el.innerHTML = el.getAttribute('data-zh'); });
+      } else {
+        document.documentElement.lang = 'zh-Hant';
+        document.title = 'Overlook Mail — 看似在忙，其實在玩';
+        setMeta('meta[name="description"]',      '一個隱地裡是遊樂場的電子信箱。在看起來 100% 像公司郵箱的介面下讀小說、玩遊戲、看影片。連按 Esc Esc 立刻隱藏。');
+        setMeta('meta[property="og:title"]',     'Overlook Mail — 看似在忙，其實在玩');
+        setMeta('meta[name="twitter:title"]',    'Overlook Mail — 看似在忙，其實在玩');
+        setMeta('meta[property="og:description"]','一個藏滿小說、遊戲、影片的偽郵箱。');
+        setMeta('meta[name="twitter:description"]','一個藏滿小說、遊戲、影片的偽郵箱。');
+        document.querySelectorAll('[data-zh]').forEach(el => { el.innerHTML = el.getAttribute('data-zh'); });
+      }
     })();
   </script>
 
