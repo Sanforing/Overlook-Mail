@@ -32,7 +32,7 @@ function sanitize(prefs) {
   if (typeof prefs?.brand === 'string') out.brand = prefs.brand.slice(0, SCHEMA.brand.max);
   if (typeof prefs?.searchPlaceholder === 'string') out.searchPlaceholder = prefs.searchPlaceholder.slice(0, SCHEMA.searchPlaceholder.max);
   if (typeof prefs?.recipientName === 'string') out.recipientName = prefs.recipientName.slice(0, SCHEMA.recipientName.max);
-  if (prefs?.uiLang === 'cht' || prefs?.uiLang === 'en') out.uiLang = prefs.uiLang;
+  if (prefs?.uiLang === 'cht' || prefs?.uiLang === 'ja' || prefs?.uiLang === 'en') out.uiLang = prefs.uiLang;
   if (Array.isArray(prefs?.customFolders)) {
     out.customFolders = prefs.customFolders.slice(0, 50).filter(f =>
       f && typeof f.id === 'string' && typeof f.name === 'string' && f.id.length <= 64 && f.name.length > 0

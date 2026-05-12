@@ -16,6 +16,23 @@
     "EMEA 領導論壇的共用通訊群組清單已更新。若您認為自己被誤移除或誤加入，請使用自助服務入口參考編號 IT-DL-MAINT 向 IT 提出工單。",
     "法務團隊已即時發布修訂版保密協議範本。依舊版簽署的協議仍屬有效，但所有新案件必須使用法務內部網頁上的最新範本。"
   ],
+  "fillerJa": [
+    "前回の部門横断ミーティングを受け、Q3 OKR に記載された優先事項が確認されました。成果物マトリクスは共有ワークスペースで更新済みで、来週木曜のゲートレビュー前に関係者の承認待ちです。",
+    "ステアリングコミッティーのアクション項目について、統合版リスク登録簿を下記に共有します。2件はエグゼクティブスポンサーへ即時対応としてエスカレーション済みです。月曜に再度進捗を確認します。",
+    "添付にはエグゼクティブサマリー、事業部別の詳細な財務内訳、最新の人員計画が含まれています。数値は最終監査前のため、管理会計チームの確認まではドラフトとして扱ってください。",
+    "第三者ベンダーのオンボーディング手順について、調達部および法務部と同期が完了しました。改訂版 SLA テンプレートは別途回覧します。各機能リードは金曜終業時までに受領確認をお願いします。",
+    "リマインダー：四半期コンプライアンス研修モジュールが社内学習ポータルで公開されました。全正社員の受講が必須です。期限までに完了しない場合、次回監査サイクルで記録されます。",
+    "先週の全社会議での議論に関するフォローアップです。アクションログは各部門長へ共有済みです。担当セクションのレビューを完了し、水曜正午までに PMO へ提出してください。",
+    "インフラ移行はフェーズ 2 に入りました。停止時間帯は少なくとも 48 時間前に通知します。業務上重要なワークフローへの影響が見込まれる場合は、各 IT 窓口と対応策を確認してください。",
+    "改訂版の出張・経費精算ポリシーは来月1日より適用されます。領収書は30日以内に提出してください。期限外の精算は VP レベルの承認が必要となり、承認は保証されません。",
+    "People & Culture チームより、年央のパフォーマンス調整サイクルが今週金曜に開始されることをお知らせします。マネージャーレビュー期間の開始前に Workday で自己評価を完了してください。",
+    "情報セキュリティチームは、社内アカウントを狙ったフィッシング試行の増加を検知しました。不明な送信者からのリンクはクリックしないでください。不明点がある場合は、操作前に security@playwithspect.com へ転送してください。",
+    "ファシリティチームは今週木曜 09:00 から 12:00 まで、12階から18階の空気環境および人間工学評価を実施します。10階コラボレーションハブに臨時席を用意しています。",
+    "財務部門は当期の暫定締め処理を完了しました。差異分析資料を経営層レビュー用に添付しています。取締役会承認前の内部ドラフトのため、外部共有はしないでください。",
+    "承認キューに未対応の申請が1件残っています。申請は5営業日保留されています。ポリシー SOP-07 に基づく直属上司への自動エスカレーション前に、承認ポータルで対応してください。",
+    "EMEA リーダーシップフォーラムの共有配布リストが更新されました。誤って削除または追加されたと思われる場合は、セルフサービスポータルで参照番号 IT-DL-MAINT を指定して IT チケットを起票してください。",
+    "法務チームより、改訂版 NDA テンプレートが即時適用として回覧されました。旧版で締結済みの契約は有効ですが、新規案件では法務イントラネット上の最新版テンプレートを使用してください。"
+  ],
   "filler": [
     "Per our last sync, the cross-functional alignment workshop confirmed the priorities outlined in the Q3 OKRs. The deliverables matrix has been updated in the shared workspace and is awaiting stakeholder sign-off before the gate review next Thursday.",
     "Following up on the action items from the steering committee, please find below the consolidated risk register. Note that two items have been escalated to the executive sponsor for immediate attention. We will reconvene on Monday to track mitigation progress.",
@@ -58,6 +75,18 @@
     "提醒：本週末系統維護作業",
     "RE：資源申請，待您核准"
   ],
+  "defaultSubjectsJa": [
+    "FW: 本日中の確認が必要です",
+    "RE: 先週の同期ミーティングのフォローアップ — ご確認ください",
+    "【リマインダー】コンプライアンス研修 — 期限超過",
+    "四半期アップデート — 議事録と次のステップを添付",
+    "RE: 先日のご依頼について — チームからの更新",
+    "FYI: 来週月曜からのプロセス変更",
+    "全社会議まとめ — 録画と資料を公開しました",
+    "【対応必須】ポリシー確認 — 今週金曜締切",
+    "お知らせ：今週末のシステムメンテナンス",
+    "RE: リソース申請 — 承認待ち"
+  ],
   "subjectWrappers": [
     "FW: {keyword} — please review and action by EOD",
     "RE: {keyword} update — feedback needed before Thursday",
@@ -81,6 +110,18 @@
     "提醒：{keyword}，流程變更下週一起生效",
     "【提醒】{keyword}，請於今日下班前完成",
     "每日摘要：{keyword}，供您參考"
+  ],
+  "subjectWrappersJa": [
+    "FW: {keyword} — 本日中に確認と対応をお願いします",
+    "RE: {keyword} 更新 — 木曜までにフィードバックください",
+    "【対応必須】{keyword} — 今週金曜までに確認が必要です",
+    "リマインダー: {keyword} — 完了期限を過ぎています",
+    "FYI: {keyword} — 本日の議論メモ",
+    "Q3 施策: {keyword} — 整合資料を添付しました",
+    "RE: {keyword} — 先週の同期ミーティングのフォローアップ",
+    "お知らせ: {keyword} — 月曜からプロセス変更",
+    "【リマインダー】{keyword} — 本日中に完了してください",
+    "日次ダイジェスト: {keyword} — 参考用サマリー"
   ],
   "defaultSenderNames": [
     "IT Support",
@@ -110,6 +151,20 @@
     "職場體驗部",
     "企業服務部"
   ],
+  "defaultSenderNamesJa": [
+    "IT サポート",
+    "People & Culture",
+    "コーポレートコミュニケーション",
+    "ファシリティ管理部",
+    "コンプライアンス・リスク管理部",
+    "財務オペレーション",
+    "人事チーム",
+    "デジタルワークプレイス",
+    "情報セキュリティチーム",
+    "業務システム部",
+    "ワークプレイス体験部",
+    "エンタープライズサービス"
+  ],
   "defaultSenderTitles": [
     "Senior Manager",
     "Director, Operations",
@@ -138,6 +193,20 @@
     "合規主管",
     "財務資深總監"
   ],
+  "defaultSenderTitlesJa": [
+    "シニアマネージャー",
+    "オペレーション部長",
+    "人事担当 VP",
+    "シニアビジネスアナリスト",
+    "IT 部門長",
+    "チーフ・オブ・スタッフ",
+    "プログラムマネージャー",
+    "アソシエイトディレクター",
+    "シニア People Partner",
+    "プリンシパルコンサルタント",
+    "コンプライアンス責任者",
+    "財務シニアディレクター"
+  ],
   "templates": {
     "default": {
       "greetingHtml": "<p>Dear {recipient},</p><p>I hope this email finds you well. As per our previous discussion, please find the latest updates regarding <em>{subject}</em> below. Kindly review the attached materials at your earliest convenience and revert with comments before the next checkpoint.</p>",
@@ -147,6 +216,10 @@
       "greetingHtml": "<p>敬愛的 {recipient}，</p><p>您好，希望此郵件能讓您一切安好。謹此提供最新的 <em>{subject}</em> 相關資訊，煩請查閱附件，並於下次里程碑確認前回覆意見。</p>",
       "signatureText": "敬祝順頌商祺，\n{senderName}\n{senderTitle}\n{senderCompany}\n\n— 本郵件及任何附件均屬機密，僅供收件人使用。"
     },
+    "defaultJa": {
+      "greetingHtml": "<p>{recipient} 様</p><p>いつもお世話になっております。先日の件に関連し、<em>{subject}</em> の最新情報を以下に共有いたします。添付資料をご確認のうえ、次回チェックポイント前までにコメントをご返信ください。</p>",
+      "signatureText": "よろしくお願いいたします。\n{senderName}\n{senderTitle}\n{senderCompany}\n\n— 本メールおよび添付ファイルは機密情報であり、宛先の方のみを対象としています。"
+    },
     "report": {
       "greetingHtml": "<p>Hi team,</p><p>Please find below the status report for <strong>{subject}</strong>. The summary highlights key metrics, blockers, and action items requiring follow-up before EOW.</p><p><strong>Executive Summary —</strong> Overall progress remains on track with minor deviations in scope. The risk register has been updated and a revised forecast attached for review.</p>",
       "signatureText": "Thanks,\n{senderName}\nSent from Overlook Mail for Web"
@@ -155,6 +228,10 @@
       "greetingHtml": "<p>各位好，</p><p>以下為 <strong>{subject}</strong> 之進度報告。摘要列出關鍵指標、阻礙事項及本週需追蹤的行動項目。</p><p><strong>執行摘要 —</strong> 整體進度基本符合預期，範圍有輕微偏差。風險登錄冊已更新，修訂版預測已附件供查閱。</p>",
       "signatureText": "謝謝，\n{senderName}\n透過 Overlook Mail Web 版傳送"
     },
+    "reportJa": {
+      "greetingHtml": "<p>チーム各位</p><p><strong>{subject}</strong> に関するステータスレポートを以下に共有します。サマリーには主要指標、ブロッカー、今週中にフォローアップが必要なアクション項目を記載しています。</p><p><strong>エグゼクティブサマリー —</strong> 全体進捗は概ね計画どおりですが、スコープに軽微な差分があります。リスク登録簿を更新し、改訂版の見通し資料を添付しました。</p>",
+      "signatureText": "ありがとうございます。\n{senderName}\nOverlook Mail for Web から送信"
+    },
     "minimal": {
       "greetingHtml": "<p>Hi {recipient},</p><p>See attachment.</p>",
       "signatureText": "Regards,\n{senderName}"
@@ -162,6 +239,10 @@
     "minimalCht": {
       "greetingHtml": "<p>您好 {recipient}，</p><p>請見附件。</p>",
       "signatureText": "敬上，\n{senderName}"
+    },
+    "minimalJa": {
+      "greetingHtml": "<p>{recipient} 様</p><p>添付をご確認ください。</p>",
+      "signatureText": "よろしくお願いいたします。\n{senderName}"
     }
   }
 }

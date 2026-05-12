@@ -17,17 +17,25 @@ function monochromeOptions() {
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+function langSuffix(mailLang) {
+  if (mailLang === 'cht') return 'Cht';
+  if (mailLang === 'ja') return 'Ja';
+  return '';
+}
+
+function localizedList(templates, baseKey, mailLang, fallback) {
+  const suffix = langSuffix(mailLang);
+  return (suffix && templates[`${baseKey}${suffix}`]) || templates[baseKey] || fallback;
+}
+
 function resolveSubject(raw, templates, camouflage, mailLang) {
   const keyword = raw.trim();
-  const isCht = mailLang === 'cht';
   if (!keyword) {
-    const list = isCht ? (templates.defaultSubjectsCht || templates.defaultSubjects || ['(no subject)'])
-                       : (templates.defaultSubjects || ['(no subject)']);
+    const list = localizedList(templates, 'defaultSubjects', mailLang, ['(no subject)']);
     return pick(list);
   }
   if (!camouflage) return keyword;
-  const wrappers = isCht ? (templates.subjectWrappersCht || templates.subjectWrappers || [])
-                         : (templates.subjectWrappers || []);
+  const wrappers = localizedList(templates, 'subjectWrappers', mailLang, []);
   if (!wrappers.length) return keyword;
   return pick(wrappers).replace('{keyword}', keyword);
 }
@@ -43,14 +51,10 @@ export function showCompose(state, { onCreated } = {}) {
 
   // Resolved sender pools (language-aware)
   function senderNames() {
-    return mailLang === 'cht'
-      ? (tpls.defaultSenderNamesCht || tpls.defaultSenderNames || ['資訊科技支援'])
-      : (tpls.defaultSenderNames || ['IT Support']);
+    return localizedList(tpls, 'defaultSenderNames', mailLang, ['IT Support']);
   }
   function senderTitles() {
-    return mailLang === 'cht'
-      ? (tpls.defaultSenderTitlesCht || tpls.defaultSenderTitles || ['資深經理'])
-      : (tpls.defaultSenderTitles || ['Senior Manager']);
+    return localizedList(tpls, 'defaultSenderTitles', mailLang, ['Senior Manager']);
   }
 
   const subject = input({ placeholder: `e.g. "${pick(tpls.defaultSubjects || ['Project update'])}" (leave blank for random)` });
@@ -65,8 +69,9 @@ export function showCompose(state, { onCreated } = {}) {
   ]);
   const monochrome = select(monochromeOptions());
   const mailLangSel = select([
-    { value: 'en',  label: t('langEn'),  selected: mailLang !== 'cht' },
-    { value: 'cht', label: t('langCht'), selected: mailLang === 'cht' }
+    { value: 'en',  label: t('langEn'),  selected: mailLang === 'en' },
+    { value: 'cht', label: t('langCht'), selected: mailLang === 'cht' },
+    { value: 'ja',  label: t('langJa'),  selected: mailLang === 'ja' }
   ]);
   mailLangSel.addEventListener('change', () => { mailLang = mailLangSel.value; });
   const folder = select((state.folders || []).map(f => ({

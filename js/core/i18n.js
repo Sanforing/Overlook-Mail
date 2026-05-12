@@ -1,6 +1,7 @@
 /**
  * Minimal i18n module.
- * Supported languages: 'en' (English) and 'cht' (Traditional Chinese / 繁體中文).
+ * Supported languages: 'en' (English), 'cht' (Traditional Chinese / 繁體中文),
+ * and 'ja' (Japanese / 日本語).
  *
  * Usage:
  *   import { t, setLang, getLang } from './i18n.js';
@@ -65,6 +66,7 @@ const LOCALES = {
     fieldUiLang:         'UI language',
     langEn:              'English',
     langCht:             '繁體中文',
+    langJa:              '日本語',
     save:                'Save',
     resetDefaults:       'Reset to defaults',
 
@@ -277,6 +279,7 @@ const LOCALES = {
     fieldUiLang:         '介面語言',
     langEn:              'English',
     langCht:             '繁體中文',
+    langJa:              '日本語',
     save:                '儲存',
     resetDefaults:       '重設為預設值',
 
@@ -431,6 +434,219 @@ const LOCALES = {
 
     /* ── All-folder hint ── */
     allFolderHint:             '你資料夾中的所有郵件（你自己建立或儲存的）。',
+  },
+
+  ja: {
+    /* ── Topbar ── */
+    appLauncher:         'アプリ ランチャー',
+    notifications:       '通知',
+    settingsBtn:         '設定',
+    searchPlaceholder:   '検索',
+
+    /* ── Avatar menu ── */
+    upgradePaid:         '有料版にアップグレード（デモ）',
+    personalise:         'カスタマイズ…',
+    signOut:             'サインアウト',
+    signInCreate:        'サインイン / アカウント作成',
+
+    /* ── Sidebar ── */
+    newMail:             '新規メール',
+    categories:          'カテゴリ',
+    folders:             'フォルダー',
+    allFolders:          'すべて',
+
+    /* ── List panel ── */
+    noItems:             'このビューには項目がありません。',
+    itemCount:           (n) => `${n} 件`,
+
+    /* ── Reader toolbar ── */
+    reply:               '↩ 返信',
+    replyAll:            '↩↩ 全員に返信',
+    forward:             '➜ 転送',
+    deleteMail:          '⌫ 削除',
+    labelBtn:            '🏷 ラベル',
+    confirmDelete:       'このメールを削除しますか？',
+    selectItem:          '読む項目を選択してください。',
+
+    /* ── Splash ── */
+    splashLoading:       '読み込み中…',
+    splashOpen:          'プレビューを開く',
+    splashHint:          '下のボタンをクリックして添付ファイルのプレビューを開きます。',
+    splashTypeLocal:     'インタラクティブ添付ファイル',
+    splashTypeIframe:    'Web 埋め込み',
+    splashTypeEmulator:  'ROM エミュレーター',
+
+    /* ── Settings (Personalise) modal ── */
+    personaliseTitle:    'カスタマイズ',
+    sectionBrand:        'ブランド',
+    fieldTabTopbar:      'タブ + 上部バーの表示名',
+    fieldSearchPH:       '検索プレースホルダー',
+    sectionMailId:       'メール上の身元',
+    fieldRecipient:      '受信者名',
+    sectionReading:      '読書',
+    fieldNovelLines:     '小説の1ページ行数',
+    fieldMailFont:       'メール本文の文字サイズ',
+    fieldUiScale:        'UI 拡大率（%）',
+    sectionTheme:        'テーマカラー',
+    sectionLanguage:     '言語',
+    fieldUiLang:         'UI 言語',
+    langEn:              'English',
+    langCht:             '繁體中文',
+    langJa:              '日本語',
+    save:                '保存',
+    resetDefaults:       '既定値に戻す',
+
+    /* ── Composer modal ── */
+    composeTitle:        '新規メール',
+    tabNovel:            '小説',
+    tabGameUrl:          'ゲーム（URL）',
+    tabGameRom:          'ゲーム（ROM）',
+    tabVideo:            '動画',
+    fieldVideoUrl:       'YouTube URL',
+    noticeVideo:         'YouTube の URL（watch、Shorts、共有リンク）を貼り付けると、メール内に埋め込まれます。このブラウザーで YouTube にログインし Premium を利用している場合は広告なしで再生されます。こちらで YouTube 広告を回避することはできません。',
+    errBadYouTube:       '有効な YouTube リンクを入力してください。',
+    fieldDriveUrl:       'または Google Drive 共有リンク（.txt / 公開テキスト）を貼り付け',
+    noticeDriveNovel:    'ヒント：ファイルをアップロードせず、公開 Google Drive テキストファイルのリンクを貼り付けられます。Drive 側で「リンクを知っている全員」に設定してください。同じメール内リーダーで読み込み、サーバーにはアップロードしません。',
+    noticeDriveRom:      'このバージョンでは Drive リンクによる ROM 読み込みには対応していません（ブラウザーが Drive からのクロスオリジン ダウンロードをブロックします）。Google サインイン対応は今後追加予定です。現時点では ROM ファイルを直接アップロードしてください。',
+    errBadDriveUrl:      'Google Drive の共有リンクではないようです。',
+    fieldSubject:        '件名',
+    camoLabel:           '件名を偽装',
+    fieldSenderName:     '差出人名',
+    fieldSenderTitle:    '差出人の役職',
+    fieldFolder:         'フォルダー',
+    fieldVisibility:     '公開範囲',
+    fieldMonochrome:     '単色フィルター',
+    fieldMailLang:       'メール言語',
+    visPrivate:          '非公開（自分のみ）',
+    visCommunity:        '公開（コミュニティで検索可能）',
+    monoNone:            'なし',
+    monoGray:            'グレースケール',
+    monoSepia:           'セピア（紙風）',
+    monoBlue:            'Overlook Mail ブルー調',
+    monoGreen:           '旧端末グリーン',
+    fieldPasteText:      'テキストを貼り付け',
+    placeholderNovel:    '小説 / 記事の本文をここに貼り付け…',
+    fieldUploadFile:     '…またはファイルをアップロード',
+    fieldGameUrl:        'ゲーム URL',
+    fieldEmulatorCore:   'エミュレーター コア',
+    fieldRomFile:        'ROM ファイル',
+    sendInbox:           '自分の受信トレイへ送信',
+    cancel:              'キャンセル',
+    noticeFreeTier:      '無料プラン：下にテキストを貼り付けてください。.txt/.epub のアップロードには有料版が必要です。',
+    noticeIframe:        'iframe に埋め込める任意の URL（対象サイトの CSP / X-Frame-Options が適用されます）。',
+    noticeRomPaidWall:   'ROM アップロードには有料アカウントが必要です。アバターメニューからアップグレードしてください。',
+    noticeRomLegal:      'アップロードする ROM の合法性はあなたの責任です。所有していないコンテンツをアップロードしないでください。',
+    errNoText:           'テキストを入力するか、ファイルをアップロードしてください。',
+    errBadUrl:           '有効な http(s) URL を入力してください。',
+    errRomPaid:          'ROM アップロードには有料版が必要です。',
+    errNoRom:            'ROM ファイルを選択してください。',
+
+    /* ── Auth modal ── */
+    authTitle:           'Overlook Mail アカウント',
+    tabSignIn:           'サインイン',
+    tabCreateAccount:    'アカウント作成',
+    authOr:              'または',
+    fieldEmail:          'メールアドレス',
+    fieldPassword:       'パスワード',
+    fieldDisplayName:    '表示名',
+    fieldTier:           'プラン',
+    tierFree:            '無料',
+    tierPaid:            '有料（デモ：即時アップグレード）',
+    btnContinueGoogle:   'Google で続行',
+    btnContinueLinkedIn: 'LinkedIn で続行',
+
+    /* ── Built-in folder names ── */
+    folder_inbox:   '受信トレイ',
+    folder_mine:    '自分のメール',
+    folder_drafts:  '下書き',
+    folder_junk:    '迷惑メール',
+    folder_archive: 'アーカイブ',
+    folder_all:     'すべて',
+
+    /* ── Built-in category names ── */
+    cat_admin:     '管理者から',
+    cat_community: 'コミュニティから',
+    cat_mine:      '自分のもの',
+
+    /* ── Mailbox manager (settings) ── */
+    sectionMailboxes:      'カスタム メールボックス',
+    noCustomMailboxes:     'カスタム メールボックスはまだありません。',
+    addMailbox:            '追加',
+    mailboxNameLabel:      '名前',
+    mailboxIconLabel:      'アイコン',
+    mailboxNamePH:         '例：読書中',
+    mailboxIconPH:         '📂',
+    deleteMailbox:         '削除',
+    errMailboxNameReq:     'メールボックス名は必須です。',
+    errMailboxNameTaken:   '同じ名前のメールボックスが既に存在します。',
+
+    /* ── Email wrapper ── */
+    attachmentsHdr:      (n) => `添付ファイル（${n}）`,
+    loadingDoc:          '文書テキストを読み込み中…',
+    noSubject:           '（件名なし）',
+
+    /* ── Iframe restriction (composer) ── */
+    iframeMustBePublic:        '埋め込み URL は公開である必要があります',
+    iframeMustBePublicBody:    '第三者の URL を埋め込む場合、そのメールは自動的に「公開」となり、他のユーザーが共有内容を見られます。投稿することで、(a) リンクが安全であること、(b) 共有する権利があること、(c) 内容に責任を持つことを確認したものとします。埋め込み URL を非公開にすることはできません。',
+    visibilityLockedIframe:    '公開（埋め込み URL のため固定）',
+
+    /* ── Reader toolbar (extras) ── */
+    acknowledge:               '確認済みにする',
+    acknowledged:              '確認済み',
+    ackCount:                  (n) => `${n}`,
+    ackTooltip:                'このメールを確認済みにします。',
+    forwardTitle:              'メールボックスへ転送',
+    forwardBody:               'アカウント内のメールボックスを選んでください。コピーがそこに保存されます。',
+    forwardSubmit:             'コピーを保存',
+    forwarded:                 'メールボックスに保存しました',
+    forwardedBadge:            '転送済み',
+
+    /* ── Comments thread (disguised as Reply) ── */
+    commentsHeading:           'メールのフォローアップ',
+    commentsEmpty:             '返信はまだありません。最初のフォローアップを追加しましょう。',
+    commentsPlaceholder:       '短いフォローアップ返信を入力…',
+    commentsSend:              '返信を送信',
+    commentsSignInRequired:    'フォローアップ返信を追加するにはサインインしてください。',
+    commentsPrivateMail:       'フォローアップは共有メールでのみ利用できます。',
+
+    /* ── Disclaimer + tutorial ── */
+    disclaimerTitle:           'ようこそ。最初にお読みください',
+    disclaimerBody:            'これは Web メール風のパロディ Web アプリです。独立したプロジェクトであり、商用メールサービス事業者とは一切関係ありません。アカウントを作成することで、以下に同意したものとします。\n\n• 違法、有害、または所有していない著作物をアップロードしません。\n• 埋め込んだ URL（および「公開」にしたメール）は他のユーザーから見える可能性があり、共有内容についてはあなたが単独で責任を負います。\n• データは当社サーバーに安全に保存されます。アカウントと関連データはいつでも削除できます。\n• 他のユーザーを尊重し、嫌がらせ、スパム、悪用を行いません。',
+    disclaimerAgree:           '読み、同意しました',
+    disclaimerDecline:         'キャンセル',
+    tutorialNext:              '次へ',
+    tutorialPrev:              '戻る',
+    tutorialDone:              '了解',
+    tutorialSkip:              'ツアーをスキップ',
+    tutorialStep1Title:        '新しいメールを作成',
+    tutorialStep1Body:         'ここをクリックして新しいメールを作成します。小説を貼り付けたり、ゲーム URL を埋め込んだり、ROM をアップロードできます。',
+    tutorialStep2Title:        'あなたのフォルダー',
+    tutorialStep2Body:         '作成または保存したメールはここに入ります。「すべて」ビューでは、所有している全フォルダーのメールを表示します。',
+    tutorialStep3Title:        'カスタム メールボックス',
+    tutorialStep3Body:         '自分用のメールボックス（例：「読書中」）を追加し、それぞれにアイコンを選べます。',
+    tutorialStep4Title:        'リーダー操作',
+    tutorialStep4Body:         'メールを開いて確認済みにしたり、フォローアップ返信を投稿したり、いずれかのフォルダーへコピーを保存できます。',
+
+    /* ── First-time compose tutorial ── */
+    compTutTabsTitle:    'コンテンツの種類を選ぶ',
+    compTutTabsBody:     'タブで添付する内容を選びます：小説（長文の貼り付け / アップロード）、ゲーム（URL）（Web サイト埋め込み）、ゲーム（ROM）（ROM ファイルアップロード）。',
+    compTutSubjectTitle: '件名（偽装つき）',
+    compTutSubjectBody:  '本当に覚えておきたいキーワードを入力します。偽装をオンにすると、「FW: {keyword} — 確認お願いします」のような業務メール風の件名に包み、普通の仕事メールに見せます。',
+    compTutMetaTitle:    '差出人、フォルダー、公開範囲',
+    compTutMetaBody:     '差出人名 / 役職は空欄にすると、業務メールらしいランダムな身元が入ります。保存先フォルダーを選びます。公開範囲は「非公開（自分のみ）」または「公開（他の人も閲覧可）」。埋め込み URL は強制的に公開、アップロードファイルは強制的に非公開になります。',
+    compTutContentTitle: 'コンテンツを追加',
+    compTutContentBody:  '小説本文を貼り付ける、ゲーム URL を貼り付ける、または ROM ファイルをアップロードします。内容はメール本文下の「添付ファイル」ブロック内に表示されます。',
+    compTutSendTitle:    '受信トレイに送信',
+    compTutSendBody:     'ここをクリックしてメールを保存します。選択したフォルダーの先頭に表示され、通常のメールと同じように開けます。',
+
+    /* ── First-time novel-mail tutorial ── */
+    novTutPagesTitle:    '小説メールを読む',
+    novTutPagesBody:     '小説はメール本文の中に、社内文書のようにページ分割されて表示されます。「◀ 前のページ」/「次のページ ▶」ボタン、またはキーボードの ← → キーで、スクロールせずにページをめくれます。',
+    novTutToolbarTitle:  'ページ表示（送信時刻の代わり）',
+    novTutToolbarBody:   '通常のメールではヘッダー右上に送信時刻が表示されます。小説メールではそこが「X / Y ページ」のライブページカウンターになります。クリックするとクイックジャンプ ツールボックスが開き、任意のページへ移動したり、続きから読めるようブックマークを置いたりできます。',
+
+    /* ── All-folder hint ── */
+    allFolderHint:             'あなたのフォルダー内のメール（自分で作成または保存したもの）。',
   }
 };
 
@@ -440,14 +656,14 @@ let _lang = 'en';
 /**
  * Set the active UI language. Persists to localStorage so it survives page
  * reloads even before prefs are loaded from the backend.
- * @param {'en'|'cht'} lang
+ * @param {'en'|'cht'|'ja'} lang
  */
 export function setLang(lang) {
-  _lang = (lang === 'cht') ? 'cht' : 'en';
+  _lang = (lang === 'cht' || lang === 'ja') ? lang : 'en';
   try { localStorage.setItem('__i18n_lang', _lang); } catch {}
 }
 
-/** Return the active language code ('en' or 'cht'). */
+/** Return the active language code ('en', 'cht', or 'ja'). */
 export function getLang() { return _lang; }
 
 /**
@@ -467,5 +683,12 @@ export function t(key, arg) {
 // Restore from localStorage on module load (before prefs arrive from backend).
 try {
   const saved = localStorage.getItem('__i18n_lang');
-  if (saved === 'cht') _lang = 'cht';
+  if (saved === 'cht' || saved === 'ja') _lang = saved;
+  else if (!saved) {
+    const langs = (navigator.languages && navigator.languages.length)
+      ? navigator.languages : [navigator.language || 'en'];
+    if (langs.some(l => /^ja\b/i.test(l))) _lang = 'ja';
+    else if (langs.some(l => /^zh\b/i.test(l) || /^yue\b/i.test(l))) _lang = 'cht';
+    localStorage.setItem('__i18n_lang', _lang);
+  }
 } catch {}

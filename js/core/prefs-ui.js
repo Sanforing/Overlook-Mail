@@ -10,7 +10,12 @@ export function saveLocalPrefs(prefs) {
 
 /** Load prefs from localStorage (used when backend has no data or user is not signed in). */
 export function loadLocalPrefs() {
-  try { return JSON.parse(localStorage.getItem(LS_PREFS_KEY) || 'null') || {}; } catch { return {}; }
+  try {
+    const prefs = JSON.parse(localStorage.getItem(LS_PREFS_KEY) || 'null') || {};
+    const lang = getLang();
+    if (lang) prefs.uiLang = lang;
+    return prefs;
+  } catch { return {}; }
 }
 
 /**

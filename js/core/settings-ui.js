@@ -29,8 +29,9 @@ export function showSettings(state) {
   const mailFontIn = input({ type: 'number', value: initial.display?.mailFontSize || 14, min: '12', max: '22', step: '1' });
   const uiScaleIn = input({ type: 'number', value: initial.display?.uiScale || 100, min: '80', max: '130', step: '5' });
   const uiLangIn = select([
-    { value: 'en',  label: t('langEn'),  selected: (initial.uiLang || getLang()) !== 'cht' },
-    { value: 'cht', label: t('langCht'), selected: (initial.uiLang || getLang()) === 'cht' }
+    { value: 'en',  label: t('langEn'),  selected: (initial.uiLang || getLang()) === 'en' },
+    { value: 'cht', label: t('langCht'), selected: (initial.uiLang || getLang()) === 'cht' },
+    { value: 'ja',  label: t('langJa'),  selected: (initial.uiLang || getLang()) === 'ja' }
   ]);
 
   const themeKeys = ['primary','primaryDark','background','panel','border','textPrimary','textSecondary','unread','hover','selected'];

@@ -21,10 +21,12 @@ import { adsActive, placementOn, buildUnderSubjectAd, attachmentBannerSlotBadge 
  */
 export function buildEmailView({ app, settings, settingsDefaults, templates, user = null }) {
   const mailLang = app.config?.mailLang || 'en';
-  const isCht = mailLang === 'cht';
   const tplKey = app.template || 'default';
-  // Pick the CHT variant of the template when the mail language is CHT.
-  const resolvedTplKey = isCht ? (`${tplKey}Cht` in templates.templates ? `${tplKey}Cht` : 'defaultCht') : tplKey;
+  const suffix = mailLang === 'cht' ? 'Cht' : mailLang === 'ja' ? 'Ja' : '';
+  // Pick the localized template variant when the mail language has one.
+  const localizedTplKey = suffix ? `${tplKey}${suffix}` : tplKey;
+  const localizedDefaultKey = suffix ? `default${suffix}` : 'default';
+  const resolvedTplKey = suffix ? (localizedTplKey in templates.templates ? localizedTplKey : localizedDefaultKey) : tplKey;
   const tpl = templates.templates[resolvedTplKey] || templates.templates[tplKey] || templates.templates.default;
   const inlineNovel = isInlineNovel(app);
 
@@ -42,7 +44,7 @@ export function buildEmailView({ app, settings, settingsDefaults, templates, use
   const greetingHtml = fillTemplate(tpl.greetingHtml, ctx);
   const signatureText = fillTemplate(tpl.signatureText, ctx);
 
-  const allFiller = (isCht ? templates.fillerCht : null) || templates.filler || [];
+  const allFiller = (suffix ? templates[`filler${suffix}`] : null) || templates.filler || [];
   const pickCount = templates.fillerPickCount || 3;
   const shuffled = allFiller.slice().sort(() => Math.random() - 0.5);
   const fillerHtml = shuffled.slice(0, pickCount)
