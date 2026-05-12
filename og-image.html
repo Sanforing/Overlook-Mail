@@ -21,163 +21,355 @@
       height: 630px;
       overflow: hidden;
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: #0f1923;
+      background: linear-gradient(135deg, #0d1a2e 0%, #0f2340 100%);
       color: #fff;
-      position: relative;
+      display: flex;
+      align-items: stretch;
     }
 
-    /* ── Blue accent bar ── */
+    /* ── Blue top bar ── */
     .bar {
       position: absolute;
       top: 0; left: 0; right: 0;
-      height: 6px;
-      background: linear-gradient(90deg, #0078d4 0%, #50b4ff 100%);
+      height: 5px;
+      background: linear-gradient(90deg, #0078d4, #50b4ff);
+      z-index: 10;
     }
 
-    /* ── Faint fake-inbox lines (decoration) ── */
-    .inbox-bg {
-      position: absolute;
-      right: 0; top: 0; bottom: 0;
-      width: 520px;
-      opacity: 0.07;
-    }
-    .row {
-      height: 52px;
-      border-bottom: 1px solid #fff;
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      gap: 16px;
-    }
-    .avatar { width: 32px; height: 32px; border-radius: 50%; background: #0078d4; flex-shrink: 0; }
-    .lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-    .line { height: 10px; border-radius: 4px; background: #fff; }
-
-    /* ── Vertical divider ── */
-    .divider {
-      position: absolute;
-      right: 520px; top: 80px; bottom: 80px;
-      width: 1px;
-      background: rgba(255,255,255,0.08);
-    }
-
-    /* ── Main content ── */
-    .content {
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 680px;
+    /* ══════════════════════════════
+       LEFT PANEL — branding / pitch
+       ══════════════════════════════ */
+    .left {
+      width: 390px;
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 60px 72px;
+      padding: 56px 44px 56px 52px;
     }
 
     .logo-row {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 36px;
+      gap: 12px;
+      margin-bottom: 28px;
     }
     .logo-icon {
-      width: 56px; height: 56px;
-      border-radius: 12px;
+      width: 48px; height: 48px; border-radius: 10px;
       background: #0078d4;
       display: flex; align-items: center; justify-content: center;
-      font-size: 32px; font-weight: 700;
-      letter-spacing: -1px;
+      font-size: 26px; font-weight: 700; color: #fff;
+      flex-shrink: 0;
     }
     .logo-name {
-      font-size: 26px;
-      font-weight: 600;
-      color: #e8e8e8;
-      letter-spacing: -0.3px;
+      font-size: 22px; font-weight: 600; color: #dce8f5;
+      letter-spacing: -0.2px;
     }
 
     h1 {
-      font-size: 52px;
-      font-weight: 700;
-      line-height: 1.1;
-      letter-spacing: -1.5px;
-      color: #fff;
-      margin-bottom: 22px;
+      font-size: 44px; font-weight: 800; line-height: 1.08;
+      letter-spacing: -1.5px; color: #fff;
+      margin-bottom: 18px;
     }
-    h1 em {
-      font-style: normal;
-      color: #50b4ff;
-    }
+    h1 em { font-style: normal; color: #50b4ff; }
 
     .tagline {
-      font-size: 20px;
-      color: #8fa8c0;
-      line-height: 1.5;
-      max-width: 480px;
+      font-size: 14.5px; color: #7da0be; line-height: 1.6;
+      margin-bottom: 26px;
     }
 
-    /* ── Floating badge ── */
-    .badges {
-      display: flex;
-      gap: 12px;
-      margin-top: 36px;
+    .chips {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 28px;
     }
-    .badge {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      background: rgba(0,120,212,0.25);
-      border: 1px solid rgba(0,120,212,0.5);
+    .chip {
+      padding: 5px 12px; border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+      background: rgba(0,120,212,0.2);
+      border: 1px solid rgba(0,120,212,0.45);
       color: #7ecfff;
     }
 
-    /* ── Domain ── */
     .domain {
-      position: absolute;
-      bottom: 32px;
-      left: 72px;
-      font-size: 15px;
-      color: rgba(255,255,255,0.3);
-      letter-spacing: 0.5px;
+      font-size: 13px; color: rgba(255,255,255,0.22);
+      letter-spacing: 0.4px;
+    }
+
+    /* ══════════════════════════════
+       RIGHT PANEL — mock inbox
+       ══════════════════════════════ */
+    .right {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      padding: 30px 40px 30px 10px;
+    }
+
+    .mock-window {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow:
+        0 32px 72px rgba(0,0,0,0.55),
+        0 8px 28px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      color: #1a1a1a;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    /* title bar */
+    .mock-bar {
+      background: #f3f3f3;
+      padding: 8px 12px;
+      display: flex; align-items: center; gap: 6px;
+      border-bottom: 1px solid #e5e5e5;
+      flex-shrink: 0;
+    }
+    .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot.r { background: #ff5f57; }
+    .dot.y { background: #ffbd2e; }
+    .dot.g { background: #28c840; }
+    .mock-url {
+      flex: 1; margin-left: 10px; background: #fff;
+      border-radius: 4px; padding: 4px 12px;
+      font-size: 11px; color: #666;
+    }
+
+    /* three-column app area */
+    .mock-app {
+      display: grid;
+      grid-template-columns: 36px 200px 1fr;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* icon sidebar */
+    .mock-side {
+      background: #faf9f8;
+      border-right: 1px solid #edebe9;
+      padding-top: 12px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 12px;
+    }
+    .side-icon { width: 22px; height: 22px; border-radius: 4px; background: #e5e5e5; }
+    .side-icon.active { background: #0078d4; }
+
+    /* mail list */
+    .mock-list {
+      border-right: 1px solid #edebe9;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .mock-list-hdr {
+      padding: 10px 12px; font-size: 12px; font-weight: 600; color: #323130;
+      border-bottom: 1px solid #edebe9; flex-shrink: 0;
+    }
+    .mock-mail { padding: 10px 12px; border-bottom: 1px solid #f3f2f1; flex-shrink: 0; }
+    .mock-mail.active {
+      background: #e1efff;
+      border-left: 3px solid #0078d4;
+      padding-left: 9px;
+    }
+    .mock-mail-from { font-size: 11px; font-weight: 600; color: #201f1e; }
+    .mock-mail-sub  { font-size: 11px; color: #323130; margin-top: 2px; }
+    .mock-mail-prev {
+      font-size: 10px; color: #605e5c; margin-top: 2px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* reading pane */
+    .mock-reader { padding: 15px 18px; overflow: hidden; display: flex; flex-direction: column; }
+    .reader-subject { font-size: 15px; font-weight: 700; color: #0078d4; margin-bottom: 4px; }
+    .reader-meta    { font-size: 10px; color: #888; margin-bottom: 12px; }
+    .reader-body    { font-size: 11.5px; line-height: 1.65; color: #333; margin-bottom: 14px; }
+    .reader-body strong { color: #0078d4; font-weight: 600; }
+
+    /* attachment card */
+    .attach-card {
+      border: 1px solid #d8e4ee; border-radius: 6px;
+      background: #f8fcff; padding: 10px;
+      width: 264px; position: relative;
+      flex-shrink: 0;
+    }
+    .attach-secret-tag {
+      position: absolute; top: -13px; right: -8px;
+      background: #f5b400; color: #1a1a1a;
+      padding: 4px 12px; border-radius: 999px;
+      font-size: 10px; font-weight: 700;
+      transform: rotate(4deg);
+      box-shadow: 0 3px 10px rgba(245,180,0,0.5);
+      white-space: nowrap;
+    }
+    .attach-title { font-size: 11px; font-weight: 600; color: #0078d4; margin-bottom: 6px; }
+    .attach-game {
+      height: 76px; background: #0d1018; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .attach-game canvas { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
+    .pong-score {
+      position: absolute; top: 5px; left: 50%; transform: translateX(-50%);
+      color: #fff; font-family: 'SF Mono', Consolas, monospace;
+      font-size: 12px; letter-spacing: 4px; opacity: 0.7; pointer-events: none;
     }
   </style>
 </head>
 <body>
   <div class="bar"></div>
 
-  <!-- Faint inbox decoration on the right -->
-  <div class="inbox-bg">
-    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:60%"></div><div class="line" style="width:40%"></div></div></div>
-    <div class="row"><div class="avatar" style="background:#106ebe"></div><div class="lines"><div class="line" style="width:75%"></div><div class="line" style="width:30%"></div></div></div>
-    <div class="row"><div class="avatar" style="background:#005a9e"></div><div class="lines"><div class="line" style="width:50%"></div><div class="line" style="width:55%"></div></div></div>
-    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:80%"></div><div class="line" style="width:35%"></div></div></div>
-    <div class="row"><div class="avatar" style="background:#106ebe"></div><div class="lines"><div class="line" style="width:65%"></div><div class="line" style="width:45%"></div></div></div>
-    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:55%"></div><div class="line" style="width:50%"></div></div></div>
-    <div class="row"><div class="avatar" style="background:#005a9e"></div><div class="lines"><div class="line" style="width:70%"></div><div class="line" style="width:25%"></div></div></div>
-    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:45%"></div><div class="line" style="width:60%"></div></div></div>
-    <div class="row"><div class="avatar" style="background:#106ebe"></div><div class="lines"><div class="line" style="width:80%"></div><div class="line" style="width:30%"></div></div></div>
-    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:50%"></div><div class="line" style="width:40%"></div></div></div>
-    <div class="row"><div class="avatar" style="background:#005a9e"></div><div class="lines"><div class="line" style="width:65%"></div><div class="line" style="width:55%"></div></div></div>
-    <div class="row"><div class="avatar"></div><div class="lines"><div class="line" style="width:75%"></div><div class="line" style="width:35%"></div></div></div>
-  </div>
-
-  <div class="divider"></div>
-
-  <div class="content">
+  <!-- ── Left: branding ── -->
+  <div class="left">
     <div class="logo-row">
       <div class="logo-icon">O</div>
       <span class="logo-name">Overlook Mail</span>
     </div>
-
-    <h1>Look busy.<br><em>Actually</em> be playing.</h1>
-
-    <p class="tagline">An inbox that's secretly a playground. Read novels, play games — in a UI that looks 100% like corporate webmail.</p>
-
-    <div class="badges">
-      <span class="badge">🎮 Games</span>
-      <span class="badge">📖 Novels</span>
-      <span class="badge">⌨️ Boss key</span>
+    <h1>Look busy.<br><em>Actually</em><br>be playing.</h1>
+    <p class="tagline">An inbox that's secretly a playground. Upload your novels, games, and YouTube videos — we disguise them as boring corporate email.</p>
+    <div class="chips">
+      <span class="chip">🎮 Games</span>
+      <span class="chip">📖 Novels</span>
+      <span class="chip">📺 YouTube</span>
+      <span class="chip">⌨️ Boss key</span>
     </div>
+    <div class="domain">overlookmail.site</div>
   </div>
 
-  <div class="domain">overlookmail.site</div>
+  <!-- ── Right: mock inbox window ── -->
+  <div class="right">
+    <div class="mock-window">
+      <div class="mock-bar">
+        <div class="dot r"></div>
+        <div class="dot y"></div>
+        <div class="dot g"></div>
+        <div class="mock-url">🔒 overlookmail.site/app</div>
+      </div>
+      <div class="mock-app">
+
+        <!-- icon sidebar -->
+        <div class="mock-side">
+          <div class="side-icon active"></div>
+          <div class="side-icon"></div>
+          <div class="side-icon"></div>
+          <div class="side-icon"></div>
+        </div>
+
+        <!-- mail list -->
+        <div class="mock-list">
+          <div class="mock-list-hdr">Inbox</div>
+          <div class="mock-mail">
+            <div class="mock-mail-from">HR Department</div>
+            <div class="mock-mail-sub">Q3 Performance Review</div>
+            <div class="mock-mail-prev">Please review the attached…</div>
+          </div>
+          <div class="mock-mail active">
+            <div class="mock-mail-from">IT Support</div>
+            <div class="mock-mail-sub">FW: System maintenance</div>
+            <div class="mock-mail-prev">Please action by EOD…</div>
+          </div>
+          <div class="mock-mail">
+            <div class="mock-mail-from">Finance</div>
+            <div class="mock-mail-sub">Budget approval needed</div>
+            <div class="mock-mail-prev">Attached spreadsheet…</div>
+          </div>
+          <div class="mock-mail">
+            <div class="mock-mail-from">Team Lead</div>
+            <div class="mock-mail-sub">Weekly sync — agenda</div>
+            <div class="mock-mail-prev">Items for tomorrow's call…</div>
+          </div>
+        </div>
+
+        <!-- reading pane — the email "explains" what Overlook Mail is -->
+        <div class="mock-reader">
+          <div class="reader-subject">FW: System maintenance — please action</div>
+          <div class="reader-meta">it-support@overlookmail.site · 9:42 AM</div>
+          <div class="reader-body">
+            Hi team,<br><br>
+            Per our quarterly cadence, please <strong>circle back</strong> on the deliverables outlined in
+            the attached log to ensure alignment with stakeholder bandwidth.
+            <strong>Synergies</strong> across workstreams should be leveraged to optimize EOD
+            throughput — we are, after all, a web app that disguises <strong>games, novels,
+            and YouTube videos</strong> as ordinary corporate email.<br><br>
+            Action items are pre-loaded. Boss walking by? Hit <strong>Esc Esc</strong> — gone.
+          </div>
+          <div class="attach-card">
+            <div class="attach-secret-tag">↓ Secretly a game</div>
+            <div class="attach-title">📎 maintenance_log.doc</div>
+            <div class="attach-game">
+              <canvas id="pongCanvas" width="240" height="76"></canvas>
+              <div class="pong-score"><span id="pL">0</span> &nbsp;:&nbsp; <span id="pR">0</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- mock-app -->
+    </div><!-- mock-window -->
+  </div>
+
+  <!-- Pong AI-vs-AI demo -->
+  <script>
+    (function () {
+      const cv = document.getElementById('pongCanvas');
+      if (!cv) return;
+      const ctx = cv.getContext('2d');
+      const W = cv.width, H = cv.height;
+      const PW = 4, PH = 22, BALL = 3;
+      const scoreL = document.getElementById('pL');
+      const scoreR = document.getElementById('pR');
+      let sl = 0, sr = 0;
+      let b = { x: W/2, y: H/2, vx: 1.8, vy: 1.2 };
+      let lY = H/2 - PH/2, rY = H/2 - PH/2;
+
+      function reset(dir) {
+        b.x = W/2; b.y = H/2;
+        b.vx = (dir || (Math.random() < 0.5 ? 1 : -1)) * 1.8;
+        b.vy = (Math.random() - 0.5) * 2.2;
+      }
+
+      function ai(pY) {
+        const c = pY + PH / 2;
+        const t = b.y + (Math.random() - 0.5) * 6;
+        if (t < c - 1) return Math.max(pY - 2.2, 0);
+        if (t > c + 1) return Math.min(pY + 2.2, H - PH);
+        return pY;
+      }
+
+      function draw() {
+        ctx.fillStyle = '#0d1018'; ctx.fillRect(0, 0, W, H);
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(6, lY, PW, PH);
+        ctx.fillRect(W - 10, rY, PW, PH);
+        ctx.beginPath(); ctx.arc(b.x, b.y, BALL, 0, Math.PI * 2); ctx.fill();
+      }
+
+      function tick() {
+        b.x += b.vx; b.y += b.vy;
+        if (b.y < BALL || b.y > H - BALL) { b.vy *= -1; b.y = Math.max(BALL, Math.min(H - BALL, b.y)); }
+        if (b.x - BALL < 12 && b.y > lY && b.y < lY + PH && b.vx < 0) {
+          b.vx = Math.abs(b.vx) * 1.04;
+          b.vy += (b.y - (lY + PH/2)) / PH * 1.2;
+        }
+        if (b.x + BALL > W - 12 && b.y > rY && b.y < rY + PH && b.vx > 0) {
+          b.vx = -Math.abs(b.vx) * 1.04;
+          b.vy += (b.y - (rY + PH/2)) / PH * 1.2;
+        }
+        b.vx = Math.max(-3, Math.min(3, b.vx));
+        b.vy = Math.max(-2.5, Math.min(2.5, b.vy));
+        if (b.x < 0) { sr++; scoreR.textContent = sr; reset(1); }
+        if (b.x > W) { sl++; scoreL.textContent = sl; reset(-1); }
+        lY = ai(lY); rY = ai(rY);
+        draw();
+        requestAnimationFrame(tick);
+      }
+
+      tick();
+    })();
+  </script>
 </body>
 </html>
