@@ -23,20 +23,50 @@ const PROVIDERS = {
     tokenUrl: 'https://oauth2.googleapis.com/token',
     userInfoUrl: 'https://openidconnect.googleapis.com/v1/userinfo',
     scopes: ['openid', 'email', 'profile'],
-    usesPKCE: true
+    usesPKCE: true,
+    extractUser: (info) => ({
+      providerUid: String(info.sub || info.id || info.email),
+      email: info.email || null,
+      displayName: info.name || info.given_name || (info.email ? info.email.split('@')[0] : 'google-user')
+    })
   },
   linkedin: {
     authUrl: 'https://www.linkedin.com/oauth/v2/authorization',
     tokenUrl: 'https://www.linkedin.com/oauth/v2/accessToken',
     userInfoUrl: 'https://api.linkedin.com/v2/userinfo',
     scopes: ['openid', 'email', 'profile'],
-    usesPKCE: false
+    usesPKCE: false,
+    extractUser: (info) => ({
+      providerUid: String(info.sub || info.id || info.email),
+      email: info.email || null,
+      displayName: info.name || info.given_name || (info.email ? info.email.split('@')[0] : 'linkedin-user')
+    })
+  },
+  x: {
+    authUrl: 'https://twitter.com/i/oauth2/authorize',
+    tokenUrl: 'https://api.twitter.com/2/oauth2/token',
+    userInfoUrl: 'https://api.twitter.com/2/users/me',
+    scopes: ['tweet.read', 'users.read', 'offline.access'],
+    usesPKCE: true,
+    // X requires HTTP Basic auth on the token endpoint for confidential clients
+    tokenAuthBasic: true,
+    extractUser: (info) => {
+      const d = info && info.data ? info.data : info;
+      const username = d.username || d.screen_name || '';
+      return {
+        providerUid: String(d.id || username),
+        // X does not return an email; synthesize a stable pseudo-email so we can link/display
+        email: username ? `${username}@x.local` : null,
+        displayName: d.name || username || 'x-user'
+      };
+    }
   }
 };
 
 function clientFor(provider) {
   if (provider === 'google')   return config.google;
   if (provider === 'linkedin') return config.linkedin;
+  if (provider === 'x')        return config.x;
   return null;
 }
 
@@ -66,7 +96,8 @@ function setOauthCookie(reply, name, value) {
 export function registerOAuth(app) {
   app.get('/auth/oauth/providers', async () => ({
     google:   providerEnabled('google'),
-    linkedin: providerEnabled('linkedin')
+    linkedin: providerEnabled('linkedin'),
+    x:        providerEnabled('x')
   }));
 
   app.get('/auth/oauth/:provider/start', async (req, reply) => {
@@ -115,9 +146,14 @@ export function registerOAuth(app) {
       grant_type: 'authorization_code',
       code: String(code),
       redirect_uri: redirectUriFor(provider),
-      client_id: cli.clientId,
-      client_secret: cli.clientSecret
+      client_id: cli.clientId
     });
+    const tokenHeaders = { 'content-type': 'application/x-www-form-urlencoded', 'accept': 'application/json' };
+    if (def.tokenAuthBasic) {
+      tokenHeaders.authorization = 'Basic ' + Buffer.from(`${cli.clientId}:${cli.clientSecret}`).toString('base64');
+    } else {
+      body.set('client_secret', cli.clientSecret);
+    }
     if (def.usesPKCE) {
       const verifier = req.cookies?.[`sb_oauth_pkce_${provider}`];
       if (!verifier) return renderCallback(reply, { ok: false, error: 'missing PKCE verifier' });
@@ -128,7 +164,7 @@ export function registerOAuth(app) {
     try {
       const r = await fetch(def.tokenUrl, {
         method: 'POST',
-        headers: { 'content-type': 'application/x-www-form-urlencoded', 'accept': 'application/json' },
+        headers: tokenHeaders,
         body
       });
       if (!r.ok) throw new Error(`token endpoint: ${r.status} ${await r.text()}`);
@@ -148,9 +184,10 @@ export function registerOAuth(app) {
       return renderCallback(reply, { ok: false, error: 'userinfo failed' });
     }
 
-    const providerUid = String(info.sub || info.id || info.email);
-    const email = info.email || null;
-    const displayName = info.name || info.given_name || (email ? email.split('@')[0] : `${provider}-user`);
+    const extracted = def.extractUser
+      ? def.extractUser(info)
+      : { providerUid: String(info.sub || info.id || info.email), email: info.email || null, displayName: info.name || info.given_name || `${provider}-user` };
+    const { providerUid, email, displayName } = extracted;
     const user = findOrLinkOAuthUser({ provider, providerUid, email, displayName });
     startSession(reply, user.id);
 

@@ -39,6 +39,70 @@ export async function initUI(state) {
   await refreshList(state, { autoOpenFirst: true });
 
   document.getElementById('app').setAttribute('aria-busy', 'false');
+  await maybeHandleStripeReturn(state);
+}
+
+/**
+ * Detects ?upgrade=success / ?upgrade=cancel in the URL after a Stripe
+ * Checkout redirect. Stripe always redirects to success_url after a paid
+ * checkout, but our user record only flips to 'paid' once our webhook
+ * actually fires. So on `success` we poll the backend for up to ~10 seconds
+ * waiting for tier === 'paid'. If it never flips, we show a "pending" banner
+ * instead of falsely claiming success.
+ */
+async function maybeHandleStripeReturn(state) {
+  const params = new URLSearchParams(window.location.search);
+  const r = params.get('upgrade');
+  if (r !== 'success' && r !== 'cancel') return;
+  // Strip the param so a refresh doesn't replay the banner.
+  params.delete('upgrade');
+  const clean = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+  window.history.replaceState({}, '', clean);
+
+  if (r === 'cancel') { showUpgradeBanner(t('upgradeCancelled') || t('upgradeFailed'), 'warn'); return; }
+
+  // r === 'success' — verify by polling for tier change.
+  showUpgradeBanner(t('upgradePending'), 'info', 12000);
+  const sawPaid = await pollForPaidTier(state, 12, 1000);
+  document.querySelectorAll('.upgrade-banner').forEach(n => n.remove());
+  if (sawPaid) {
+    renderTopbar(state);
+    showUpgradeBanner(t('upgradeSuccess'), 'ok');
+  } else {
+    showUpgradeBanner(t('upgradePendingLong'), 'warn', 8000);
+  }
+}
+
+async function pollForPaidTier(state, attempts, intervalMs) {
+  if (typeof state.backend.invalidateUser !== 'function') return false;
+  for (let i = 0; i < attempts; i++) {
+    state.backend.invalidateUser();
+    try {
+      const u = await state.backend.currentUser();
+      if (u) state.user = u;
+      if (u && (u.tier === 'paid' || u.tier === 'admin')) return true;
+    } catch {}
+    await new Promise(res => setTimeout(res, intervalMs));
+  }
+  return false;
+}
+
+const BANNER_COLORS = { ok: '#107c10', warn: '#a4262c', info: '#0078d4' };
+function showUpgradeBanner(text, kind = 'ok', durationMs = 4000) {
+  const banner = el('div', {
+    class: 'upgrade-banner',
+    style: {
+      position: 'fixed', top: '12px', left: '50%', transform: 'translateX(-50%)',
+      background: BANNER_COLORS[kind] || BANNER_COLORS.ok, color: '#fff',
+      padding: '10px 18px', borderRadius: '6px',
+      boxShadow: '0 2px 12px rgba(0,0,0,.18)', zIndex: 9999, fontWeight: '600',
+      maxWidth: '90vw', textAlign: 'center'
+    },
+    text
+  });
+  document.body.appendChild(banner);
+  setTimeout(() => { banner.style.transition = 'opacity .4s'; banner.style.opacity = '0'; }, durationMs);
+  setTimeout(() => banner.remove(), durationMs + 500);
 }
 
 /**
@@ -101,9 +165,17 @@ function openAvatarMenu(state, anchor) {
       el('hr')
     );
     const isLocalDev = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
-    if (state.user.tier !== 'paid' && isLocalDev) {
-      menu.appendChild(el('button', { class: 'menu-item', text: t('upgradePaid'), onclick: async () => {
-        state.user = await state.backend.upgradeCurrent('paid'); menu.remove(); renderTopbar(state);
+    const stripeOn = !!(state.meta && state.meta.stripe && state.meta.stripe.enabled);
+    if (state.user.tier !== 'paid' && (isLocalDev || stripeOn)) {
+      const label = stripeOn ? t('upgradePaidStripe') : t('upgradePaid');
+      menu.appendChild(el('button', { class: 'menu-item upgrade-btn', text: label, onclick: async () => {
+        try {
+          const u = await state.backend.upgradeCurrent('paid');
+          if (u) { state.user = u; menu.remove(); renderTopbar(state); }
+          // If u is null, the page is being redirected to Stripe Checkout.
+        } catch (e) {
+          alert(t('upgradeFailed') + ': ' + (e?.message || e));
+        }
       } }));
     }
     menu.appendChild(el('button', { class: 'menu-item', text: t('personalise'), onclick: () => { menu.remove(); showSettings(state); } }));

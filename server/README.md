@@ -58,17 +58,23 @@ The first run creates `data/stealthbox.sqlite` and `data/uploads/`.
 | `SERVE_STATIC_FROM` | Optional path (relative to `cwd`) — when set, the same Fastify process also serves the frontend SPA |
 | `GOOGLE_CLIENT_ID` / `_SECRET` | Google OAuth credentials (optional) |
 | `LINKEDIN_CLIENT_ID` / `_SECRET` | LinkedIn OAuth credentials (optional) |
+| `X_CLIENT_ID` / `_SECRET` | X (Twitter) OAuth 2.0 credentials (optional) |
+| `STRIPE_SECRET_KEY` | Stripe secret key (`sk_live_...` / `sk_test_...`) |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` from Stripe Dashboard → Webhooks |
+| `STRIPE_PRICE_ID` | `price_...` for the paid tier subscription |
+| `STRIPE_SUCCESS_PATH` / `_CANCEL_PATH` | Where Checkout returns the user (default `/app?upgrade=success` / `/app?upgrade=cancel`) |
 
 If a provider's credentials are blank, that login button is hidden in the UI
 and `/auth/oauth/<provider>/start` returns 404.
 
 ## OAuth setup
 
-Both providers use OpenID Connect with the same redirect URI pattern:
+All providers use OAuth 2.0 / OIDC with the same redirect URI pattern:
 
 ```
 ${PUBLIC_ORIGIN}/auth/oauth/google/callback
 ${PUBLIC_ORIGIN}/auth/oauth/linkedin/callback
+${PUBLIC_ORIGIN}/auth/oauth/x/callback
 ```
 
 ### Google
@@ -85,6 +91,40 @@ ${PUBLIC_ORIGIN}/auth/oauth/linkedin/callback
 3. Under **Auth → Authorized redirect URLs**, add the callback URL above
 4. Copy client id + secret into `.env`
 
+### X (Twitter)
+
+1. <https://developer.x.com> → Projects & Apps → create a new app
+2. **App settings → User authentication settings**:
+   - Type: **Web App** (Confidential client)
+   - Enable **OAuth 2.0**
+   - Scopes: `tweet.read`, `users.read`, `offline.access`
+   - Callback URL: the X callback above
+3. Under **Keys and tokens**, copy the **OAuth 2.0 Client ID** and **Client Secret** into `.env`
+
+Note: X never returns an email address. The server synthesizes a placeholder
+like `username@x.local` so the user record can store something — it is not a
+real email address and should not be used for sending mail.
+
+## Stripe (paid tier)
+
+When `STRIPE_SECRET_KEY` and `STRIPE_PRICE_ID` are set, `POST /api/auth/upgrade`
+returns `402` and the frontend redirects to a Stripe Checkout Session via
+`POST /api/stripe/checkout`. On `checkout.session.completed`, the webhook
+upgrades the user to `paid`.
+
+1. <https://dashboard.stripe.com> → Developers → **API keys** → copy the
+   **Secret key** (`sk_test_...` for development).
+2. Products → Add product (e.g. "Overlook Mail Pro", $5 / month) → copy the
+   resulting **Price ID** (`price_...`).
+3. Developers → **Webhooks** → Add endpoint:
+   - URL: `${PUBLIC_ORIGIN}/api/stripe/webhook`
+   - Events: `checkout.session.completed`
+   - Copy the **Signing secret** (`whsec_...`).
+4. Local dev: install the [Stripe CLI](https://stripe.com/docs/stripe-cli)
+   and run `stripe listen --forward-to localhost:8787/api/stripe/webhook`.
+   The CLI prints a `whsec_...` to use as `STRIPE_WEBHOOK_SECRET` while it is
+   running.
+
 ## API surface
 
 All `/api/*` endpoints accept and return JSON unless noted. Auth state is
@@ -99,7 +139,9 @@ carried in the `sb_sess` httpOnly cookie. CORS allows `PUBLIC_ORIGIN` and
 | `POST /api/auth/login` | `{ email, password }` |
 | `POST /api/auth/logout` | clears session |
 | `GET  /api/auth/me` | current user (or `null`) |
-| `POST /api/auth/upgrade` | demo: flips current user to `paid` |
+| `POST /api/auth/upgrade` | demo: flips current user to `paid`. When Stripe is configured, returns 402 — use `/api/stripe/checkout` instead |
+| `POST /api/stripe/checkout` | creates a Checkout Session, returns `{ url }` |
+| `POST /api/stripe/webhook` | Stripe webhook (signed) — upgrades user on `checkout.session.completed` |
 | `GET  /auth/oauth/:provider/start?return=/` | redirects to provider |
 | `GET  /auth/oauth/:provider/callback` | sets session, posts message to opener |
 | `GET  /api/mails` | public mails + signed-in user's private mails |

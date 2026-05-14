@@ -87,7 +87,8 @@ function oauthRow(state, status, onSignedIn, closeModal) {
   });
   row.append(
     make('google',   t('btnContinueGoogle'),   '#4285f4'),
-    make('linkedin', t('btnContinueLinkedIn'), '#0a66c2')
+    make('linkedin', t('btnContinueLinkedIn'), '#0a66c2'),
+    make('x',        t('btnContinueX'),        '#000000')
   );
   return row;
 }
@@ -104,7 +105,7 @@ async function refreshProviders(state, body) {
     }
   } catch {}
   if (providers) {
-    for (const id of ['google', 'linkedin']) {
+    for (const id of ['google', 'linkedin', 'x']) {
       if (!providers[id]) row.querySelector(`.oauth-${id}`)?.remove();
     }
   }

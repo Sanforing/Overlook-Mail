@@ -22,13 +22,17 @@ async function bootstrap() {
 
   const backend = createBackend(settings);
   const user = await backend.currentUser();
+  let meta = null;
+  if (typeof backend.meta === 'function') {
+    try { meta = await backend.meta(); } catch { meta = null; }
+  }
 
   const state = {
     settings, settingsDefaults: JSON.parse(JSON.stringify(settings)),
     builtinFolders: folders,
     folders, categories, templates,
     adminApps: manifest.apps || [],
-    backend, user, userPrefs: {},
+    backend, user, userPrefs: {}, meta,
     currentFolder: null, currentCategory: null, search: '',
     visibleMails: []
   };

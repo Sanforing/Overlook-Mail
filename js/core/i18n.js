@@ -19,6 +19,12 @@ const LOCALES = {
 
     /* ── Avatar menu ── */
     upgradePaid:         'Upgrade to Paid (demo)',
+    upgradePaidStripe:   'Upgrade to Paid — HK$15/mo',
+    upgradeFailed:       'Upgrade failed',
+    upgradeSuccess:      'Thanks! Your account has been upgraded.',
+    upgradeCancelled:    'Upgrade cancelled.',
+    upgradePending:      'Confirming your payment…',
+    upgradePendingLong:  'Payment received but the upgrade is still being confirmed. Please refresh in a minute.',
     personalise:         'Personalise…',
     signOut:             'Sign out',
     signInCreate:        'Sign in / Create account',
@@ -128,6 +134,7 @@ const LOCALES = {
     tierPaid:            'Paid (demo: instant upgrade)',
     btnContinueGoogle:   'Continue with Google',
     btnContinueLinkedIn: 'Continue with LinkedIn',
+    btnContinueX:        'Continue with X',
 
     /* ── Built-in folder names ── */
     folder_inbox:   'Inbox',
@@ -232,6 +239,12 @@ const LOCALES = {
 
     /* ── Avatar menu ── */
     upgradePaid:         '升級至付費版（示範）',
+    upgradePaidStripe:   '升級至付費版 — HK$15/月',
+    upgradeFailed:       '升級失敗',
+    upgradeSuccess:      '多謝您！帳戶已升級。',
+    upgradeCancelled:    '已取消升級。',
+    upgradePending:      '正在確認付款…',
+    upgradePendingLong:  '已收到付款，但升級仍在確認中。請一分鐘後重新整理。',
     personalise:         '個人化…',
     signOut:             '登出',
     signInCreate:        '登入 / 建立帳戶',
@@ -341,6 +354,7 @@ const LOCALES = {
     tierPaid:            '付費（示範：立即升級）',
     btnContinueGoogle:   '使用 Google 繼續',
     btnContinueLinkedIn: '使用 LinkedIn 繼續',
+    btnContinueX:        '使用 X 繼續',
 
     /* ── Built-in folder names ── */
     folder_inbox:   '收件匣',
@@ -445,6 +459,12 @@ const LOCALES = {
 
     /* ── Avatar menu ── */
     upgradePaid:         '有料版にアップグレード（デモ）',
+    upgradePaidStripe:   '有料版にアップグレード — HK$15/月',
+    upgradeFailed:       'アップグレードに失敗しました',
+    upgradeSuccess:      'ありがとうございます！アップグレードが完了しました。',
+    upgradeCancelled:    'アップグレードをキャンセルしました。',
+    upgradePending:      'お支払いを確認中…',
+    upgradePendingLong:  'お支払いを受け取りましたが、アップグレードを確認中です。1分後に再読み込みしてください。',
     personalise:         'カスタマイズ…',
     signOut:             'サインアウト',
     signInCreate:        'サインイン / アカウント作成',
@@ -554,6 +574,7 @@ const LOCALES = {
     tierPaid:            '有料（デモ：即時アップグレード）',
     btnContinueGoogle:   'Google で続行',
     btnContinueLinkedIn: 'LinkedIn で続行',
+    btnContinueX:        'X で続行',
 
     /* ── Built-in folder names ── */
     folder_inbox:   '受信トレイ',

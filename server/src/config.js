@@ -59,6 +59,17 @@ export const config = {
     clientId: env.LINKEDIN_CLIENT_ID || '',
     clientSecret: env.LINKEDIN_CLIENT_SECRET || ''
   },
+  x: {
+    clientId: env.X_CLIENT_ID || '',
+    clientSecret: env.X_CLIENT_SECRET || ''
+  },
+  stripe: {
+    secretKey: env.STRIPE_SECRET_KEY || '',
+    webhookSecret: env.STRIPE_WEBHOOK_SECRET || '',
+    priceId: env.STRIPE_PRICE_ID || '',
+    successPath: env.STRIPE_SUCCESS_PATH || '/app?upgrade=success',
+    cancelPath: env.STRIPE_CANCEL_PATH || '/app?upgrade=cancel'
+  },
   limits: {
     maxUpload: num(env.MAX_UPLOAD_BYTES, 50 * 1024 * 1024),
     romMax: num(env.ROM_MAX_BYTES, 50 * 1024 * 1024),
@@ -77,5 +88,6 @@ if (config.isProd && !env.SESSION_SECRET) {
 export function providerEnabled(name) {
   if (name === 'google')   return !!(config.google.clientId && config.google.clientSecret);
   if (name === 'linkedin') return !!(config.linkedin.clientId && config.linkedin.clientSecret);
+  if (name === 'x')        return !!(config.x.clientId && config.x.clientSecret);
   return false;
 }

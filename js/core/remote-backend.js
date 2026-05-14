@@ -77,9 +77,21 @@ class RemoteBackend {
     return this._user;
   }
   async upgradeCurrent(/* tier */) {
-    const u = await this._req('/api/auth/upgrade', { method: 'POST' });
-    this._user = u;
-    return u;
+    // If Stripe is configured on the server, redirect to Checkout instead of
+    // doing the legacy demo flip. The server will return 402 with a hint.
+    try {
+      const u = await this._req('/api/auth/upgrade', { method: 'POST' });
+      this._user = u;
+      return u;
+    } catch (e) {
+      // Fall through to Stripe checkout
+    }
+    const session = await this._req('/api/stripe/checkout', { method: 'POST' });
+    if (session && session.url) {
+      window.location.href = session.url;
+      return null;
+    }
+    throw new Error('upgrade failed');
   }
 
   /** Used by OAuth popup flow to refresh after callback fires. */

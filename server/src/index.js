@@ -16,6 +16,7 @@ import { registerMails } from './mails.js';
 import { registerFiles } from './files.js';
 import { registerPrefs } from './prefs.js';
 import { registerAdmin, bootstrapAdmins } from './admin.js';
+import { registerStripe, stripeEnabled } from './stripe.js';
 import { rateLimit } from './rate-limit.js';
 
 const app = Fastify({ logger: true, bodyLimit: 2 * 1024 * 1024 });
@@ -46,8 +47,10 @@ app.get('/api/meta', async () => ({
   defaultTier: config.defaultTier,
   providers: {
     google:   providerEnabled('google'),
-    linkedin: providerEnabled('linkedin')
+    linkedin: providerEnabled('linkedin'),
+    x:        providerEnabled('x')
   },
+  stripe: { enabled: stripeEnabled() },
   limits: config.limits
 }));
 
@@ -98,7 +101,12 @@ app.get('/api/auth/me', async (req) => {
 
 app.post('/api/auth/upgrade', async (req, reply) => {
   const me = requireUser(req, reply); if (!me) return;
-  // Demo upgrade: flip tier to "paid". A real impl would integrate Stripe etc.
+  // If Stripe is configured, require going through Checkout. The legacy
+  // demo path (instant tier flip) is only allowed when Stripe is OFF, to
+  // keep local dev / self-hosted demos working.
+  if (stripeEnabled()) {
+    return reply.code(402).send({ error: 'use /api/stripe/checkout' });
+  }
   stmt.setUserTier.run('paid', me.id);
   return publicUser(stmt.userById.get(me.id));
 });
@@ -109,6 +117,7 @@ registerMails(app);
 registerFiles(app);
 registerPrefs(app);
 registerAdmin(app);
+registerStripe(app);
 
 /* ---------- Optional static frontend ---------- */
 if (config.serveStaticFrom) {
