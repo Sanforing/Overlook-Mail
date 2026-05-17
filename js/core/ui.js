@@ -10,6 +10,9 @@ import { openModal, field } from './modal.js';
 import { runTutorial, runOnceTutorial, runNovelTutorial } from './tutorial.js';import { t, getLang } from './i18n.js';
 import { adsActive, placementOn, buildSponsoredInboxRow, buildTopbarTile, buildReaderStickyStrip } from './ads.js';
 
+const EPUB_JSZIP_URL = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm';
+let jsZipModulePromise = null;
+
 /* ===================== Mail Labels ===================== */
 const LABELS = [
   { id: 'important', color: '#c4314b', en: 'Important',  cht: '重要'   },
@@ -860,18 +863,18 @@ async function mountInlineNovel(state, mail, view) {
   const lineHeight = 1.72;
   target.style.fontSize = `${fontSize}px`;
 
-  let text = '';
+  let novelDoc = { text: '', chapters: [] };
   try {
-    text = await loadNovelText(state, mail);
+    novelDoc = await loadNovelDocument(state, mail);
   } catch (err) {
-    text = `Failed to load document text: ${err.message}`;
+    novelDoc = { text: `Failed to load document text: ${err.message}`, chapters: [] };
   }
 
-  const lines = text.split('\n');
+  const lines = novelDoc.text.split('\n');
   const pages = buildNovelPages(lines, linesPerPage);
   if (!pages.length) pages.push('(empty document)');
 
-  const chapters = detectNovelChapters(lines, linesPerPage);
+  const chapters = buildNovelChapterList(lines, linesPerPage, novelDoc.chapters);
 
   // ── Bookmark persistence ──────────────────────────────────────────────────
   // Key per mail so each novel keeps its own bookmarks.
@@ -1106,19 +1109,194 @@ function renderBmList(bmList, bookmarks, getPage, goTo, removeBookmark) {
   }
 }
 
-async function loadNovelText(state, mail) {
-  if (typeof mail.config?.text === 'string' && mail.config.text.length) return mail.config.text;
+function buildNovelChapterList(lines, linesPerPage, parsedChapters = []) {
+  const explicit = (parsedChapters || [])
+    .map(ch => ({ title: String(ch.title || '').trim(), page: Math.floor((ch.line || 0) / linesPerPage) }))
+    .filter(ch => ch.title && Number.isFinite(ch.page));
+  if (explicit.length > 1) return dedupeChapters(explicit);
+  return detectNovelChapters(lines, linesPerPage);
+}
+
+function dedupeChapters(chapters) {
+  const seen = new Set();
+  const out = [];
+  for (const ch of chapters) {
+    const key = `${ch.page}:${ch.title}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ title: ch.title.slice(0, 60), page: ch.page });
+  }
+  return out;
+}
+
+async function loadNovelDocument(state, mail) {
+  if (typeof mail.config?.text === 'string' && mail.config.text.length) return { text: mail.config.text, chapters: [] };
   if (mail.config?.sourceFileId && state.backend) {
     const file = await state.backend.getFile(mail.config.sourceFileId);
     if (!file) throw new Error('Source file not found');
-    return file.blob.text();
+    return loadNovelBlobDocument(file.blob, file.name, file.type);
   }
-  if (mail.config?.drive?.downloadUrl) return loadText(mail.config.drive.downloadUrl);
+  if (mail.config?.drive?.downloadUrl) return loadNovelUrlDocument(mail.config.drive.downloadUrl);
   if (mail.config?.drive?.kind === 'novel' && mail.config.drive.fileId) {
-    return loadText(`https://drive.google.com/uc?export=download&id=${mail.config.drive.fileId}`);
+    return loadNovelUrlDocument(`https://drive.google.com/uc?export=download&id=${mail.config.drive.fileId}`);
   }
-  if (mail.config?.source) return loadText(mail.config.source);
-  return '(no source provided)';
+  if (mail.config?.source) return loadNovelUrlDocument(mail.config.source);
+  return { text: '(no source provided)', chapters: [] };
+}
+
+async function loadNovelBlobDocument(blob, name = '', type = '') {
+  if (isEpubSource(name, type)) return parseEpubBlob(blob);
+  return { text: await blob.text(), chapters: [] };
+}
+
+async function loadNovelUrlDocument(url) {
+  const looksLikeEpub = isEpubSource(url, '');
+  if (!looksLikeEpub) return { text: await loadText(url), chapters: [] };
+  const res = await fetch(url, { cache: 'no-cache' });
+  if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
+  return loadNovelBlobDocument(await res.blob(), url, res.headers.get('content-type') || '');
+}
+
+function isEpubSource(name = '', type = '') {
+  return /\.epub(?:$|[?#])/i.test(String(name)) || String(type).toLowerCase().includes('epub');
+}
+
+async function parseEpubBlob(blob) {
+  const JSZip = await loadJSZip();
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  const containerXml = await readZipText(zip, 'META-INF/container.xml');
+  const containerDoc = parseXml(containerXml, 'container.xml');
+  const rootfile = containerDoc.querySelector('rootfile[full-path]')?.getAttribute('full-path');
+  if (!rootfile) throw new Error('EPUB package file not found');
+
+  const opfXml = await readZipText(zip, rootfile);
+  const opfDoc = parseXml(opfXml, rootfile);
+  const opfDir = dirName(rootfile);
+  const manifest = new Map();
+  opfDoc.querySelectorAll('manifest item[id][href]').forEach(item => {
+    manifest.set(item.getAttribute('id'), {
+      href: item.getAttribute('href'),
+      path: resolveEpubPath(opfDir, item.getAttribute('href')),
+      mediaType: item.getAttribute('media-type') || '',
+      properties: item.getAttribute('properties') || ''
+    });
+  });
+
+  const spineItems = [...opfDoc.querySelectorAll('spine itemref[idref]')]
+    .map(item => manifest.get(item.getAttribute('idref')))
+    .filter(Boolean);
+  if (!spineItems.length) throw new Error('EPUB spine is empty');
+
+  const tocTitles = await readEpubToc(zip, opfDoc, manifest, opfDir);
+  const sections = [];
+  const chapters = [];
+  let lineOffset = 0;
+
+  for (let i = 0; i < spineItems.length; i++) {
+    const item = spineItems[i];
+    const html = await readZipText(zip, item.path).catch(() => '');
+    if (!html) continue;
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const fallbackTitle = doc.querySelector('h1,h2,h3,title')?.textContent?.trim() || `Chapter ${i + 1}`;
+    const title = tocTitles.get(stripHash(item.path)) || fallbackTitle;
+    const bodyText = htmlDocumentToText(doc).trim();
+    const sectionText = [title, bodyText].filter(Boolean).join('\n\n');
+    if (!sectionText) continue;
+    chapters.push({ title, line: lineOffset });
+    sections.push(sectionText);
+    lineOffset += sectionText.split('\n').length + 2;
+  }
+
+  const text = sections.join('\n\n').trim();
+  return { text: text || '(empty EPUB document)', chapters };
+}
+
+async function loadJSZip() {
+  if (!jsZipModulePromise) jsZipModulePromise = import(/* @vite-ignore */ EPUB_JSZIP_URL);
+  const mod = await jsZipModulePromise;
+  return mod.default || mod;
+}
+
+async function readEpubToc(zip, opfDoc, manifest, opfDir) {
+  const toc = new Map();
+  const navItem = [...manifest.values()].find(item => /\bnav\b/.test(item.properties));
+  if (navItem) {
+    const navHtml = await readZipText(zip, navItem.path).catch(() => '');
+    if (navHtml) {
+      const navDoc = new DOMParser().parseFromString(navHtml, 'text/html');
+      const navDir = dirName(navItem.path);
+      navDoc.querySelectorAll('nav a[href], [epub\\:type="toc"] a[href], a[href]').forEach(a => {
+        const title = a.textContent?.trim();
+        const href = a.getAttribute('href');
+        if (title && href) toc.set(stripHash(resolveEpubPath(navDir, href)), title);
+      });
+    }
+  }
+
+  const spineTocId = opfDoc.querySelector('spine')?.getAttribute('toc');
+  const ncxItem = (spineTocId && manifest.get(spineTocId))
+    || [...manifest.values()].find(item => item.mediaType === 'application/x-dtbncx+xml');
+  if (ncxItem) {
+    const ncxXml = await readZipText(zip, ncxItem.path).catch(() => '');
+    if (ncxXml) {
+      const ncxDoc = parseXml(ncxXml, ncxItem.path);
+      const ncxDir = dirName(ncxItem.path);
+      ncxDoc.querySelectorAll('navPoint').forEach(point => {
+        const title = point.querySelector('navLabel text')?.textContent?.trim();
+        const src = point.querySelector('content[src]')?.getAttribute('src');
+        if (title && src) toc.set(stripHash(resolveEpubPath(ncxDir, src)), title);
+      });
+    }
+  }
+  return toc;
+}
+
+async function readZipText(zip, path) {
+  const file = zip.file(path);
+  if (!file) throw new Error(`Missing EPUB file: ${path}`);
+  return file.async('text');
+}
+
+function parseXml(xml, label) {
+  const doc = new DOMParser().parseFromString(xml, 'application/xml');
+  const err = doc.querySelector('parsererror');
+  if (err) throw new Error(`Invalid EPUB XML: ${label}`);
+  return doc;
+}
+
+function htmlDocumentToText(doc) {
+  doc.querySelectorAll('script,style,svg,audio,video,iframe,nav').forEach(node => node.remove());
+  const blocks = new Set(['ADDRESS','ARTICLE','ASIDE','BLOCKQUOTE','BR','DD','DIV','DL','DT','FIGCAPTION','FIGURE','FOOTER','H1','H2','H3','H4','H5','H6','HEADER','HR','LI','MAIN','OL','P','PRE','SECTION','TABLE','TR','UL']);
+  const out = [];
+  const walk = (node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.nodeValue.replace(/\s+/g, ' ');
+      if (text.trim()) out.push(text);
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const isBlock = blocks.has(node.tagName);
+    if (isBlock) out.push('\n');
+    node.childNodes.forEach(walk);
+    if (isBlock) out.push('\n');
+  };
+  walk(doc.body || doc.documentElement);
+  return out.join('').replace(/\u00a0/g, ' ').split('\n').map(line => line.trim()).filter(Boolean).join('\n');
+}
+
+function dirName(path) {
+  const idx = String(path).lastIndexOf('/');
+  return idx >= 0 ? path.slice(0, idx) : '';
+}
+
+function resolveEpubPath(base, href) {
+  const cleanHref = String(href || '').split('#')[0];
+  const url = new URL(cleanHref, `https://epub.local/${base ? `${base}/` : ''}`);
+  return decodeURIComponent(url.pathname.replace(/^\/+/, ''));
+}
+
+function stripHash(path) {
+  return String(path || '').split('#')[0];
 }
 
 function isTypingTarget(target) {

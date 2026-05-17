@@ -92,9 +92,10 @@ swapping the backend.
 
 Click **New mail**. Three modes:
 
-1. **Novel** — paste text (free). Paid users may attach a `.txt` file. Novel
-  mails render the current page directly in the email body; use Left/Right to
-  change pages.
+1. **Novel** — paste text (free). Paid users may attach a `.txt` or `.epub`
+  file. Novel mails render the current page directly in the email body; use
+  Left/Right to change pages. EPUB table-of-contents entries appear in the
+  sent-date jump toolbox when available.
 2. **Game (URL)** — any iframe-embeddable URL (itch.io, web games, …).
 3. **Game (ROM)** — paid only. Pick a core (GBA / GB / NES / SNES / Genesis
    / N64 / PSX / Arcade / …) and upload a ROM file. Powered by

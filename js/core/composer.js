@@ -81,7 +81,7 @@ export function showCompose(state, { onCreated } = {}) {
 
   // ----- Mode-specific fields -----
   const novelText = textarea({ placeholder: t('placeholderNovel') });
-  const novelFile = input({ type: 'file', accept: '.txt,text/plain' });
+  const novelFile = input({ type: 'file', accept: '.txt,.epub,text/plain,application/epub+zip' });
   const novelDriveUrl = input({ type: 'url', placeholder: 'https://drive.google.com/file/d/…/view' });
   const gameUrl   = input({ type: 'url', placeholder: 'https://itch.io/embed-upload/…' });
   const videoUrl  = input({ type: 'url', placeholder: 'https://www.youtube.com/watch?v=…' });
