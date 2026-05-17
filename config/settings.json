@@ -58,8 +58,8 @@
     "note": "Shown to guest/free users only; paid users never see ads. Each placement (1)..(5) can be toggled independently. The visible label '(N)' is a TEST aid — set 'showSlotLabel' to false in production.",
     "showSlotLabel": false,
     "adsense": {
-      "note": "Fill in client after AdSense approval. slotId is the per-unit slot ID from the AdSense dashboard.",
-      "client": "ca-pub-XXXXXXXXXXXXXXXX",
+      "note": "Publisher script is installed for AdSense review. Replace slot IDs after creating manual display ad units.",
+      "client": "ca-pub-1240411576907738",
       "slots": {
         "attachmentBanner": "0000000000"
       }

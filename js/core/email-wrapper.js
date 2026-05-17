@@ -98,8 +98,9 @@ export function buildEmailView({ app, settings, settingsDefaults, templates, use
   const adsEnabled = settings.ads?.enabled !== false;
   const isPaid = user?.tier === 'paid';
   const bannerOn = placementOn({ ads: settings.ads }, 'attachmentBanner');
+  const bannerMode = settings.ads?.placements?.attachmentBanner?.mode || 'custom';
   const useAdsense = adsEnabled && !isPaid && bannerOn && attachmentBannerIsAdsense(settings);
-  const adSlots = (adsEnabled && !isPaid && bannerOn && !useAdsense) ? (settings.ads?.slots || []) : [];
+  const adSlots = (adsEnabled && !isPaid && bannerOn && bannerMode !== 'adsense') ? (settings.ads?.slots || []) : [];
   const totalCount = 1 + (useAdsense ? 1 : adSlots.length);
   const slotBadgeFactory = () => attachmentBannerSlotBadge({ ads: settings.ads });
 

@@ -121,13 +121,14 @@ export function attachmentBannerSlotBadge(settings) {
 
 /**
  * Returns true when the attachmentBanner placement is configured to use
- * AdSense (mode === 'adsense') and a real publisher client ID is set.
+ * AdSense (mode === 'adsense') and real publisher + ad-unit IDs are set.
  */
 export function attachmentBannerIsAdsense(settings) {
   const mode = settings.ads?.placements?.attachmentBanner?.mode;
   if (mode !== 'adsense') return false;
   const client = settings.ads?.adsense?.client || '';
-  return client.startsWith('ca-pub-') && !client.includes('XXXX');
+  const slotId = settings.ads?.adsense?.slots?.attachmentBanner || '';
+  return client.startsWith('ca-pub-') && !client.includes('XXXX') && /^\d+$/.test(slotId) && !/^0+$/.test(slotId);
 }
 
 /**
