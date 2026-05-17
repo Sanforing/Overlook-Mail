@@ -3,6 +3,7 @@ import { el } from './utils.js';
 import { showAuth } from './auth-ui.js';
 import { runOnceTutorial, runComposeTutorial } from './tutorial.js';
 import { t, getLang } from './i18n.js';
+import { parseEpubBlob, isEpubSource } from './epub.js';
 
 function monochromeOptions() {
   return [
@@ -218,8 +219,15 @@ export function showCompose(state, { onCreated } = {}) {
           };
           if (novelFile.files?.[0]) {
             const f = novelFile.files[0];
-            const stored = await state.backend.putBlob(f);
-            cfg.sourceFileId = stored.id;
+            let extractedText;
+            if (isEpubSource(f.name, f.type)) {
+              const doc = await parseEpubBlob(f);
+              extractedText = doc.text;
+            } else {
+              extractedText = await f.text();
+            }
+            if (!extractedText?.trim()) throw new Error(t('errNoText'));
+            cfg.text = extractedText;
             base.preview = `Attached: ${f.name}`;
           } else {
             const text = novelText.value;

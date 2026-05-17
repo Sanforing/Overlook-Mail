@@ -13,7 +13,7 @@ const NOVEL_EXT = new Set(['.txt','.epub']);
 
 function gateForExt(ext, userTier) {
   if (ROM_EXT.has(ext))   return userTier === 'paid';
-  if (NOVEL_EXT.has(ext)) return userTier === 'paid';
+  if (NOVEL_EXT.has(ext)) return true; // all tiers — text is processed client-side
   return userTier === 'paid';
 }
 function maxBytesFor(ext) {
