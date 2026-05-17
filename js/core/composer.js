@@ -1,6 +1,5 @@
 import { openModal, field, input, select, textarea, btn, notice } from './modal.js';
 import { el } from './utils.js';
-import { canUse } from './backend.js';
 import { showAuth } from './auth-ui.js';
 import { runOnceTutorial, runComposeTutorial } from './tutorial.js';
 import { t, getLang } from './i18n.js';
@@ -93,12 +92,10 @@ export function showCompose(state, { onCreated } = {}) {
 
   function modeBody() {
     if (mode === 'novel') {
-      const paidNotice = canUse(me, 'novelUpload', state.settings) ? null
-        : notice(t('noticeFreeTier'), 'warn');
       return el('div', null, [
-        paidNotice,
+        notice(t('noticeFreeTier'), 'info'),
         field(t('fieldPasteText'), novelText),
-        canUse(me, 'novelUpload', state.settings) ? field(t('fieldUploadFile'), novelFile) : null,
+        field(t('fieldUploadFile'), novelFile),
         notice(t('noticeDriveNovel'), 'info'),
         field(t('fieldDriveUrl'), novelDriveUrl)
       ]);
@@ -116,9 +113,6 @@ export function showCompose(state, { onCreated } = {}) {
       ]);
     }
     if (mode === 'game-rom') {
-      if (!canUse(me, 'romUpload', state.settings)) {
-        return el('div', null, [notice(t('noticeRomPaidWall'), 'error')]);
-      }
       return el('div', null, [
         notice(t('noticeRomLegal'), 'warn'),
         field(t('fieldEmulatorCore'), romCore),
@@ -179,9 +173,7 @@ export function showCompose(state, { onCreated } = {}) {
       //    copyrighted material we do not want to redistribute).
       //  - Any URL-based mail (game URL, YouTube video) → user choice.
       //  - Pasted novel text → user choice.
-      const isUploadedNovel = mode === 'novel'
-        && canUse(me, 'novelUpload', state.settings)
-        && novelFile.files?.[0];
+      const isUploadedNovel = mode === 'novel' && novelFile.files?.[0];
       const isUploadedRom   = mode === 'game-rom' && romFile.files?.[0];
       let resolvedVisibility = visibility.value;
       if (isUploadedNovel || isUploadedRom) resolvedVisibility = 'private';
@@ -224,7 +216,7 @@ export function showCompose(state, { onCreated } = {}) {
             fontSize: state.settings.display?.mailFontSize || 14,
             wordsPerPage: state.settings.novelMail?.wordsPerPage || 280
           };
-          if (canUse(me, 'novelUpload', state.settings) && novelFile.files?.[0]) {
+          if (novelFile.files?.[0]) {
             const f = novelFile.files[0];
             const stored = await state.backend.putBlob(f);
             cfg.sourceFileId = stored.id;
@@ -260,7 +252,6 @@ export function showCompose(state, { onCreated } = {}) {
           config: { mailLang, video: { provider: 'youtube', videoId, originalUrl: raw } }
         }));
       } else if (mode === 'game-rom') {
-        if (!canUse(me, 'romUpload', state.settings)) throw new Error(t('errRomPaid'));
         const f = romFile.files?.[0];
         if (!f) throw new Error(t('errNoRom'));
         const stored = await state.backend.putBlob(f);

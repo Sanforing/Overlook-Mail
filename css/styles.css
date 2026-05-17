@@ -793,3 +793,18 @@ textarea.control { height: auto; padding: 8px 10px; resize: vertical; min-height
 /* (5) Below-attachment banner — already styled by .att-ad-wrap; only the
        slot badge is added inline by JS so no extra rules needed. */
 
+/* AdSense responsive banner wrapper (slot 5 when mode = 'adsense') */
+.adsense-banner-wrap {
+  margin-top: 12px;
+  padding: 8px 0 4px;
+  border-top: 1px solid var(--border);
+}
+.adsense-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 4px;
+  padding: 0 2px;
+}
+

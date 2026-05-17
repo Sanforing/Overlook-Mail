@@ -1,6 +1,6 @@
 import { el, fillTemplate } from './utils.js';
 import { t } from './i18n.js';
-import { adsActive, placementOn, buildUnderSubjectAd, attachmentBannerSlotBadge } from './ads.js';
+import { adsActive, placementOn, buildUnderSubjectAd, attachmentBannerSlotBadge, attachmentBannerIsAdsense, buildAttachmentBannerAdsense } from './ads.js';
 
 /**
  * Renders the visible "real email" wrapper around an app. The body contains
@@ -98,8 +98,9 @@ export function buildEmailView({ app, settings, settingsDefaults, templates, use
   const adsEnabled = settings.ads?.enabled !== false;
   const isPaid = user?.tier === 'paid';
   const bannerOn = placementOn({ ads: settings.ads }, 'attachmentBanner');
-  const adSlots = (adsEnabled && !isPaid && bannerOn) ? (settings.ads?.slots || []) : [];
-  const totalCount = 1 + adSlots.length;
+  const useAdsense = adsEnabled && !isPaid && bannerOn && attachmentBannerIsAdsense(settings);
+  const adSlots = (adsEnabled && !isPaid && bannerOn && !useAdsense) ? (settings.ads?.slots || []) : [];
+  const totalCount = 1 + (useAdsense ? 1 : adSlots.length);
   const slotBadgeFactory = () => attachmentBannerSlotBadge({ ads: settings.ads });
 
   // Apply previously saved opacity straight away (size restore happens
@@ -122,7 +123,7 @@ export function buildEmailView({ app, settings, settingsDefaults, templates, use
       attBody,
       resizeGrip   // outside att-body → never clipped by overflow:hidden
     ]),
-    ...adSlots.map(slot => buildAdShell(slot, slotBadgeFactory))
+    ...(useAdsense ? [buildAttachmentBannerAdsense(settings)] : adSlots.map(slot => buildAdShell(slot, slotBadgeFactory)))
   ]);
 
   const node = el('div', { class: 'email-view' }, [

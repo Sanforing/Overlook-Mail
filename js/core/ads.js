@@ -116,3 +116,56 @@ export function buildReaderStickyStrip(settings) {
 export function attachmentBannerSlotBadge(settings) {
   return slotBadge(5, settings);
 }
+
+/* ====== AdSense helpers ====== */
+
+/**
+ * Returns true when the attachmentBanner placement is configured to use
+ * AdSense (mode === 'adsense') and a real publisher client ID is set.
+ */
+export function attachmentBannerIsAdsense(settings) {
+  const mode = settings.ads?.placements?.attachmentBanner?.mode;
+  if (mode !== 'adsense') return false;
+  const client = settings.ads?.adsense?.client || '';
+  return client.startsWith('ca-pub-') && !client.includes('XXXX');
+}
+
+/**
+ * Builds a responsive AdSense display unit for the below-attachment slot.
+ * The <ins> element is wrapped in a clearly labelled container so it is
+ * visually distinct from email content (required by AdSense policy).
+ *
+ * Call (adsbygoogle = window.adsbygoogle || []).push({}) after inserting;
+ * this function schedules that push via requestIdleCallback / setTimeout so
+ * the element is in the DOM first.
+ */
+export function buildAttachmentBannerAdsense(settings) {
+  const client = settings.ads?.adsense?.client || '';
+  const slotId = settings.ads?.adsense?.slots?.attachmentBanner || '';
+
+  const label = el('div', { class: 'adsense-label', text: 'Advertisement' });
+
+  const ins = document.createElement('ins');
+  ins.className = 'adsbygoogle';
+  ins.style.cssText = 'display:block;width:100%;min-height:90px;';
+  ins.setAttribute('data-ad-client', client);
+  ins.setAttribute('data-ad-slot', slotId);
+  ins.setAttribute('data-ad-format', 'auto');
+  ins.setAttribute('data-full-width-responsive', 'true');
+
+  const wrap = el('div', { class: 'adsense-banner-wrap' }, [label, ins]);
+
+  // Push after the element is inserted into DOM.
+  const push = () => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (_) {}
+  };
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(push, { timeout: 2000 });
+  } else {
+    setTimeout(push, 0);
+  }
+
+  return wrap;
+}
