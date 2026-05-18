@@ -868,12 +868,6 @@ async function mountInlineNovel(state, mail, view) {
     novelDoc = { text: `Failed to load document text: ${err.message}`, chapters: [] };
   }
 
-  const lines = novelDoc.text.split('\n');
-  const pages = buildNovelPages(lines, linesPerPage);
-  if (!pages.length) pages.push('(empty document)');
-
-  const chapters = buildNovelChapterList(lines, linesPerPage, novelDoc.chapters);
-
   // ── Bookmark persistence ──────────────────────────────────────────────────
   // Key per mail so each novel keeps its own bookmarks.
   const bmKey = `__novel-bm__:${mail.id || 'unsaved'}`;
@@ -888,13 +882,19 @@ async function mountInlineNovel(state, mail, view) {
     try { await state.backend.saveState(bmKey, { page, bookmarks }); } catch {}
   };
 
-  let page = Math.max(0, Math.min(pages.length - 1, savedData.page || 0));
-
   const textEl = el('div', { class: 'inline-novel-text' });
   textEl.style.height = `${linesPerPage * lineHeight}em`;
   textEl.style.overflow = 'hidden';
   target.textContent = '';
   target.append(textEl);
+
+  const lines = novelDoc.text.split('\n');
+  const paginated = buildMeasuredNovelPages(lines, textEl, linesPerPage, lineHeight);
+  const pages = paginated.pages;
+  if (!pages.length) pages.push('(empty document)');
+
+  const chapters = buildNovelChapterList(lines, linesPerPage, novelDoc.chapters, paginated.lineToPage);
+  let page = Math.max(0, Math.min(pages.length - 1, savedData.page || 0));
 
   // ── Disguised controls in the email header date element ──
   const dateBase = mail.date || '';
@@ -986,7 +986,86 @@ async function mountInlineNovel(state, mail, view) {
   };
 }
 
-/** Split text lines into pages of N lines each. */
+/** Split text into pages using actual rendered height, so wrapped lines never get clipped/skipped. */
+function buildMeasuredNovelPages(lines, textEl, linesPerPage, lineHeight) {
+  const pages = [];
+  const lineToPage = new Array(lines.length).fill(null);
+  const styles = getComputedStyle(textEl);
+  const fontSize = parseFloat(styles.fontSize) || 14;
+  const maxHeight = Math.max(1, linesPerPage * lineHeight * fontSize);
+  const measure = el('div', { class: 'inline-novel-text' });
+  Object.assign(measure.style, {
+    position: 'absolute',
+    visibility: 'hidden',
+    pointerEvents: 'none',
+    left: '-10000px',
+    top: '0',
+    height: 'auto',
+    overflow: 'visible',
+    width: `${Math.max(1, textEl.clientWidth || textEl.parentElement?.clientWidth || 640)}px`,
+    fontSize: styles.fontSize,
+    lineHeight: styles.lineHeight
+  });
+  textEl.parentElement?.appendChild(measure);
+
+  const fits = (text) => {
+    measure.textContent = text || ' ';
+    return measure.scrollHeight <= maxHeight + 1;
+  };
+  const markLine = (lineIdx) => {
+    if (lineToPage[lineIdx] == null) lineToPage[lineIdx] = pages.length;
+  };
+  const pushPage = (text) => {
+    pages.push(text || ' ');
+  };
+  const fittingPrefix = (text) => {
+    let low = 1;
+    let high = text.length;
+    let best = 1;
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      if (fits(text.slice(0, mid))) { best = mid; low = mid + 1; }
+      else high = mid - 1;
+    }
+    if (best < text.length) {
+      const space = text.lastIndexOf(' ', best);
+      if (space > 20) best = space + 1;
+    }
+    return text.slice(0, best).trimEnd() || text.slice(0, best);
+  };
+
+  let current = '';
+  for (let i = 0; i < lines.length; i++) {
+    let remaining = lines[i];
+    const appendLine = (line) => current ? `${current}\n${line}` : line;
+    if (fits(appendLine(remaining))) {
+      markLine(i);
+      current = appendLine(remaining);
+      continue;
+    }
+
+    if (current) {
+      pushPage(current);
+      current = '';
+    }
+
+    while (remaining && !fits(remaining)) {
+      markLine(i);
+      const prefix = fittingPrefix(remaining);
+      pushPage(prefix);
+      remaining = remaining.slice(prefix.length).trimStart();
+    }
+    if (remaining || lines[i] === '') {
+      markLine(i);
+      current = remaining;
+    }
+  }
+  if (current || !pages.length) pushPage(current);
+  measure.remove();
+  return { pages, lineToPage };
+}
+
+/** Split text lines into pages of N source lines. Used as a safe fallback. */
 function buildNovelPages(lines, linesPerPage) {
   const pages = [];
   for (let i = 0; i < lines.length; i += linesPerPage) {
@@ -996,13 +1075,13 @@ function buildNovelPages(lines, linesPerPage) {
 }
 
 /** Detect chapter headings from the line array and return [{title, page}]. */
-function detectNovelChapters(lines, linesPerPage) {
+function detectNovelChapters(lines, linesPerPage, lineToPage = null) {
   const re = /^(第[〇零一二三四五六七八九十百千萬万\d]+[部章节節卷回篇話话]\s*.{0,30}|Chapter\s+\d+[^\n]{0,30})/;
   const chapters = [];
   for (let i = 0; i < lines.length; i++) {
     const trimmed = lines[i].trim();
     if (trimmed && trimmed.length < 60 && re.test(trimmed)) {
-      const pageIdx = Math.floor(i / linesPerPage);
+      const pageIdx = lineToPage ? (lineToPage[i] ?? 0) : Math.floor(i / linesPerPage);
       if (!chapters.length || chapters[chapters.length - 1].page !== pageIdx) {
         chapters.push({ title: trimmed.slice(0, 30), page: pageIdx });
       }
@@ -1107,12 +1186,15 @@ function renderBmList(bmList, bookmarks, getPage, goTo, removeBookmark) {
   }
 }
 
-function buildNovelChapterList(lines, linesPerPage, parsedChapters = []) {
+function buildNovelChapterList(lines, linesPerPage, parsedChapters = [], lineToPage = null) {
   const explicit = (parsedChapters || [])
-    .map(ch => ({ title: String(ch.title || '').trim(), page: Math.floor((ch.line || 0) / linesPerPage) }))
+    .map(ch => ({
+      title: String(ch.title || '').trim(),
+      page: lineToPage ? (lineToPage[ch.line || 0] ?? 0) : Math.floor((ch.line || 0) / linesPerPage)
+    }))
     .filter(ch => ch.title && Number.isFinite(ch.page));
   if (explicit.length > 1) return dedupeChapters(explicit);
-  return detectNovelChapters(lines, linesPerPage);
+  return detectNovelChapters(lines, linesPerPage, lineToPage);
 }
 
 function dedupeChapters(chapters) {
