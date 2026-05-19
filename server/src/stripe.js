@@ -114,7 +114,7 @@ export function registerStripe(app) {
       return { url: session.url, id: session.id };
     } catch (e) {
       app.log.error({ err: e }, 'stripe checkout failed');
-      return reply.code(500).send({ error: 'checkout failed' });
+      return reply.code(500).send({ error: 'checkout failed', detail: e.message });
     }
   });
 
