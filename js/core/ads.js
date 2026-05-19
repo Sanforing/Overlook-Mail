@@ -23,6 +23,10 @@ export function showLabel(settings) {
   return settings.ads?.showSlotLabel !== false;
 }
 function openCreative(url) {
+  if (url === 'upgrade://paid') {
+    window.dispatchEvent(new CustomEvent('stealth:upgrade-request'));
+    return;
+  }
   if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
 }
 function slotBadge(n, settings) {
@@ -44,7 +48,7 @@ export function buildSponsoredInboxRow(settings) {
     el('div', { class: 'subject', text: c.subject || '' }),
     el('div', { class: 'preview', text: c.preview || '' }),
     el('div', { class: 'mail-labels-row' }, [
-      el('span', { class: 'mail-label ad-tag', text: 'Ad' })
+      el('span', { class: 'mail-label ad-tag', text: c.tag || 'Ad' })
     ])
   ]);
   row.addEventListener('click', () => openCreative(c.url));

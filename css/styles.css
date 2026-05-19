@@ -504,6 +504,29 @@ textarea.control { height: auto; padding: 8px 10px; resize: vertical; min-height
 .notice-warn  { background: #fff4ce; color: #8a6a00; border: 1px solid #f1c40f; }
 .notice-error { background: #fde7e9; color: #a4262c; border: 1px solid #f1bbb6; }
 
+.upgrade-modal { color: var(--text-primary); }
+.upgrade-modal-kicker {
+  display: inline-flex; align-items: center;
+  padding: 3px 8px; margin-bottom: 10px;
+  border: 1px solid #c7e0f4; border-radius: 999px;
+  background: #eff6fc; color: var(--primary-dark);
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+}
+.upgrade-modal-lead { margin: 0 0 14px; line-height: 1.5; color: var(--text-primary); }
+.upgrade-benefits { display: grid; gap: 8px; margin: 12px 0 14px; }
+.upgrade-benefit {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 9px 10px; border: 1px solid var(--border);
+  border-radius: 6px; background: #fafafa; font-size: 13px; line-height: 1.35;
+}
+.upgrade-benefit-check {
+  width: 18px; height: 18px; flex: 0 0 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: #dff6dd; color: #107c10;
+  font-size: 12px; font-weight: 700;
+}
+.upgrade-modal-help { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
+
 /* auth tabs / compose tabs */
 .auth-tabs, .compose-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
 .auth-tabs .tab, .compose-tabs .tab {

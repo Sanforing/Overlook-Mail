@@ -6,7 +6,7 @@ import { showAuth } from './auth-ui.js';
 import { showCompose } from './composer.js';
 import { showSettings, showMailboxManager } from './settings-ui.js';
 import { applyUserPrefs } from './prefs-ui.js';
-import { openModal, field } from './modal.js';
+import { openModal, field, btn } from './modal.js';
 import { runTutorial, runOnceTutorial, runNovelTutorial } from './tutorial.js';import { t, getLang } from './i18n.js';
 import { adsActive, placementOn, buildSponsoredInboxRow, buildTopbarTile, buildReaderStickyStrip } from './ads.js';
 import { parseEpubBlob, isEpubSource } from './epub.js';
@@ -36,6 +36,10 @@ export async function initUI(state) {
   state.currentCategory = state.categories[0]?.id || 'admin';
   state.currentFolder = null;
   state.search = '';
+  if (!state._upgradeRequestBound) {
+    window.addEventListener('stealth:upgrade-request', () => showUpgradeModal(state));
+    state._upgradeRequestBound = true;
+  }
 
   renderTopbar(state);
   renderSidebar(state);
@@ -69,6 +73,7 @@ async function maybeHandleStripeReturn(state) {
   document.querySelectorAll('.upgrade-banner').forEach(n => n.remove());
   if (sawPaid) {
     renderTopbar(state);
+    refreshList(state, {});
     showUpgradeBanner(t('upgradeSuccess'), 'ok');
   } else {
     showUpgradeBanner(t('upgradePendingLong'), 'warn', 8000);
@@ -145,8 +150,26 @@ function avatarButton(state) {
     title: u ? `${u.displayName} <${u.email}> · ${u.tier}` : 'Sign in'
   });
   if (!u) av.style.background = '#fff8';
-  av.addEventListener('click', () => openAvatarMenu(state, av));
+  av.addEventListener('click', async () => {
+    if (state.user) await refreshCurrentUser(state);
+    openAvatarMenu(state, av);
+  });
   return av;
+}
+
+function isPaidTier(user) {
+  return user?.tier === 'paid' || user?.tier === 'admin';
+}
+
+async function refreshCurrentUser(state) {
+  try {
+    if (typeof state.backend.invalidateUser === 'function') state.backend.invalidateUser();
+    const fresh = await state.backend.currentUser?.();
+    if (fresh) state.user = fresh;
+    return fresh;
+  } catch {
+    return state.user;
+  }
 }
 
 function openAvatarMenu(state, anchor) {
@@ -168,17 +191,9 @@ function openAvatarMenu(state, anchor) {
     );
     const isLocalDev = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
     const stripeOn = !!(state.meta && state.meta.stripe && state.meta.stripe.enabled);
-    if (state.user.tier !== 'paid' && (isLocalDev || stripeOn)) {
+    if (!isPaidTier(state.user) && (isLocalDev || stripeOn)) {
       const label = stripeOn ? t('upgradePaidStripe') : t('upgradePaid');
-      menu.appendChild(el('button', { class: 'menu-item upgrade-btn', text: label, onclick: async () => {
-        try {
-          const u = await state.backend.upgradeCurrent('paid');
-          if (u) { state.user = u; menu.remove(); renderTopbar(state); }
-          // If u is null, the page is being redirected to Stripe Checkout.
-        } catch (e) {
-          alert(t('upgradeFailed') + ': ' + (e?.message || e));
-        }
-      } }));
+      menu.appendChild(el('button', { class: 'menu-item upgrade-btn', text: label, onclick: () => { menu.remove(); showUpgradeModal(state); } }));
     }
     menu.appendChild(el('button', { class: 'menu-item', text: t('personalise'), onclick: () => { menu.remove(); showSettings(state); } }));
     menu.appendChild(el('button', { class: 'menu-item', text: t('signOut'), onclick: async () => {
@@ -203,6 +218,59 @@ function openAvatarMenu(state, anchor) {
   setTimeout(() => document.addEventListener('click', function once(e) {
     if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('click', once); }
   }), 0);
+}
+
+function showUpgradeModal(state) {
+  if (!state.user) {
+    showAuth(state, { onSignedIn: async (u) => { state.user = u; renderTopbar(state); showUpgradeModal(state); } });
+    return;
+  }
+  if (isPaidTier(state.user)) {
+    showUpgradeBanner(t('upgradeAlreadyPaid'), 'ok');
+    return;
+  }
+
+  const benefits = [
+    t('upgradeBenefitNoAds'),
+    t('upgradeBenefitUploads'),
+    t('upgradeBenefitSupport')
+  ];
+  const body = el('div', { class: 'upgrade-modal' }, [
+    el('div', { class: 'upgrade-modal-kicker', text: t('upgradeModalKicker') }),
+    el('p', { class: 'upgrade-modal-lead', text: t('upgradeModalLead') }),
+    el('div', { class: 'upgrade-benefits' }, benefits.map(text => el('div', { class: 'upgrade-benefit' }, [
+      el('span', { class: 'upgrade-benefit-check', text: '✓' }),
+      el('span', { text })
+    ]))),
+    el('p', { class: 'upgrade-modal-help', text: t('upgradeModalHelp') })
+  ]);
+
+  const cancel = btn(t('upgradeModalLater'));
+  const pay = btn(t('upgradeModalPay'), { primary: true });
+  const modal = openModal({
+    title: t('upgradeModalTitle'),
+    body,
+    footer: el('div', { class: 'modal-actions' }, [cancel, pay]),
+    width: 560
+  });
+  cancel.addEventListener('click', () => modal.close());
+  pay.addEventListener('click', async () => {
+    pay.disabled = true;
+    try {
+      const u = await state.backend.upgradeCurrent('paid');
+      if (u) {
+        state.user = u;
+        modal.close();
+        renderTopbar(state);
+        refreshList(state, {});
+        showUpgradeBanner(t('upgradeSuccess'), 'ok');
+      }
+      // If u is null, the page is being redirected to Stripe Checkout.
+    } catch (e) {
+      pay.disabled = false;
+      alert(t('upgradeFailed') + ': ' + (e?.message || e));
+    }
+  });
 }
 
 /* ===================== Sidebar SVG Icons ===================== */
@@ -447,6 +515,10 @@ function renderList(state) {
   // (1) Sponsored inbox row — inject every N real mails for free/guest users.
   const adsOn = adsActive(state.settings, state.user) && placementOn(state.settings, 'sponsoredInbox');
   const everyN = Math.max(2, state.settings.ads?.placements?.sponsoredInbox?.everyN || 4);
+  if (adsOn) {
+    const ad = buildSponsoredInboxRow(state.settings);
+    if (ad) itemsEl.appendChild(ad);
+  }
   for (let i = 0; i < state.visibleMails.length; i++) {
     const m = state.visibleMails[i];
     const node = el('div', {

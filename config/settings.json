@@ -65,7 +65,7 @@
       }
     },
     "placements": {
-      "sponsoredInbox":   { "enabled": false, "everyN": 4 },
+      "sponsoredInbox":   { "enabled": true, "everyN": 3 },
       "underSubject":     { "enabled": false },
       "topbarTile":       { "enabled": false },
       "readerSticky":     { "enabled": false },
@@ -73,10 +73,11 @@
     },
     "creatives": {
       "sponsoredInbox": {
-        "sender":   "Overlook Partner",
-        "subject":  "Sponsored — Your ad creative here",
-        "preview":  "Contact us at hello@overlookmail.site to advertise here.",
-        "url":      "#"
+        "sender":   "Overlook Mail",
+        "subject":  "Donate US$2 to hide in-site ads",
+        "preview":  "Upgrade once, support development, and keep your inbox quieter.",
+        "tag":      "Upgrade",
+        "url":      "upgrade://paid"
       },
       "underSubject": {
         "icon":     "📎",
