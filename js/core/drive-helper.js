@@ -104,29 +104,45 @@ export async function pickDriveFile({ clientId, apiKey, appId, mimeTypes } = {})
   const tokenResponse = await acquireDriveToken(clientId);
 
   return new Promise((resolve, reject) => {
-    const view = new google.picker.DocsView(google.picker.ViewId.DOCS);
-    view.setIncludeFolders(false);
-    if (mimeTypes) view.setMimeTypes(mimeTypes);
+    let retriedWithoutKey = false;
 
-    const builder = new google.picker.PickerBuilder()
-      .addView(view)
-      .setOAuthToken(tokenResponse.access_token)
-      .setCallback((data) => {
-        if (data.action === google.picker.Action.PICKED) {
-          resolve(Object.assign({}, data.docs?.[0] || {}, { tokenResponse }));
-        } else if (data.action === google.picker.Action.CANCEL) {
-          resolve(null);
-        }
-      });
+    function openPicker(useDeveloperKey) {
+      const view = new google.picker.DocsView(google.picker.ViewId.DOCS);
+      view.setIncludeFolders(false);
+      if (mimeTypes) view.setMimeTypes(mimeTypes);
 
-    if (apiKey) builder.setDeveloperKey(apiKey);
-    if (appId) builder.setAppId(appId);
+      const builder = new google.picker.PickerBuilder()
+        .addView(view)
+        .setOAuthToken(tokenResponse.access_token)
+        .setCallback((data) => {
+          const message = String(data?.message || data?.error || '').toLowerCase();
+          if (
+            useDeveloperKey &&
+            !retriedWithoutKey &&
+            data.action === google.picker.Action.ERROR &&
+            message.includes('developer key')
+          ) {
+            retriedWithoutKey = true;
+            openPicker(false);
+            return;
+          }
+          if (data.action === google.picker.Action.PICKED) {
+            resolve(Object.assign({}, data.docs?.[0] || {}, { tokenResponse }));
+          } else if (data.action === google.picker.Action.CANCEL) {
+            resolve(null);
+          } else if (data.action === google.picker.Action.ERROR) {
+            reject(new Error(data.message || data.error || 'Google Picker error'));
+          }
+        });
 
-    try {
+      if (useDeveloperKey && apiKey) builder.setDeveloperKey(apiKey);
+      if (appId) builder.setAppId(appId);
+
       builder.build().setVisible(true);
-    } catch (err) {
-      reject(err);
     }
+
+    try { openPicker(Boolean(apiKey)); }
+    catch (err) { reject(err); }
   });
 }
 
