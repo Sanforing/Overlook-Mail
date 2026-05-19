@@ -110,6 +110,36 @@ export function registerMails(app) {
     const row = stmt.getSave.get(req.params.mailId, me.id);
     return row ? safeJSON(row.data) : null;
   });
+
+  app.put('/api/state/:key', async (req, reply) => {
+    const me = requireUser(req, reply); if (!me) return;
+    const data = JSON.stringify(req.body ?? null);
+    stmt.upsertAppState.run(req.params.key, me.id, data, Date.now());
+    return { ok: true };
+  });
+  app.get('/api/state/:key', async (req, reply) => {
+    const me = requireUser(req, reply); if (!me) return;
+    const row = stmt.getAppState.get(req.params.key, me.id);
+    return row ? safeJSON(row.data) : null;
+  });
+
+  app.get('/api/comments/:mailId', async (req) => {
+    const row = stmt.getComments.get(req.params.mailId);
+    return row ? safeJSON(row.data) : { entries: [] };
+  });
+  app.put('/api/comments/:mailId', async (req, reply) => {
+    const me = requireUser(req, reply); if (!me) return;
+    const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const entries = Array.isArray(body.entries) ? body.entries.slice(-500).map(c => ({
+      userId: typeof c.userId === 'string' ? c.userId.slice(0, 128) : '',
+      name: typeof c.name === 'string' ? c.name.slice(0, 128) : 'Anonymous',
+      text: typeof c.text === 'string' ? c.text.slice(0, 4000) : '',
+      ts: Number.isFinite(Number(c.ts)) ? Number(c.ts) : Date.now()
+    })).filter(c => c.text) : [];
+    const data = JSON.stringify({ entries });
+    stmt.upsertComments.run(req.params.mailId, data, Date.now());
+    return { ok: true };
+  });
 }
 
 

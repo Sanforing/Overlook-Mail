@@ -23,7 +23,6 @@ export function showSettings(state) {
   });
 
   const brandIn  = input({ type: 'text', value: initial.brand || state.settings.topbar.brand, maxlength: '64' });
-  const searchIn = input({ type: 'text', value: initial.searchPlaceholder || state.settings.topbar.searchPlaceholder, maxlength: '64' });
   const recipientIn = input({ type: 'text', value: initial.recipientName || state.settings.user.displayName, maxlength: '64' });
   const novelLinesIn = input({ type: 'number', value: initial.novelMail?.linesPerPage || 20, min: '5', max: '60', step: '1' });
   const mailFontIn = input({ type: 'number', value: initial.display?.mailFontSize || 14, min: '12', max: '22', step: '1' });
@@ -54,7 +53,6 @@ export function showSettings(state) {
     field(t('fieldUiLang'), uiLangIn),
     el('div', { class: 'settings-section', text: t('sectionBrand') }),
     field(t('fieldTabTopbar'), brandIn),
-    field(t('fieldSearchPH'), searchIn),
     el('div', { class: 'settings-section', text: t('sectionMailId') }),
     field(t('fieldRecipient'), recipientIn),
     el('div', { class: 'settings-section', text: t('sectionReading') }),
@@ -87,7 +85,6 @@ export function showSettings(state) {
   save.addEventListener('click', async () => {
     const prefs = {
       brand: brandIn.value.trim(),
-      searchPlaceholder: searchIn.value.trim(),
       recipientName: recipientIn.value.trim(),
       uiLang: uiLangIn.value,
       customFolders: Array.isArray(state.userPrefs?.customFolders) ? state.userPrefs.customFolders.slice() : [],

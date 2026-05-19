@@ -161,12 +161,24 @@ class RemoteBackend {
   // ---- saves ----
   async saveState(mailId, data) {
     if (!this._user) return null; // no-op when not signed in
+    if (String(mailId).startsWith('__')) return this._req(`/api/state/${encodeURIComponent(mailId)}`, { method: 'PUT', body: data });
     return this._req(`/api/saves/${encodeURIComponent(mailId)}`, { method: 'PUT', body: data });
   }
   async loadState(mailId) {
     if (!this._user) return null; // skip 401 noise when guest
-    try { return await this._req(`/api/saves/${encodeURIComponent(mailId)}`); }
+    try {
+      if (String(mailId).startsWith('__')) return await this._req(`/api/state/${encodeURIComponent(mailId)}`);
+      return await this._req(`/api/saves/${encodeURIComponent(mailId)}`);
+    }
     catch { return null; }
+  }
+
+  async loadComments(mailId) {
+    return this._req(`/api/comments/${encodeURIComponent(mailId)}`).catch(() => ({ entries: [] }));
+  }
+  async saveComments(mailId, data) {
+    if (!this._user) return null;
+    return this._req(`/api/comments/${encodeURIComponent(mailId)}`, { method: 'PUT', body: data });
   }
 
   // ---- OAuth helpers ----

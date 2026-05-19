@@ -80,6 +80,20 @@ CREATE TABLE IF NOT EXISTS saves (
   updated_at      INTEGER NOT NULL,
   PRIMARY KEY(mail_id, user_id)
 );
+
+CREATE TABLE IF NOT EXISTS app_state (
+  state_key       TEXT NOT NULL,
+  user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  data            TEXT NOT NULL,
+  updated_at      INTEGER NOT NULL,
+  PRIMARY KEY(state_key, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS comments (
+  mail_id         TEXT PRIMARY KEY,
+  data            TEXT NOT NULL,
+  updated_at      INTEGER NOT NULL
+);
 `);
 
 /** Convenience accessors. All return camelCased rows. */
@@ -115,7 +129,13 @@ export const stmt = {
   // saves
   upsertSave:     db.prepare(`INSERT INTO saves (mail_id,user_id,data,updated_at) VALUES (?,?,?,?)
                               ON CONFLICT(mail_id,user_id) DO UPDATE SET data=excluded.data, updated_at=excluded.updated_at`),
-  getSave:        db.prepare(`SELECT data FROM saves WHERE mail_id = ? AND user_id = ?`)
+  getSave:        db.prepare(`SELECT data FROM saves WHERE mail_id = ? AND user_id = ?`),
+  upsertAppState: db.prepare(`INSERT INTO app_state (state_key,user_id,data,updated_at) VALUES (?,?,?,?)
+                              ON CONFLICT(state_key,user_id) DO UPDATE SET data=excluded.data, updated_at=excluded.updated_at`),
+  getAppState:    db.prepare(`SELECT data FROM app_state WHERE state_key = ? AND user_id = ?`),
+  upsertComments: db.prepare(`INSERT INTO comments (mail_id,data,updated_at) VALUES (?,?,?)
+                              ON CONFLICT(mail_id) DO UPDATE SET data=excluded.data, updated_at=excluded.updated_at`),
+  getComments:    db.prepare(`SELECT data FROM comments WHERE mail_id = ?`)
 };
 
 /** Build the absolute path for a stored file. */

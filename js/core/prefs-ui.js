@@ -20,7 +20,7 @@ export function loadLocalPrefs() {
 
 /**
  * Apply user-level personalisation on top of the JSON defaults: brand text,
- * tab title, search placeholder, and theme colour overrides. Called on
+ * tab title, and theme colour overrides. Called on
  * startup (after currentUser) and whenever the user changes settings.
  */
 export function applyUserPrefs(state, prefs) {
@@ -70,7 +70,7 @@ function mergeWithDefaults(settings, prefs) {
   const def = defaultPrefsFromSettings(settings);
   return {
     brand: prefs?.brand || def.brand,
-    searchPlaceholder: prefs?.searchPlaceholder || def.searchPlaceholder,
+    searchPlaceholder: def.searchPlaceholder,
     recipientName: prefs?.recipientName || def.recipientName,
     uiLang: prefs?.uiLang || def.uiLang,
     customFolders: Array.isArray(prefs?.customFolders) ? prefs.customFolders : def.customFolders,

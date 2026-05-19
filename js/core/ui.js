@@ -249,7 +249,7 @@ function renderSidebar(state) {
   for (const c of state.categories) {
     side.appendChild(el('div', {
       class: `folder ${state.currentCategory === c.id ? 'active' : ''}`,
-      onclick: () => { state.currentCategory = c.id; state.currentFolder = null; renderSidebar(state); refreshList(state, { autoOpenFirst: true }); }
+      onclick: () => { state.currentCategory = c.id; state.currentFolder = null; renderSidebar(state); refreshList(state, { autoOpenFirst: true, showLoading: true }); }
     }, [
       el('span', { class: 'icon', html: svgIcon(CAT_ICON[c.id]) }),
       el('span', { text: t('cat_' + c.id) || c.name })
@@ -260,13 +260,13 @@ function renderSidebar(state) {
   side.appendChild(el('div', {
     class: `folder ${state.currentFolder === '__all__' ? 'active' : ''}`,
     title: t('allFolderHint'),
-    onclick: () => { state.currentFolder = '__all__'; renderSidebar(state); refreshList(state, { autoOpenFirst: true }); }
+    onclick: () => { state.currentFolder = '__all__'; renderSidebar(state); refreshList(state, { autoOpenFirst: true, showLoading: true }); }
   }, [el('span', { class: 'icon', html: SVG.all }), el('span', { text: t('allFolders') })]));
 
   for (const f of state.folders) {
     side.appendChild(el('div', {
       class: `folder ${state.currentFolder === f.id ? 'active' : ''}`,
-      onclick: () => { state.currentFolder = f.id; renderSidebar(state); refreshList(state, { autoOpenFirst: true }); }
+      onclick: () => { state.currentFolder = f.id; renderSidebar(state); refreshList(state, { autoOpenFirst: true, showLoading: true }); }
     }, [
       el('span', { class: 'icon', html: svgIcon(f.iconKey || FOLD_ICON[f.id]) }),
       el('span', { text: f.custom ? f.name : (t('folder_' + f.id) || f.name) })
@@ -359,8 +359,12 @@ async function loadAllMails(state) {
   return resolved;
 }
 
-async function refreshList(state, { autoOpenFirst = false } = {}) {
+async function refreshList(state, { autoOpenFirst = false, showLoading = false } = {}) {
+  const requestId = (state._listRequestId || 0) + 1;
+  state._listRequestId = requestId;
+  if (showLoading) renderListLoading(state);
   const all = await loadAllMails(state);
+  if (requestId !== state._listRequestId) return;
   const me = state.user;
   const cat = state.currentCategory;
   const isAllFolderView = state.currentFolder === '__all__';
@@ -382,7 +386,7 @@ async function refreshList(state, { autoOpenFirst = false } = {}) {
     // current user authored (so a freshly composed Public draft is
     // discoverable from "From Community" too, not only from "Mine").
     if (cat === 'community' && (m.ownerId === 'admin' || m.visibility !== 'public')) return false;
-    if (cat === 'mine'      && (!me || m.ownerId !== me.id)) return false;
+    if (cat === 'mine'      && (!me || m.ownerId !== me.id || m.ref)) return false;
     if (m.visibility === 'private' && m.ownerId !== 'admin' && (!me || m.ownerId !== me.id)) return false;
     if (state.currentFolder && m.folder !== state.currentFolder) return false;
     if (state.search) {
@@ -399,6 +403,27 @@ async function refreshList(state, { autoOpenFirst = false } = {}) {
   }
 }
 
+function renderListLoading(state) {
+  const root = document.getElementById('list');
+  clear(root);
+  const folder = state.folders.find(f => f.id === state.currentFolder);
+  const headerLabel = folder ? `${categoryName(state)} · ${folder.custom ? folder.name : (t('folder_' + folder.id) || folder.name)}` : categoryName(state);
+  root.append(el('div', { class: 'list-header' }, [
+    el('h2', { text: headerLabel }),
+    el('span', { class: 'filter', text: t('splashLoading') })
+  ]));
+  const itemsEl = el('div', { class: 'items' });
+  for (let i = 0; i < 8; i++) {
+    itemsEl.appendChild(el('div', { class: 'item skeleton' }, [
+      el('div', { class: 'sender skel' }),
+      el('div', { class: 'date skel' }),
+      el('div', { class: 'subject skel' }),
+      el('div', { class: 'preview skel' })
+    ]));
+  }
+  root.appendChild(itemsEl);
+}
+
 function categoryName(state) {
   return (state.categories.find(c => c.id === state.currentCategory)?.name) || '';
 }
@@ -407,7 +432,7 @@ function renderList(state) {
   const root = document.getElementById('list');
   clear(root);
   const folder = state.folders.find(f => f.id === state.currentFolder);
-  const headerLabel = folder ? `${categoryName(state)} · ${folder.name}` : categoryName(state);
+  const headerLabel = folder ? `${categoryName(state)} · ${folder.custom ? folder.name : (t('folder_' + folder.id) || folder.name)}` : categoryName(state);
 
   root.append(el('div', { class: 'list-header' }, [
     el('h2', { text: headerLabel }),
@@ -637,11 +662,17 @@ async function saveAck(state, mailId, data) {
   try { await state.backend.saveState(ACK_KEY(mailId), data); } catch {}
 }
 async function loadComments(state, mailId) {
-  try { return (await state.backend.loadState(COMMENTS_KEY(mailId))) || { entries: [] }; }
+  try {
+    if (typeof state.backend.loadComments === 'function') return (await state.backend.loadComments(mailId)) || { entries: [] };
+    return (await state.backend.loadState(COMMENTS_KEY(mailId))) || { entries: [] };
+  }
   catch { return { entries: [] }; }
 }
 async function saveComments(state, mailId, data) {
-  try { await state.backend.saveState(COMMENTS_KEY(mailId), data); } catch {}
+  try {
+    if (typeof state.backend.saveComments === 'function') await state.backend.saveComments(mailId, data);
+    else await state.backend.saveState(COMMENTS_KEY(mailId), data);
+  } catch {}
 }
 
 function makeAckButton(state, mail) {
@@ -966,8 +997,9 @@ async function mountInlineNovel(state, mail, view) {
 
   const onKey = (e) => {
     if (!document.body.contains(target) || isTypingTarget(e.target)) return;
-    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
-    if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
+    const key = e.key.toLowerCase();
+    if (key === 'arrowleft' || key === 'a') { e.preventDefault(); prev(); }
+    if (key === 'arrowright' || key === 'd') { e.preventDefault(); next(); }
   };
   document.addEventListener('keydown', onKey);
 

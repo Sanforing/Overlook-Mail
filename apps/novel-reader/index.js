@@ -42,8 +42,9 @@ export default class NovelReaderApp extends StealthAppBase {
 
     this._onKey = (e) => {
       if (this.paused || !document.body.contains(root)) return;
-      if (e.key === 'ArrowRight' && !nextBtn.disabled) { page++; render(); }
-      if (e.key === 'ArrowLeft'  && !prevBtn.disabled) { page--; render(); }
+      const key = e.key.toLowerCase();
+      if ((key === 'arrowright' || key === 'd') && !nextBtn.disabled) { page++; render(); }
+      if ((key === 'arrowleft' || key === 'a') && !prevBtn.disabled) { page--; render(); }
     };
     document.addEventListener('keydown', this._onKey);
 
