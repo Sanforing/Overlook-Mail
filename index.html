@@ -12,6 +12,12 @@
   <meta name="theme-color" content="#0078d4" />
   <link rel="canonical" href="https://overlookmail.site/" />
 
+  <!-- ===== Favicon ===== -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/favicon/site.webmanifest">
+
   <!-- ===== Open Graph ===== -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Overlook Mail — Look busy. Actually be playing." />
@@ -24,7 +30,6 @@
   <meta name="twitter:description" content="An inbox-shaped playground for office daydreamers." />
   <meta name="twitter:image" content="https://overlookmail.site/og-image.png" />
 
-  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%230078d4'/><text x='16' y='22' font-family='Segoe UI,Arial' font-size='18' font-weight='700' fill='white' text-anchor='middle'>O</text></svg>" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1240411576907738"
     crossorigin="anonymous"></script>
 
@@ -56,8 +61,8 @@
       font-size: 20px; font-weight: 700; color: #0078d4;
     }
     .brand-icon {
-      width: 32px; height: 32px; background: #0078d4; border-radius: 4px;
-      color: #fff; display: grid; place-items: center; font-size: 18px; font-weight: 700;
+      width: 32px; height: 32px; border-radius: 4px;
+      display: block; object-fit: contain;
     }
     .nav-actions { display: flex; align-items: center; gap: 14px; font-size: 13px; }
     .nav-honest {
@@ -320,7 +325,7 @@
 
   <nav class="nav">
     <div class="brand">
-      <span class="brand-icon">O</span>
+      <img class="brand-icon" src="logo.png" alt="Overlook Mail logo">
       Overlook Mail
     </div>
     <div class="nav-actions">
