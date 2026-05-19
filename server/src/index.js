@@ -51,7 +51,10 @@ app.get('/api/meta', async () => ({
     x:        providerEnabled('x')
   },
   stripe: { enabled: stripeEnabled() },
-  limits: config.limits
+  limits: config.limits,
+  // Expose the Google OAuth client ID so the browser can use Google Identity
+  // Services for Drive API access. Client IDs are public (non-secret).
+  googleClientId: config.google.clientId || null
 }));
 
 /* ---------- Email + password auth ---------- */

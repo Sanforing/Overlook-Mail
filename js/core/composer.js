@@ -4,6 +4,7 @@ import { showAuth } from './auth-ui.js';
 import { runOnceTutorial, runComposeTutorial } from './tutorial.js';
 import { t, getLang } from './i18n.js';
 import { parseEpubBlob, isEpubSource } from './epub.js';
+import { driveDownloadToLocal } from './drive-helper.js';
 
 function monochromeOptions() {
   return [
@@ -38,6 +39,10 @@ function resolveSubject(raw, templates, camouflage, mailLang) {
   const wrappers = localizedList(templates, 'subjectWrappers', mailLang, []);
   if (!wrappers.length) return keyword;
   return pick(wrappers).replace('{keyword}', keyword);
+}
+
+function textFileFromContent(text, name = 'novel.txt') {
+  return new File([text], name, { type: 'text/plain' });
 }
 
 export function showCompose(state, { onCreated } = {}) {
@@ -86,7 +91,8 @@ export function showCompose(state, { onCreated } = {}) {
   const novelDriveUrl = input({ type: 'url', placeholder: 'https://drive.google.com/file/d/…/view' });
   const gameUrl   = input({ type: 'url', placeholder: 'https://itch.io/embed-upload/…' });
   const videoUrl  = input({ type: 'url', placeholder: 'https://www.youtube.com/watch?v=…' });
-  const romFile   = input({ type: 'file', accept: '.gba,.gb,.gbc,.nes,.smc,.sfc,.md,.gen,.smd,.n64,.z64,.iso,.cue,.zip' });
+  const romFile     = input({ type: 'file', accept: '.gba,.gb,.gbc,.nes,.smc,.sfc,.md,.gen,.smd,.n64,.z64,.iso,.cue,.zip' });
+  const romDriveUrl = input({ type: 'url', placeholder: 'https://drive.google.com/file/d/…/view' });
   const romCore   = select(cores.map(c => ({ value: c.id, label: c.label })));
 
   const status = el('div');
@@ -118,7 +124,8 @@ export function showCompose(state, { onCreated } = {}) {
         notice(t('noticeRomLegal'), 'warn'),
         field(t('fieldEmulatorCore'), romCore),
         field(t('fieldRomFile'), romFile),
-        notice(t('noticeDriveRom'), 'info')
+        notice(t('noticeDriveRom'), 'info'),
+        field(t('fieldDriveUrlRom'), romDriveUrl)
       ]);
     }
   }
@@ -170,14 +177,16 @@ export function showCompose(state, { onCreated } = {}) {
       const resolvedName = senderName.value.trim() || pick(senderNames());
       const resolvedTitle = senderTitle.value.trim() || pick(senderTitles());
       // Visibility rules:
-      //  - Uploaded novel file or uploaded ROM → forced PRIVATE (potentially
-      //    copyrighted material we do not want to redistribute).
-      //  - Any URL-based mail (game URL, YouTube video) → user choice.
-      //  - Pasted novel text → user choice.
-      const isUploadedNovel = mode === 'novel' && novelFile.files?.[0];
-      const isUploadedRom   = mode === 'game-rom' && romFile.files?.[0];
+      //  - Local novel content or uploaded ROM → forced PRIVATE because the
+      //    bytes live only in this browser.
+      //  - Any URL-based mail (game URL, YouTube video, Drive novel) → user choice.
+      const isLocalNovel  = mode === 'novel'    && (novelFile.files?.[0] || novelText.value.trim());
+      const isDriveNovel   = mode === 'novel'    && novelDriveUrl.value.trim();
+      const isUploadedRom  = mode === 'game-rom' && romFile.files?.[0];
+      const isDriveRom     = mode === 'game-rom' && romDriveUrl.value.trim();
       let resolvedVisibility = visibility.value;
-      if (isUploadedNovel || isUploadedRom) resolvedVisibility = 'private';
+      // Files cached in browser (local upload or Drive download) → always private.
+      if (isLocalNovel || isUploadedRom || isDriveNovel || isDriveRom) resolvedVisibility = 'private';
       const base = {
         subject: resolvedSubject,
         sender: { name: resolvedName, email: me.email, title: resolvedTitle, company: state.settings.user.company || '' },
@@ -196,8 +205,12 @@ export function showCompose(state, { onCreated } = {}) {
         if (driveRaw) {
           const driveId = extractDriveFileId(driveRaw);
           if (!driveId) throw new Error(t('errBadDriveUrl'));
-          const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
-          base.preview = `Drive: ${driveRaw}`;
+          const backendMeta = await state.backend.meta?.().catch(() => ({})) || {};
+          const clientId = backendMeta.googleClientId;
+          if (!clientId) throw new Error(t('errNoDriveConfig'));
+          status.textContent = t('statusDriveDownloading');
+          const stored = await driveDownloadToLocal(driveId, clientId, state.backend);
+          base.preview = `Drive novel (cached in browser)`;
           mail = await state.backend.create(Object.assign(base, {
             type: 'local',
             entry: 'apps/novel-reader/index.js',
@@ -206,8 +219,8 @@ export function showCompose(state, { onCreated } = {}) {
               mailLang,
               fontSize: state.settings.display?.mailFontSize || 14,
               wordsPerPage: state.settings.novelMail?.wordsPerPage || 280,
-              source: downloadUrl,
-              drive: { provider: 'gdrive', fileId: driveId, originalUrl: driveRaw, downloadUrl, kind: 'novel' }
+              sourceFileId: stored.id,
+              drive: { provider: 'gdrive', fileId: driveId, originalUrl: driveRaw, kind: 'novel' }
             }
           }));
         } else {
@@ -227,13 +240,15 @@ export function showCompose(state, { onCreated } = {}) {
               extractedText = await f.text();
             }
             if (!extractedText?.trim()) throw new Error(t('errNoText'));
-            cfg.text = extractedText;
-            base.preview = `Attached: ${f.name}`;
+            const stored = await state.backend.putBlob(textFileFromContent(extractedText, `${f.name}.txt`));
+            cfg.sourceFileId = stored.id;
+            base.preview = 'Local novel file stored in this browser';
           } else {
             const text = novelText.value;
             if (!text.trim()) throw new Error(t('errNoText'));
-            cfg.text = text;
-            base.preview = text.slice(0, 80).replace(/\s+/g, ' ');
+            const stored = await state.backend.putBlob(textFileFromContent(text));
+            cfg.sourceFileId = stored.id;
+            base.preview = 'Local pasted text stored in this browser';
           }
           mail = await state.backend.create(Object.assign(base, { type: 'local', entry: 'apps/novel-reader/index.js', config: cfg }));
         }
@@ -261,10 +276,26 @@ export function showCompose(state, { onCreated } = {}) {
         }));
       } else if (mode === 'game-rom') {
         const f = romFile.files?.[0];
-        if (!f) throw new Error(t('errNoRom'));
-        const stored = await state.backend.putBlob(f);
-        base.preview = `ROM: ${f.name} (${romCore.value})`;
-        mail = await state.backend.create(Object.assign(base, { type: 'emulator', config: { fileId: stored.id, core: romCore.value, name: f.name, mailLang } }));
+        const driveRomRaw = romDriveUrl.value.trim();
+        if (!f && !driveRomRaw) throw new Error(t('errNoRom'));
+        let stored;
+        let driveRomMeta = undefined;
+        if (driveRomRaw) {
+          const driveId = extractDriveFileId(driveRomRaw);
+          if (!driveId) throw new Error(t('errBadDriveUrl'));
+          const backendMeta = await state.backend.meta?.().catch(() => ({})) || {};
+          const clientId = backendMeta.googleClientId;
+          if (!clientId) throw new Error(t('errNoDriveConfig'));
+          status.textContent = t('statusDriveDownloading');
+          stored = await driveDownloadToLocal(driveId, clientId, state.backend);
+          driveRomMeta = { provider: 'gdrive', fileId: driveId, originalUrl: driveRomRaw, kind: 'rom' };
+        } else {
+          stored = await state.backend.putBlob(f);
+        }
+        base.preview = `Local ROM stored in this browser (${romCore.value})`;
+        const romCfg = { fileId: stored.id, core: romCore.value, name: 'Local ROM', mailLang };
+        if (driveRomMeta) romCfg.drive = driveRomMeta;
+        mail = await state.backend.create(Object.assign(base, { type: 'emulator', config: romCfg }));
       }
       m.close();
       onCreated?.(mail);

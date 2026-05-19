@@ -10,6 +10,7 @@ import { openModal, field } from './modal.js';
 import { runTutorial, runOnceTutorial, runNovelTutorial } from './tutorial.js';import { t, getLang } from './i18n.js';
 import { adsActive, placementOn, buildSponsoredInboxRow, buildTopbarTile, buildReaderStickyStrip } from './ads.js';
 import { parseEpubBlob, isEpubSource } from './epub.js';
+import { driveDownloadToLocal } from './drive-helper.js';
 
 /* ===================== Mail Labels ===================== */
 const LABELS = [
@@ -620,10 +621,23 @@ async function openMail(state, mail) {
   // For iframe/emulator types the fake-loading overlay covers this time —
   // scoped to the attachment area so the rest of the email stays readable.
   let factory;
-  await withFakeLoading(state.settings, mail, async () => {
-    const ctx = { settings: state.settings, app: mail, host: { backend: state.backend, user: state.user } };
-    factory = await createAppRunner(mail, ctx);
-  }, view.hostEl);
+  try {
+    await withFakeLoading(state.settings, mail, async () => {
+      const ctx = { settings: state.settings, app: mail, host: { backend: state.backend, user: state.user } };
+      factory = await createAppRunner(mail, ctx);
+    }, view.hostEl);
+  } catch (err) {
+    if (isMissingLocalFileError(err) && mail.type === 'emulator' && mail.config?.fileId) {
+      splashEl.remove();
+      view.hostEl.appendChild(buildLocalFileRestorePrompt(state, mail, {
+        kind: 'rom',
+        fileId: mail.config.fileId,
+        onRestored: () => openMail(state, mail)
+      }));
+      return;
+    }
+    throw err;
+  }
 
   // Factory is ready — enable the "Open Preview" button.
   const openBtn = splashEl.querySelector('.splash-open');
@@ -645,10 +659,80 @@ async function openMail(state, mail) {
   }
 }
 
+function isMissingLocalFileError(err) {
+  return /Source file not found|ROM not found/i.test(String(err?.message || err || ''));
+}
+
+function buildLocalFileRestorePrompt(state, mail, { kind, fileId, onRestored }) {
+  const accept = kind === 'rom'
+    ? '.gba,.gb,.gbc,.nes,.smc,.sfc,.md,.gen,.smd,.n64,.z64,.iso,.cue,.zip'
+    : '.txt,.epub,text/plain,application/epub+zip';
+  const title = kind === 'rom' ? 'ROM file needed on this device' : 'Novel file needed on this device';
+  const body = kind === 'rom'
+    ? 'This mail synced from another device, but the ROM itself is only stored in that browser. Choose the same ROM here to play it on this device.'
+    : 'This mail synced from another device, but the novel content is only stored in that browser. Choose the TXT or EPUB here to read it on this device.';
+  const picker  = el('input', { type: 'file', accept });
+  const status  = el('div', { class: 'muted', style: { marginTop: '10px' } });
+  const restore = el('button', { text: 'Use file on this device' });
+
+  // If the original source was a Google Drive file, offer a re-download button.
+  const driveMeta = mail.config?.drive;
+  const driveBtn = driveMeta
+    ? el('button', { text: t('btnDriveRedownload'), style: { marginLeft: '8px' } })
+    : null;
+
+  const actionRow = el('div', { style: { marginTop: '12px' } }, driveBtn ? [restore, driveBtn] : [restore]);
+  const box = el('div', { class: 'empty', style: { padding: '24px', textAlign: 'left' } }, [
+    el('h3', { text: title, style: { margin: '0 0 8px' } }),
+    el('p', { text: body, style: { margin: '0 0 14px', maxWidth: '560px' } }),
+    picker,
+    actionRow,
+    status
+  ]);
+
+  restore.addEventListener('click', async () => {
+    const file = picker.files?.[0];
+    if (!file) { status.textContent = 'Choose a file first.'; return; }
+    if (!state.backend?.putFile) { status.textContent = 'Local file storage is not available in this browser.'; return; }
+    restore.disabled = true;
+    status.textContent = 'Saving locally...';
+    try {
+      await state.backend.putFile(fileId, file);
+      status.textContent = 'Saved on this device.';
+      onRestored?.();
+    } catch (err) {
+      restore.disabled = false;
+      status.textContent = `Could not save file: ${err.message}`;
+    }
+  });
+
+  if (driveBtn) {
+    driveBtn.addEventListener('click', async () => {
+      driveBtn.disabled = true;
+      restore.disabled  = true;
+      status.textContent = t('statusDriveDownloading');
+      try {
+        const backendMeta = await state.backend.meta?.().catch(() => ({})) || {};
+        const clientId = backendMeta.googleClientId;
+        if (!clientId) throw new Error(t('errNoDriveConfig'));
+        await driveDownloadToLocal(driveMeta.fileId, clientId, state.backend, fileId);
+        status.textContent = 'Downloaded and saved on this device.';
+        onRestored?.();
+      } catch (err) {
+        driveBtn.disabled = false;
+        restore.disabled  = false;
+        status.textContent = `Drive download failed: ${err.message}`;
+      }
+    });
+  }
+
+  return box;
+}
+
 /* ===================== Acknowledge / Comments / Forward ===================== */
 
-// We piggy-back on backend.saveState (a key/value store keyed by mailId in
-// IndexedDB or remote /api/saves). Reserved key prefixes:
+// We piggy-back on backend.saveState (a key/value store keyed by mailId;
+// browser-local in remote mode). Reserved key prefixes:
 //   __ack__:<mailId>      → { count, ackedBy: [userId,…] }
 //   __comments__:<mailId> → { entries: [{userId, name, text, ts}] }
 const ACK_KEY      = (id) => `__ack__:${id}`;
@@ -896,6 +980,15 @@ async function mountInlineNovel(state, mail, view) {
   try {
     novelDoc = await loadNovelDocument(state, mail);
   } catch (err) {
+    if (isMissingLocalFileError(err) && mail.config?.sourceFileId) {
+      target.textContent = '';
+      target.appendChild(buildLocalFileRestorePrompt(state, mail, {
+        kind: 'novel',
+        fileId: mail.config.sourceFileId,
+        onRestored: () => openMail(state, mail)
+      }));
+      return null;
+    }
     novelDoc = { text: `Failed to load document text: ${err.message}`, chapters: [] };
   }
 
