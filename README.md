@@ -84,9 +84,10 @@ gates. Each feature is one of `guest` / `free` / `paid`:
 }
 ```
 
-The avatar menu shows a one-click "Upgrade to Paid (demo)" so you can try
-the gated paths without billing. Replace this with a real billing flow by
-swapping the backend.
+The avatar menu shows "Donate US$2 to upgrade" when Stripe is configured.
+Successful one-time donations upgrade the account to the paid tier. In local
+demo mode without Stripe, the menu can still do an instant paid-tier flip for
+testing.
 
 ## New mail composer
 

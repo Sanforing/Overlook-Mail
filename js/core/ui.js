@@ -12,6 +12,8 @@ import { adsActive, placementOn, buildSponsoredInboxRow, buildTopbarTile, buildR
 import { parseEpubBlob, isEpubSource } from './epub.js';
 import { driveDownloadToLocal } from './drive-helper.js';
 
+const DRIVE_UPLOAD_UI_ENABLED = false;
+
 /* ===================== Mail Labels ===================== */
 const LABELS = [
   { id: 'important', color: '#c4314b', en: 'Important',  cht: '重要'   },
@@ -45,12 +47,10 @@ export async function initUI(state) {
 }
 
 /**
- * Detects ?upgrade=success / ?upgrade=cancel in the URL after a Stripe
- * Checkout redirect. Stripe always redirects to success_url after a paid
- * checkout, but our user record only flips to 'paid' once our webhook
- * actually fires. So on `success` we poll the backend for up to ~10 seconds
- * waiting for tier === 'paid'. If it never flips, we show a "pending" banner
- * instead of falsely claiming success.
+ * Detects ?upgrade=success / ?upgrade=cancel in the URL after a one-time
+ * Stripe Checkout donation. Stripe redirects to success_url after payment,
+ * but our user record only flips to 'paid' once our webhook actually fires.
+ * So on `success` we poll briefly for tier === 'paid'.
  */
 async function maybeHandleStripeReturn(state) {
   const params = new URLSearchParams(window.location.search);
@@ -675,9 +675,10 @@ function buildLocalFileRestorePrompt(state, mail, { kind, fileId, onRestored }) 
   const status  = el('div', { class: 'muted', style: { marginTop: '10px' } });
   const restore = el('button', { text: 'Use file on this device' });
 
-  // If the original source was a Google Drive file, offer a re-download button.
+  // Hidden for now while Google Drive Picker setup is paused; keep the
+  // implementation in place for future re-enable.
   const driveMeta = mail.config?.drive;
-  const driveBtn = driveMeta
+  const driveBtn = DRIVE_UPLOAD_UI_ENABLED && driveMeta
     ? el('button', { text: t('btnDriveRedownload'), style: { marginLeft: '8px' } })
     : null;
 

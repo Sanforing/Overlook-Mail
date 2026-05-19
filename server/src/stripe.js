@@ -10,7 +10,7 @@ import { requireUser } from './auth.js';
  * Routes:
  *   POST /api/stripe/checkout  -> creates a Checkout Session, returns { url }
  *   POST /api/stripe/webhook   -> verifies signature, upgrades user on
- *                                 checkout.session.completed OR invoice.paid
+ *                                 checkout.session.completed
  *
  * Webhook signature: verified via HMAC-SHA256 against the raw request body.
  * We capture the raw body in a preParsing hook so Fastify's built-in JSON
@@ -100,7 +100,7 @@ export function registerStripe(app) {
     const cancelUrl  = join(config.stripe.cancelPath);
 
     const params = new URLSearchParams();
-    params.set('mode', 'subscription');
+    params.set('mode', 'payment');
     params.set('success_url', successUrl);
     params.set('cancel_url', cancelUrl);
     params.set('client_reference_id', me.id);
@@ -140,49 +140,6 @@ export function registerStripe(app) {
           if (userId) {
             stmt.setUserTier.run('paid', userId);
             app.log.info({ userId }, 'stripe checkout.session.completed: upgraded to paid');
-          }
-          break;
-        }
-        case 'invoice.paid': {
-          // Fires on first payment (billing_reason = subscription_create) and
-          // every renewal (subscription_cycle). Reliable fallback.
-          const inv = event.data?.object || {};
-          const reason = inv.billing_reason || '';
-          if (reason === 'subscription_create' || reason === 'subscription_cycle') {
-            const email = inv.customer_email;
-            if (email) {
-              const user = stmt.userByEmail.get(email.toLowerCase());
-              if (user && user.tier !== 'paid' && user.tier !== 'admin') {
-                stmt.setUserTier.run('paid', user.id);
-                app.log.info({ userId: user.id, email }, 'stripe invoice.paid: upgraded to paid');
-              }
-            }
-          }
-          break;
-        }
-        case 'customer.subscription.deleted': {
-          // Downgrade on cancellation — fetch the customer email from Stripe
-          const sub = event.data?.object || {};
-          const custId = sub.customer;
-          if (custId && config.stripe.secretKey) {
-            try {
-              const r = await fetch(`https://api.stripe.com/v1/customers/${custId}`, {
-                headers: { authorization: `Basic ${Buffer.from(config.stripe.secretKey + ':').toString('base64')}` }
-              });
-              if (r.ok) {
-                const cust = await r.json();
-                const email = cust.email;
-                if (email) {
-                  const user = stmt.userByEmail.get(email.toLowerCase());
-                  if (user && user.tier === 'paid') {
-                    stmt.setUserTier.run('free', user.id);
-                    app.log.info({ userId: user.id, email }, 'stripe subscription.deleted: downgraded to free');
-                  }
-                }
-              }
-            } catch (e) {
-              app.log.warn({ err: e, custId }, 'stripe: failed to fetch customer for downgrade');
-            }
           }
           break;
         }

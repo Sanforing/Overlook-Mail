@@ -62,7 +62,7 @@ The first run creates `data/stealthbox.sqlite`. User-uploaded content is stored 
 | `X_CLIENT_ID` / `_SECRET` | X (Twitter) OAuth 2.0 credentials (optional) |
 | `STRIPE_SECRET_KEY` | Stripe secret key (`sk_live_...` / `sk_test_...`) |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` from Stripe Dashboard → Webhooks |
-| `STRIPE_PRICE_ID` | `price_...` for the paid tier subscription |
+| `STRIPE_PRICE_ID` | `price_...` for the one-time US$2 donation upgrade |
 | `STRIPE_SUCCESS_PATH` / `_CANCEL_PATH` | Where Checkout returns the user (default `/app?upgrade=success` / `/app?upgrade=cancel`) |
 
 If a provider's credentials are blank, that login button is hidden in the UI
@@ -106,20 +106,22 @@ Note: X never returns an email address. The server synthesizes a placeholder
 like `username@x.local` so the user record can store something — it is not a
 real email address and should not be used for sending mail.
 
-## Stripe (paid tier)
+## Stripe (paid tier donation)
 
 When `STRIPE_SECRET_KEY` and `STRIPE_PRICE_ID` are set, `POST /api/auth/upgrade`
-returns `402` and the frontend redirects to a Stripe Checkout Session via
-`POST /api/stripe/checkout`. On `checkout.session.completed`, the webhook
-upgrades the user to `paid`.
+returns `402` and the frontend redirects to a one-time Stripe Checkout payment
+via `POST /api/stripe/checkout`. On `checkout.session.completed`, the webhook
+upgrades the user to `paid`. This is a one-time US$2 donation, not a monthly
+subscription.
 
 1. <https://dashboard.stripe.com> → Developers → **API keys** → copy the
    **Secret key** (`sk_test_...` for development).
-2. Products → Add product (e.g. "Overlook Mail Pro", $5 / month) → copy the
-   resulting **Price ID** (`price_...`).
+2. Products → Add product (e.g. "Overlook Mail Paid Upgrade", one-time US$2)
+  → copy the resulting **Price ID** (`price_...`). Use a one-time price, not
+  a recurring subscription price.
 3. Developers → **Webhooks** → Add endpoint:
    - URL: `${PUBLIC_ORIGIN}/api/stripe/webhook`
-   - Events: `checkout.session.completed`
+  - Events: `checkout.session.completed`
    - Copy the **Signing secret** (`whsec_...`).
 4. Local dev: install the [Stripe CLI](https://stripe.com/docs/stripe-cli)
    and run `stripe listen --forward-to localhost:8787/api/stripe/webhook`.
@@ -141,7 +143,7 @@ carried in the `sb_sess` httpOnly cookie. CORS allows `PUBLIC_ORIGIN` and
 | `POST /api/auth/logout` | clears session |
 | `GET  /api/auth/me` | current user (or `null`) |
 | `POST /api/auth/upgrade` | demo: flips current user to `paid`. When Stripe is configured, returns 402 — use `/api/stripe/checkout` instead |
-| `POST /api/stripe/checkout` | creates a Checkout Session, returns `{ url }` |
+| `POST /api/stripe/checkout` | creates a one-time Checkout Session, returns `{ url }` |
 | `POST /api/stripe/webhook` | Stripe webhook (signed) — upgrades user on `checkout.session.completed` |
 | `GET  /auth/oauth/:provider/start?return=/` | redirects to provider |
 | `GET  /auth/oauth/:provider/callback` | sets session, posts message to opener |

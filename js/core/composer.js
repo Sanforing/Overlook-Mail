@@ -7,6 +7,7 @@ import { parseEpubBlob, isEpubSource } from './epub.js';
 import { driveDownloadToLocal, pickDriveFile } from './drive-helper.js';
 
 const NOVEL_DRIVE_MIME_TYPES = 'text/plain,application/epub+zip';
+const DRIVE_UPLOAD_UI_ENABLED = false;
 
 function monochromeOptions() {
   return [
@@ -187,14 +188,19 @@ export function showCompose(state, { onCreated } = {}) {
 
   function modeBody() {
     if (mode === 'novel') {
-      return el('div', null, [
+      const rows = [
         notice(t('noticeFreeTier'), 'info'),
         field(t('fieldPasteText'), novelText),
-        field(t('fieldUploadFile'), novelFile),
-        notice(t('noticeDriveNovel'), 'info'),
-        field(t('fieldDriveUrl'), novelDriveUrl),
-        el('div', { class: 'field' }, [novelDrivePick, novelDrivePicked])
-      ]);
+        field(t('fieldUploadFile'), novelFile)
+      ];
+      if (DRIVE_UPLOAD_UI_ENABLED) {
+        rows.push(
+          notice(t('noticeDriveNovel'), 'info'),
+          field(t('fieldDriveUrl'), novelDriveUrl),
+          el('div', { class: 'field' }, [novelDrivePick, novelDrivePicked])
+        );
+      }
+      return el('div', null, rows);
     }
     if (mode === 'game-url') {
       return el('div', null, [
@@ -209,14 +215,19 @@ export function showCompose(state, { onCreated } = {}) {
       ]);
     }
     if (mode === 'game-rom') {
-      return el('div', null, [
+      const rows = [
         notice(t('noticeRomLegal'), 'warn'),
         field(t('fieldEmulatorCore'), romCore),
-        field(t('fieldRomFile'), romFile),
-        notice(t('noticeDriveRom'), 'info'),
-        field(t('fieldDriveUrlRom'), romDriveUrl),
-        el('div', { class: 'field' }, [romDrivePick, romDrivePicked])
-      ]);
+        field(t('fieldRomFile'), romFile)
+      ];
+      if (DRIVE_UPLOAD_UI_ENABLED) {
+        rows.push(
+          notice(t('noticeDriveRom'), 'info'),
+          field(t('fieldDriveUrlRom'), romDriveUrl),
+          el('div', { class: 'field' }, [romDrivePick, romDrivePicked])
+        );
+      }
+      return el('div', null, rows);
     }
   }
 

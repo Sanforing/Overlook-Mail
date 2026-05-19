@@ -107,14 +107,14 @@ class RemoteBackend {
     return this._user;
   }
   async upgradeCurrent(/* tier */) {
-    // If Stripe is configured on the server, redirect to Checkout instead of
-    // doing the legacy demo flip. The server will return 402 with a hint.
+    // If Stripe is configured on the server, redirect to one-time donation
+    // Checkout instead of doing the legacy demo flip.
     try {
       const u = await this._req('/api/auth/upgrade', { method: 'POST' });
       this._user = u;
       return u;
     } catch (e) {
-      // Fall through to Stripe checkout
+      // Fall through to Stripe Checkout.
     }
     const session = await this._req('/api/stripe/checkout', { method: 'POST' });
     if (session && session.url) {

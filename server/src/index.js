@@ -108,7 +108,7 @@ app.get('/api/auth/me', async (req) => {
 
 app.post('/api/auth/upgrade', async (req, reply) => {
   const me = requireUser(req, reply); if (!me) return;
-  // If Stripe is configured, require going through Checkout. The legacy
+  // If Stripe is configured, require going through one-time Checkout. The legacy
   // demo path (instant tier flip) is only allowed when Stripe is OFF, to
   // keep local dev / self-hosted demos working.
   if (stripeEnabled()) {

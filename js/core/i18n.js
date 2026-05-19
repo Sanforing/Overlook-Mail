@@ -19,9 +19,9 @@ const LOCALES = {
 
     /* ── Avatar menu ── */
     upgradePaid:         'Upgrade to Paid (demo)',
-    upgradePaidStripe:   'Upgrade to Paid — HK$15/mo',
+    upgradePaidStripe:   'Donate US$2 to upgrade',
     upgradeFailed:       'Upgrade failed',
-    upgradeSuccess:      'Thanks! Your account has been upgraded.',
+    upgradeSuccess:      'Thanks for the donation! Your account has been upgraded.',
     upgradeCancelled:    'Upgrade cancelled.',
     upgradePending:      'Confirming your payment…',
     upgradePendingLong:  'Payment received but the upgrade is still being confirmed. Please refresh in a minute.',
@@ -246,9 +246,9 @@ const LOCALES = {
 
     /* ── Avatar menu ── */
     upgradePaid:         '升級至付費版（示範）',
-    upgradePaidStripe:   '升級至付費版 — HK$15/月',
+    upgradePaidStripe:   '捐助 US$2 升級',
     upgradeFailed:       '升級失敗',
-    upgradeSuccess:      '多謝您！帳戶已升級。',
+    upgradeSuccess:      '感謝捐助！帳戶已升級。',
     upgradeCancelled:    '已取消升級。',
     upgradePending:      '正在確認付款…',
     upgradePendingLong:  '已收到付款，但升級仍在確認中。請一分鐘後重新整理。',
@@ -473,9 +473,9 @@ const LOCALES = {
 
     /* ── Avatar menu ── */
     upgradePaid:         '有料版にアップグレード（デモ）',
-    upgradePaidStripe:   '有料版にアップグレード — HK$15/月',
+    upgradePaidStripe:   'US$2 を寄付してアップグレード',
     upgradeFailed:       'アップグレードに失敗しました',
-    upgradeSuccess:      'ありがとうございます！アップグレードが完了しました。',
+    upgradeSuccess:      'ご寄付ありがとうございます。アップグレードが完了しました。',
     upgradeCancelled:    'アップグレードをキャンセルしました。',
     upgradePending:      'お支払いを確認中…',
     upgradePendingLong:  'お支払いを受け取りましたが、アップグレードを確認中です。1分後に再読み込みしてください。',
