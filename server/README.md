@@ -41,7 +41,7 @@ npm install
 npm start
 ```
 
-The first run creates `data/stealthbox.sqlite` and `data/uploads/`.
+The first run creates `data/stealthbox.sqlite`. User-uploaded content is stored in the user's browser, not on the server.
 
 ## Configuration (`.env`)
 
@@ -51,12 +51,13 @@ The first run creates `data/stealthbox.sqlite` and `data/uploads/`.
 | `PUBLIC_ORIGIN` | Public URL the browser uses (used for cookies + OAuth redirects) |
 | `EXTRA_ALLOWED_ORIGINS` | Comma-separated CORS origins (e.g. `http://localhost:8080`) |
 | `SESSION_SECRET` | Random string used to sign cookies — **rotate in production** |
-| `DATA_DIR`, `UPLOAD_DIR` | Where the SQLite file and uploads live |
-| `MAX_UPLOAD_BYTES`, `ROM_MAX_BYTES`, `NOVEL_MAX_BYTES` | File size caps |
+| `DATA_DIR` | Where the SQLite file lives |
+| `MAX_UPLOAD_BYTES`, `ROM_MAX_BYTES`, `NOVEL_MAX_BYTES` | Legacy/advisory file size caps; browser-only uploads are not persisted by the server |
 | `ALLOW_REGISTRATION` | Set `false` to lock signup |
 | `DEFAULT_TIER` | `free` or `paid` for new users |
 | `SERVE_STATIC_FROM` | Optional path (relative to `cwd`) — when set, the same Fastify process also serves the frontend SPA |
 | `GOOGLE_CLIENT_ID` / `_SECRET` | Google OAuth credentials (optional) |
+| `GOOGLE_PICKER_API_KEY` / `GOOGLE_PICKER_APP_ID` | Optional Google Picker API key and app/project number for the browser Drive picker; restrict the API key by HTTP referrer |
 | `LINKEDIN_CLIENT_ID` / `_SECRET` | LinkedIn OAuth credentials (optional) |
 | `X_CLIENT_ID` / `_SECRET` | X (Twitter) OAuth 2.0 credentials (optional) |
 | `STRIPE_SECRET_KEY` | Stripe secret key (`sk_live_...` / `sk_test_...`) |
@@ -147,9 +148,9 @@ carried in the `sb_sess` httpOnly cookie. CORS allows `PUBLIC_ORIGIN` and
 | `GET  /api/mails` | public mails + signed-in user's private mails |
 | `POST /api/mails` | create (owned) |
 | `PATCH/DELETE /api/mails/:id` | owner-only |
-| `GET  /api/saves/:mailId` / `PUT /api/saves/:mailId` | per-user game save |
-| `POST /api/files` (multipart) | upload (paid tier for ROMs / books) |
-| `GET  /api/files/:id` / `/api/files/:id/blob` | metadata / stream |
+| `GET  /api/saves/:mailId` / `PUT /api/saves/:mailId` | legacy server save endpoint; the remote frontend stores game state and bookmarks in browser storage |
+| `POST /api/files` (multipart) | disabled; user content stays in browser storage |
+| `GET  /api/files/:id` / `/api/files/:id/blob` | disabled for server-stored files |
 | `GET  /api/prefs` / `PUT /api/prefs` | `{ brand?, searchPlaceholder?, theme? }` |
 
 ## Front-end integration
@@ -223,4 +224,5 @@ Set `PUBLIC_ORIGIN=https://your-vps.example.com` so cookies get the
 ## Backups
 
 Just back up `data/stealthbox.sqlite` (use `sqlite3 ... ".backup"` for
-consistency) and `data/uploads/`.
+consistency). Uploaded novels and ROMs live in each user's browser storage,
+so they are not part of the VPS backup.

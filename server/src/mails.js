@@ -98,7 +98,8 @@ export function registerMails(app) {
     return { ok: true };
   });
 
-  // Game saves are per-user-per-mail.
+  // Legacy server save endpoints. The remote frontend now keeps game state,
+  // novel bookmarks, and uploaded-content progress in browser storage.
   app.put('/api/saves/:mailId', async (req, reply) => {
     const me = requireUser(req, reply); if (!me) return;
     const data = JSON.stringify(req.body ?? null);

@@ -54,7 +54,11 @@ app.get('/api/meta', async () => ({
   limits: config.limits,
   // Expose the Google OAuth client ID so the browser can use Google Identity
   // Services for Drive API access. Client IDs are public (non-secret).
-  googleClientId: config.google.clientId || null
+  googleClientId: config.google.clientId || null,
+  googlePicker: {
+    apiKey: config.google.pickerApiKey || null,
+    appId: config.google.pickerAppId || null
+  }
 }));
 
 /* ---------- Email + password auth ---------- */

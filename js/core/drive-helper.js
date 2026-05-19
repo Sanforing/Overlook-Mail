@@ -9,14 +9,20 @@
  * No file bytes pass through our server.
  *
  * Public API:
- *   driveDownloadToLocal(fileId, clientId, backend, suggestedId?) → {id, name, …}
+ *   pickDriveFile(options) → selected Drive document metadata
+ *   driveDownloadToLocal(fileId, clientId, backend, suggestedId?, tokenResponse?) → {id, name, …}
  */
 
 const GIS_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
+const GAPI_SCRIPT_SRC = 'https://apis.google.com/js/api.js';
 const DRIVE_SCOPE    = 'https://www.googleapis.com/auth/drive.readonly';
 
 let _gisLoadPromise = null;
+let _gapiLoadPromise = null;
+let _pickerLoadPromise = null;
 let _tokenClient    = null;
+let _lastTokenResponse = null;
+let _lastTokenExpiresAt = 0;
 
 function loadGIS() {
   if (_gisLoadPromise) return _gisLoadPromise;
@@ -34,15 +40,44 @@ function loadGIS() {
   return _gisLoadPromise;
 }
 
+function loadGAPI() {
+  if (_gapiLoadPromise) return _gapiLoadPromise;
+  _gapiLoadPromise = new Promise((resolve, reject) => {
+    if (typeof gapi !== 'undefined' && gapi?.load) return resolve();
+    const s = document.createElement('script');
+    s.src   = GAPI_SCRIPT_SRC;
+    s.async = true;
+    s.onload  = resolve;
+    s.onerror = () => reject(new Error('Failed to load Google API client'));
+    document.head.appendChild(s);
+  });
+  return _gapiLoadPromise;
+}
+
+async function loadPicker() {
+  await loadGAPI();
+  if (_pickerLoadPromise) return _pickerLoadPromise;
+  _pickerLoadPromise = new Promise((resolve) => gapi.load('picker', { callback: resolve }));
+  return _pickerLoadPromise;
+}
+
 /**
  * Prompt the user for Drive read-only access via GIS popup.
  * Returns the raw token response { access_token, expires_in, … }.
  */
 function acquireDriveToken(clientId) {
+  if (_lastTokenResponse?.access_token && Date.now() < _lastTokenExpiresAt - 60_000) {
+    return Promise.resolve(_lastTokenResponse);
+  }
   return new Promise((resolve, reject) => {
     const respond = (resp) => {
-      if (resp.error) reject(new Error(`Google auth error: ${resp.error}`));
-      else resolve(resp);
+      if (resp.error) {
+        reject(new Error(`Google auth error: ${resp.error}`));
+      } else {
+        _lastTokenResponse = resp;
+        _lastTokenExpiresAt = Date.now() + Number(resp.expires_in || 3600) * 1000;
+        resolve(resp);
+      }
     };
     if (!_tokenClient) {
       _tokenClient = google.accounts.oauth2.initTokenClient({
@@ -57,6 +92,44 @@ function acquireDriveToken(clientId) {
   });
 }
 
+export async function getDriveAccessToken(clientId) {
+  await loadGIS();
+  return acquireDriveToken(clientId);
+}
+
+export async function pickDriveFile({ clientId, apiKey, appId, mimeTypes } = {}) {
+  if (!clientId) throw new Error('Google Drive is not configured on this server.');
+  await loadGIS();
+  await loadPicker();
+  const tokenResponse = await acquireDriveToken(clientId);
+
+  return new Promise((resolve, reject) => {
+    const view = new google.picker.DocsView(google.picker.ViewId.DOCS);
+    view.setIncludeFolders(false);
+    if (mimeTypes) view.setMimeTypes(mimeTypes);
+
+    const builder = new google.picker.PickerBuilder()
+      .addView(view)
+      .setOAuthToken(tokenResponse.access_token)
+      .setCallback((data) => {
+        if (data.action === google.picker.Action.PICKED) {
+          resolve(Object.assign({}, data.docs?.[0] || {}, { tokenResponse }));
+        } else if (data.action === google.picker.Action.CANCEL) {
+          resolve(null);
+        }
+      });
+
+    if (apiKey) builder.setDeveloperKey(apiKey);
+    if (appId) builder.setAppId(appId);
+
+    try {
+      builder.build().setVisible(true);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
 /**
  * Download a Google Drive file and persist it in the backend's local
  * IndexedDB.  Yields the same shape as backend.putBlob/putFile:
@@ -67,9 +140,9 @@ function acquireDriveToken(clientId) {
  * @param {object}      backend     - backend instance (putFile or putBlob)
  * @param {string|null} [suggestedId] - optional fixed id so overwrite works
  */
-export async function driveDownloadToLocal(fileId, clientId, backend, suggestedId = null) {
+export async function driveDownloadToLocal(fileId, clientId, backend, suggestedId = null, tokenResponse = null) {
   await loadGIS();
-  const { access_token } = await acquireDriveToken(clientId);
+  const { access_token } = tokenResponse?.access_token ? tokenResponse : await acquireDriveToken(clientId);
 
   // 1. Fetch metadata to get the file name and MIME type.
   const metaRes = await fetch(

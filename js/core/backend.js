@@ -262,8 +262,11 @@ class LocalBackend {
    * as "session only" if it wants — for the demo we keep it stored).
    */
   async putBlob(file, { persisted = true } = {}) {
+    return this.putFile(randomId('f_'), file, { persisted });
+  }
+
+  async putFile(id, file, { persisted = true } = {}) {
     const db = await this._db();
-    const id = randomId('f_');
     // Read content into an ArrayBuffer first — File objects may lose their data
     // after an IndexedDB structured-clone round-trip in some browsers.
     const arrayBuffer = await file.arrayBuffer();
@@ -275,6 +278,8 @@ class LocalBackend {
     const { stores, done } = tx(db, ['files'], 'readwrite');
     stores.files.put(record);
     await done;
+    if (this._blobURLs.has(id)) URL.revokeObjectURL(this._blobURLs.get(id));
+    this._blobURLs.delete(id);
     return { id, name: record.name, type: record.type, size: record.size, url: this.getBlobURL(id, file) };
   }
 

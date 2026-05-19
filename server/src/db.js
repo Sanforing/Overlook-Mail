@@ -1,10 +1,9 @@
 import Database from 'better-sqlite3';
 import { mkdirSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { resolve } from 'node:path';
 import { config } from './config.js';
 
 mkdirSync(config.dataDir,   { recursive: true });
-mkdirSync(config.uploadDir, { recursive: true });
 
 const dbPath = resolve(config.dataDir, 'stealthbox.sqlite');
 export const db = new Database(dbPath);
@@ -56,7 +55,7 @@ CREATE TABLE IF NOT EXISTS files (
   name            TEXT NOT NULL,
   type            TEXT NOT NULL,
   size            INTEGER NOT NULL,
-  storage_path    TEXT NOT NULL,           -- relative to UPLOAD_DIR
+  storage_path    TEXT NOT NULL,           -- legacy server-file metadata only
   created_at      INTEGER NOT NULL
 );
 
@@ -137,9 +136,6 @@ export const stmt = {
                               ON CONFLICT(mail_id) DO UPDATE SET data=excluded.data, updated_at=excluded.updated_at`),
   getComments:    db.prepare(`SELECT data FROM comments WHERE mail_id = ?`)
 };
-
-/** Build the absolute path for a stored file. */
-export function uploadPath(rel) { return join(config.uploadDir, rel); }
 
 /** Public projection of a user row. */
 export function publicUser(row) {

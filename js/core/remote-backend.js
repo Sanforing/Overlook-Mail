@@ -16,12 +16,40 @@ function randomId(prefix = '') {
   return prefix + Array.from(a).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+const LOCAL_FILE_DB = 'stealthbox-local-files';
+const LOCAL_FILE_DB_VERSION = 2;
+
+function openLocalFileDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(LOCAL_FILE_DB, LOCAL_FILE_DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('state')) db.createObjectStore('state', { keyPath: 'mailId' });
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function localTx(db, storeName, mode = 'readonly') {
+  const t = db.transaction([storeName], mode);
+  const store = t.objectStore(storeName);
+  return { store, done: new Promise((res, rej) => { t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); }) };
+}
+
+const wrap = (req) => new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error); });
+
 class RemoteBackend {
   constructor(settings) {
     this.settings = settings;
     this.baseUrl = (settings?.backend?.baseUrl || '').replace(/\/+$/, '');
     this._user = undefined; // unknown until first currentUser() call
+    this._localFiles = openLocalFileDB();
+    this._blobURLs = new Map();
   }
+
+  async _fileDB() { return this._localFiles; }
 
   // ---- low level ----
   async _req(path, { method = 'GET', body, isForm = false, headers } = {}) {
@@ -70,6 +98,8 @@ class RemoteBackend {
   async logout() {
     await this._req('/api/auth/logout', { method: 'POST' });
     this._user = null;
+    for (const url of this._blobURLs.values()) URL.revokeObjectURL(url);
+    this._blobURLs.clear();
   }
   async currentUser() {
     if (this._user !== undefined) return this._user;
@@ -141,36 +171,59 @@ class RemoteBackend {
 
   // ---- files ----
   async putBlob(file) {
-    const fd = new FormData();
-    fd.append('file', file, file.name || 'upload');
-    const r = await this._req('/api/files', { method: 'POST', body: fd, isForm: true });
-    return { id: r.id, name: r.name, type: r.type, size: r.size, url: this._fileUrl(r.id) };
+    return this.putFile(randomId('f_'), file);
+  }
+  async putFile(id, file) {
+    const db = await this._fileDB();
+    const arrayBuffer = await file.arrayBuffer();
+    const type = file.type || 'application/octet-stream';
+    const record = {
+      id,
+      name: file.name || 'blob',
+      type,
+      size: file.size,
+      blob: new Blob([arrayBuffer], { type }),
+      createdAt: Date.now()
+    };
+    const { store, done } = localTx(db, 'files', 'readwrite');
+    store.put(record);
+    await done;
+    if (this._blobURLs.has(id)) URL.revokeObjectURL(this._blobURLs.get(id));
+    this._blobURLs.delete(id);
+    return { id, name: record.name, type: record.type, size: record.size, url: this.getBlobURL(id, record.blob) };
   }
   async getFile(id) {
-    const meta = await this._req(`/api/files/${encodeURIComponent(id)}`);
-    if (!meta) return null;
-    const blobRes = await fetch(this.baseUrl + `/api/files/${encodeURIComponent(id)}/blob`, { credentials: 'include' });
-    if (!blobRes.ok) return null;
-    const blob = await blobRes.blob();
-    return Object.assign({}, meta, { blob });
+    const db = await this._fileDB();
+    const { store } = localTx(db, 'files');
+    return wrap(store.get(id));
   }
-  _fileUrl(id) { return this.baseUrl + `/api/files/${encodeURIComponent(id)}/blob`; }
-  getBlobURL(id)            { return this._fileUrl(id); }
-  async getOrCreateBlobURL(id) { return this._fileUrl(id); }
+  getBlobURL(id, blob) {
+    if (this._blobURLs.has(id)) return this._blobURLs.get(id);
+    if (!blob) return null;
+    const url = URL.createObjectURL(blob);
+    this._blobURLs.set(id, url);
+    return url;
+  }
+  async getOrCreateBlobURL(id) {
+    if (this._blobURLs.has(id)) return this._blobURLs.get(id);
+    const rec = await this.getFile(id);
+    if (!rec) return null;
+    return this.getBlobURL(id, rec.blob);
+  }
 
   // ---- saves ----
   async saveState(mailId, data) {
-    if (!this._user) return null; // no-op when not signed in
-    if (String(mailId).startsWith('__')) return this._req(`/api/state/${encodeURIComponent(mailId)}`, { method: 'PUT', body: data });
-    return this._req(`/api/saves/${encodeURIComponent(mailId)}`, { method: 'PUT', body: data });
+    const db = await this._fileDB();
+    const { store, done } = localTx(db, 'state', 'readwrite');
+    store.put({ mailId: String(mailId), data, updatedAt: Date.now() });
+    await done;
+    return { ok: true };
   }
   async loadState(mailId) {
-    if (!this._user) return null; // skip 401 noise when guest
-    try {
-      if (String(mailId).startsWith('__')) return await this._req(`/api/state/${encodeURIComponent(mailId)}`);
-      return await this._req(`/api/saves/${encodeURIComponent(mailId)}`);
-    }
-    catch { return null; }
+    const db = await this._fileDB();
+    const { store } = localTx(db, 'state');
+    const row = await wrap(store.get(String(mailId)));
+    return row?.data ?? null;
   }
 
   async loadComments(mailId) {

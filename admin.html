@@ -313,7 +313,7 @@
       <section class="page" id="page-files">
         <div class="page-title">
           <h1>Files</h1>
-          <span class="sub">All uploaded files. Total storage shown above.</span>
+          <span class="sub">Legacy server file records only. New user content is stored in the user's browser.</span>
         </div>
         <div class="card">
           <div class="toolbar">
@@ -632,7 +632,6 @@
         <td class="muted nowrap">${fmtDate(f.createdAt)}</td>
         <td>
           <div class="row-actions">
-            <a class="btn tiny" href="/api/files/${encodeURIComponent(f.id)}/blob" target="_blank">Open</a>
             <button class="btn tiny danger" data-del-file="${escapeHtml(f.id)}">Delete</button>
           </div>
         </td>
@@ -641,7 +640,7 @@
 
     tbody.querySelectorAll('[data-del-file]').forEach(btn => {
       btn.onclick = async () => {
-        if (!confirm('Delete this file permanently? The file blob on disk is not removed; only the DB record is deleted.')) return;
+        if (!confirm('Delete this legacy file record? New uploads are browser-only and are not stored on the server.')) return;
         try {
           await api(`/api/admin/files/${btn.dataset.delFile}`, { method: 'DELETE' });
           toast('File deleted.');

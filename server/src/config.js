@@ -46,14 +46,15 @@ export const config = {
   port: num(env.PORT, 8787),
   host: env.HOST || '0.0.0.0',
   dataDir: env.DATA_DIR || './data',
-  uploadDir: env.UPLOAD_DIR || './data/uploads',
   sessionSecret: env.SESSION_SECRET || 'dev-only-secret-change-me',
   publicOrigin: (env.PUBLIC_ORIGIN || `http://localhost:${num(env.PORT, 8787)}`).replace(/\/+$/, ''),
   extraAllowedOrigins: list(env.EXTRA_ALLOWED_ORIGINS),
   serveStaticFrom: env.SERVE_STATIC_FROM || '',
   google: {
     clientId: env.GOOGLE_CLIENT_ID || '',
-    clientSecret: env.GOOGLE_CLIENT_SECRET || ''
+    clientSecret: env.GOOGLE_CLIENT_SECRET || '',
+    pickerApiKey: env.GOOGLE_PICKER_API_KEY || env.GOOGLE_API_KEY || '',
+    pickerAppId: env.GOOGLE_PICKER_APP_ID || env.GOOGLE_PROJECT_NUMBER || ''
   },
   linkedin: {
     clientId: env.LINKEDIN_CLIENT_ID || '',

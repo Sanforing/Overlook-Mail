@@ -54,8 +54,8 @@ export function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; 
 
 /**
  * Tiny shared leaderboard for built-in games. Stored under a reserved
- * "mailId" namespace through the existing backend save-state surface so it
- * works for both LocalBackend (IndexedDB) and RemoteBackend (server).
+ * "mailId" namespace through the existing backend save-state surface. In
+ * remote mode this stays in browser storage, matching uploaded content.
  *
  *   await getLeaderboard(backend, 'pong');
  *   await addScore(backend, 'pong', { name: 'AC', score: 12 });
