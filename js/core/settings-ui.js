@@ -3,6 +3,7 @@ import { el } from './utils.js';
 import { applyUserPrefs, defaultPrefsFromSettings, saveLocalPrefs } from './prefs-ui.js';
 import { t, getLang } from './i18n.js';
 import { rerenderShell } from './ui.js';
+import { trackEvent, userTier } from './analytics.js';
 
 /**
  * Settings modal: lets the signed-in user customise the brand text and the
@@ -12,6 +13,7 @@ import { rerenderShell } from './ui.js';
 export function showSettings(state) {
   const backend = state.backend;
   const supportsPrefs = typeof backend.getPrefs === 'function' && typeof backend.putPrefs === 'function';
+  trackEvent('settings_open', { tier: userTier(state.user) });
 
   const status = el('div', { class: 'auth-status' });
   const body = el('div');
@@ -80,6 +82,7 @@ export function showSettings(state) {
     applyUserPrefs(state, {});
     m.close();
     rerenderShell(state);
+    trackEvent('settings_reset', { tier: userTier(state.user) });
   });
 
   save.addEventListener('click', async () => {
@@ -109,6 +112,11 @@ export function showSettings(state) {
       applyUserPrefs(state, prefs);
       m.close();
       rerenderShell(state);
+      trackEvent('settings_save', {
+        ui_lang: prefs.uiLang,
+        custom_folder_count: prefs.customFolders.length,
+        tier: userTier(state.user)
+      });
     } catch (err) {
       status.appendChild(notice(err.message, 'error'));
     } finally {
@@ -202,6 +210,7 @@ function makeIconPicker(initialKey = 'folder') {
 export function showMailboxManager(state, { onChanged } = {}) {
   const backend = state.backend;
   const supportsPrefs = typeof backend.getPrefs === 'function' && typeof backend.putPrefs === 'function';
+  trackEvent('mailbox_manager_open', { tier: userTier(state.user) });
 
   // Work on a fresh copy; we commit only on explicit save.
   let customFolders = (Array.isArray(state.userPrefs?.customFolders) ? state.userPrefs.customFolders : []).map(f => Object.assign({}, f));
@@ -248,6 +257,7 @@ export function showMailboxManager(state, { onChanged } = {}) {
     customFolders = [...customFolders, { id, name, iconKey }];
     mbNameIn.value = ''; picker.reset();
     renderMailboxList();
+    trackEvent('mailbox_add_draft', { icon: iconKey, custom_folder_count: customFolders.length, tier: userTier(state.user) });
   });
 
   const saveBtn = btn(t('save'), { primary: true });
@@ -281,6 +291,7 @@ export function showMailboxManager(state, { onChanged } = {}) {
       state.folders = [...builtins, ...customFolders.map(f => Object.assign({}, f, { custom: true }))];
       m.close();
       if (typeof onChanged === 'function') onChanged();
+      trackEvent('mailbox_save', { custom_folder_count: customFolders.length, tier: userTier(state.user) });
     } catch (err) {
       mbStatus.appendChild(notice(err.message, 'error'));
     } finally {

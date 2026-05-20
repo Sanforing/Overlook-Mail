@@ -11,6 +11,7 @@ import { runTutorial, runOnceTutorial, runNovelTutorial } from './tutorial.js';i
 import { adsActive, placementOn, buildSponsoredInboxRow, buildTopbarTile, buildReaderStickyStrip } from './ads.js';
 import { parseEpubBlob, isEpubSource } from './epub.js';
 import { driveDownloadToLocal } from './drive-helper.js';
+import { setAnalyticsUser, trackEvent, userTier } from './analytics.js';
 
 const DRIVE_UPLOAD_UI_ENABLED = false;
 
@@ -60,6 +61,7 @@ async function maybeHandleStripeReturn(state) {
   const params = new URLSearchParams(window.location.search);
   const r = params.get('upgrade');
   if (r !== 'success' && r !== 'cancel') return;
+  trackEvent('upgrade_return', { status: r, tier: userTier(state.user) });
   // Strip the param so a refresh doesn't replay the banner.
   params.delete('upgrade');
   const clean = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
@@ -72,10 +74,11 @@ async function maybeHandleStripeReturn(state) {
   const sawPaid = await pollForPaidTier(state, 12, 1000);
   document.querySelectorAll('.upgrade-banner').forEach(n => n.remove());
   if (sawPaid) {
-    renderTopbar(state);
-    refreshList(state, {});
+    await refreshAuthSensitiveViews(state);
+    trackEvent('upgrade_confirmed', { provider: 'stripe', tier: userTier(state.user) });
     showUpgradeBanner(t('upgradeSuccess'), 'ok');
   } else {
+    trackEvent('upgrade_pending', { provider: 'stripe', tier: userTier(state.user) });
     showUpgradeBanner(t('upgradePendingLong'), 'warn', 8000);
   }
 }
@@ -172,6 +175,29 @@ async function refreshCurrentUser(state) {
   }
 }
 
+async function applySignedInUser(state, user, { runIntro = false } = {}) {
+  state.user = user;
+  setAnalyticsUser(user);
+  let prefs = {};
+  if (typeof state.backend.getPrefs === 'function') {
+    try { prefs = (await state.backend.getPrefs()) || {}; } catch { prefs = {}; }
+  }
+  applyUserPrefs(state, prefs);
+  await refreshAuthSensitiveViews(state);
+  if (runIntro) await maybeRunTutorial(state, user);
+}
+
+async function refreshAuthSensitiveViews(state, { autoOpenFirst = true } = {}) {
+  const previousMailId = state.currentMail;
+  renderTopbar(state);
+  await refreshList(state, { autoOpenFirst: !previousMailId && autoOpenFirst });
+  if (!previousMailId) return;
+  const mail = state.visibleMails.find(m => m.id === previousMailId);
+  if (mail) await openMail(state, mail);
+  else if (autoOpenFirst && state.visibleMails.length) await openMail(state, state.visibleMails[0]);
+  else renderEmpty();
+}
+
 function openAvatarMenu(state, anchor) {
   document.querySelectorAll('.menu').forEach(n => n.remove());
   const menu = el('div', { class: 'menu' });
@@ -197,19 +223,16 @@ function openAvatarMenu(state, anchor) {
     }
     menu.appendChild(el('button', { class: 'menu-item', text: t('personalise'), onclick: () => { menu.remove(); showSettings(state); } }));
     menu.appendChild(el('button', { class: 'menu-item', text: t('signOut'), onclick: async () => {
+      trackEvent('logout', { tier: userTier(state.user) });
       await state.backend.logout(); state.user = null; state.userPrefs = {};
-      applyUserPrefs(state, {}); menu.remove(); renderTopbar(state); refreshList(state, { autoOpenFirst: true });
+      setAnalyticsUser(null);
+      applyUserPrefs(state, {}); menu.remove(); await refreshAuthSensitiveViews(state);
     } }));
   } else {
     menu.appendChild(el('button', { class: 'menu-item', text: t('signInCreate'), onclick: () => {
       menu.remove();
       showAuth(state, { onSignedIn: async (u) => {
-        state.user = u;
-        if (typeof state.backend.getPrefs === 'function') {
-          try { applyUserPrefs(state, await state.backend.getPrefs()); } catch {}
-        }
-        renderTopbar(state); await refreshList(state, { autoOpenFirst: true });
-        await maybeRunTutorial(state, u);
+        await applySignedInUser(state, u, { runIntro: true });
       } });
     } }));
   }
@@ -222,13 +245,16 @@ function openAvatarMenu(state, anchor) {
 
 function showUpgradeModal(state) {
   if (!state.user) {
-    showAuth(state, { onSignedIn: async (u) => { state.user = u; renderTopbar(state); showUpgradeModal(state); } });
+    trackEvent('upgrade_auth_required', { tier: 'guest' });
+    showAuth(state, { onSignedIn: async (u) => { await applySignedInUser(state, u); showUpgradeModal(state); } });
     return;
   }
   if (isPaidTier(state.user)) {
+    trackEvent('upgrade_already_paid', { tier: userTier(state.user) });
     showUpgradeBanner(t('upgradeAlreadyPaid'), 'ok');
     return;
   }
+  trackEvent('upgrade_modal_view', { tier: userTier(state.user) });
 
   const benefits = [
     t('upgradeBenefitNoAds'),
@@ -256,18 +282,21 @@ function showUpgradeModal(state) {
   cancel.addEventListener('click', () => modal.close());
   pay.addEventListener('click', async () => {
     pay.disabled = true;
+    trackEvent('upgrade_checkout_start', { tier: userTier(state.user) });
     try {
       const u = await state.backend.upgradeCurrent('paid');
       if (u) {
         state.user = u;
+        setAnalyticsUser(u);
         modal.close();
-        renderTopbar(state);
-        refreshList(state, {});
+        await refreshAuthSensitiveViews(state);
+        trackEvent('upgrade_confirmed', { provider: 'demo', tier: userTier(u) });
         showUpgradeBanner(t('upgradeSuccess'), 'ok');
       }
       // If u is null, the page is being redirected to Stripe Checkout.
     } catch (e) {
       pay.disabled = false;
+      trackEvent('upgrade_failed', { tier: userTier(state.user), stage: 'checkout' });
       alert(t('upgradeFailed') + ': ' + (e?.message || e));
     }
   });
@@ -356,7 +385,7 @@ function onNewMail(state) {
   const open = () => showCompose(state, { onCreated: () => refreshList(state, { autoOpenFirst: true }) });
   if (!state.user) {
     showAuth(state, { onSignedIn: async (u) => {
-      state.user = u; renderTopbar(state);
+      await applySignedInUser(state, u);
       await maybeRunTutorial(state, u);
       open();
     } });
@@ -615,6 +644,13 @@ let currentInlineNovel = null;
 async function openMail(state, mail) {
   if (!mail) return;
   state.currentMail = mail.id;
+  trackEvent('mail_open', {
+    mail_type: isInlineNovelMail(mail) ? 'novel' : (mail.type || 'unknown'),
+    category: state.currentCategory || 'unknown',
+    visibility: mail.visibility || 'unknown',
+    owner_scope: mail.ownerId === 'admin' ? 'admin' : (state.user && mail.ownerId === state.user.id ? 'own' : 'other'),
+    tier: userTier(state.user)
+  });
 
   document.querySelectorAll('.list .item').forEach(n => {
     n.classList.toggle('active', n.dataset.id === mail.id);
@@ -718,6 +754,11 @@ async function openMail(state, mail) {
     openBtn.textContent = t('splashOpen');
     openBtn.addEventListener('click', async () => {
       openBtn.disabled = true;
+      trackEvent('attachment_open', {
+        mail_type: mail.type || 'unknown',
+        app_kind: isInlineNovelMail(mail) ? 'novel' : (mail.type === 'emulator' ? 'emulator' : mail.type === 'iframe' ? 'iframe' : 'local'),
+        tier: userTier(state.user)
+      });
       splashEl.remove();
       currentRunner = await factory(view.hostEl);
       // Apply the user's saved frame size now that the game has rendered and
@@ -853,7 +894,7 @@ function makeAckButton(state, mail) {
   }
   btn.addEventListener('click', async () => {
     if (busy) return;
-    if (!state.user) { showAuth(state, { onSignedIn: async () => { await refresh(); } }); return; }
+    if (!state.user) { showAuth(state, { onSignedIn: async (u) => { await applySignedInUser(state, u); await refresh(); } }); return; }
     busy = true;
     const data = await loadAck(state, ackKey);
     const acks = new Set(data.ackedBy || []);
@@ -866,6 +907,7 @@ function makeAckButton(state, mail) {
     }
     data.ackedBy = [...acks];
     await saveAck(state, ackKey, data);
+    trackEvent('ack_toggle', { enabled: acks.has(state.user.id), tier: userTier(state.user) });
     await refresh();
     busy = false;
   });
@@ -942,7 +984,7 @@ async function mountCommentsThread(state, mail, view, scroll) {
 
 function openForwardDialog(state, mail) {
   if (!state.user) {
-    showAuth(state, { onSignedIn: () => openForwardDialog(state, mail) });
+    showAuth(state, { onSignedIn: async (u) => { await applySignedInUser(state, u); openForwardDialog(state, mail); } });
     return;
   }
   const opts = (state.folders || []).map(f => ({
@@ -994,6 +1036,7 @@ function openForwardDialog(state, mail) {
       await state.backend.create(shortcut);
       m.close();
       await refreshList(state, {});
+      trackEvent('mail_forward', { folder: sel.value, source_visibility: mail.visibility || 'unknown', tier: userTier(state.user) });
       flashToast(t('forwarded'));
     } catch (err) {
       status.textContent = err.message || String(err);
@@ -1131,10 +1174,12 @@ async function mountInlineNovel(state, mail, view) {
       bookmarks.push({ page, label: label || `p.${page + 1}` });
       bookmarks.sort((a, b) => a.page - b.page);
       saveToBackend();
+      trackEvent('novel_bookmark_add', { page: page + 1, total_pages: pages.length, tier: userTier(state.user) });
     },
     removeBookmark: (bmPage) => {
       bookmarks = bookmarks.filter(b => b.page !== bmPage);
       saveToBackend();
+      trackEvent('novel_bookmark_remove', { page: bmPage + 1, total_pages: pages.length, tier: userTier(state.user) });
     }
   });
 

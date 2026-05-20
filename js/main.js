@@ -5,6 +5,7 @@ import { initMute } from './core/mute.js';
 import { createBackend, registerBackend } from './core/backend.js';
 import { RemoteBackend } from './core/remote-backend.js';
 import { applyUserPrefs, loadLocalPrefs } from './core/prefs-ui.js';
+import { setAnalyticsUser, trackEvent, userTier } from './core/analytics.js';
 
 registerBackend('remote', RemoteBackend);
 
@@ -22,6 +23,8 @@ async function bootstrap() {
 
   const backend = createBackend(settings);
   const user = await backend.currentUser();
+  setAnalyticsUser(user);
+  trackEvent('app_start', { signed_in: Boolean(user), tier: userTier(user) });
   let meta = null;
   if (typeof backend.meta === 'function') {
     try { meta = await backend.meta(); } catch { meta = null; }

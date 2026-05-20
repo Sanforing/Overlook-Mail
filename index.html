@@ -33,6 +33,15 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1240411576907738"
     crossorigin="anonymous"></script>
 
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-89BM3CMJHZ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-89BM3CMJHZ');
+  </script>
+
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"WebApplication","name":"Overlook Mail","url":"https://overlookmail.site","applicationCategory":"GameApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
   </script>
@@ -329,7 +338,7 @@
       Overlook Mail
     </div>
     <div class="nav-actions">
-      <span class="nav-honest" onclick="document.getElementById('honestModal').classList.add('show')" data-zh="關於我們" data-hk="關於我們" data-ja="このサイトについて">
+      <span class="nav-honest" onclick="trackLandingEvent('about_open', { location: 'nav' }); document.getElementById('honestModal').classList.add('show')" data-zh="關於我們" data-hk="關於我們" data-ja="このサイトについて">
         About
       </span>
     </div>
@@ -354,7 +363,7 @@
       </div>
 
       <div class="cta-row">
-        <a href="/app" class="btn btn-primary btn-hero" data-zh="打開信箱 →" data-hk="入去 Inbox →" data-ja="受信トレイを開く →">Open Inbox →</a>
+        <a href="/app" class="btn btn-primary btn-hero" onclick="trackLandingEvent('open_inbox_click', { location: 'hero' })" data-zh="打開信箱 →" data-hk="入去 Inbox →" data-ja="受信トレイを開く →">Open Inbox →</a>
       </div>
 
       <div class="esc-tip" data-zh="上司走過來？快按 <span class=&quot;kbd&quot;>Esc</span> <span class=&quot;kbd&quot;>Esc</span> — 立刻隱藏。" data-hk="老闆嚟喇？撳 <span class=&quot;kbd&quot;>Esc</span> <span class=&quot;kbd&quot;>Esc</span> — 即刻消失。" data-ja="上司が来た？ <span class=&quot;kbd&quot;>Esc</span> <span class=&quot;kbd&quot;>Esc</span> で即座に隠せます。">
@@ -424,7 +433,7 @@
 
   <footer>
     <span data-zh="© 2026 Playwithspect · 保留所有權利" data-ja="© 2026 Playwithspect · All rights reserved">© 2026 Playwithspect · All rights reserved</span> ·
-    <a onclick="document.getElementById('honestModal').classList.add('show')" data-zh="關於我們" data-ja="このサイトについて">About</a>
+    <a onclick="trackLandingEvent('about_open', { location: 'footer' }); document.getElementById('honestModal').classList.add('show')" data-zh="關於我們" data-ja="このサイトについて">About</a>
   </footer>
 
   <!-- About / contact modal -->
@@ -440,7 +449,7 @@
       <div class="contact-card">
         <div class="contact-title" data-zh="聯絡我們" data-ja="お問い合わせ">Contact us</div>
         <div class="contact-lead" data-zh="查詢、廣告或合作事宜，歡迎來信。" data-ja="お問い合わせ、広告、提携のご相談など、お気軽にご連絡ください。">For any enquiry, advertising, or cooperation — we'd love to hear from you.</div>
-        <a class="contact-email-btn" href="mailto:sanforing@playwithspect.com">
+        <a class="contact-email-btn" href="mailto:sanforing@playwithspect.com" onclick="trackLandingEvent('contact_email_click')">
           <span>✉</span>
           <span>sanforing@playwithspect.com</span>
         </a>
@@ -452,6 +461,11 @@
   <!-- Auto language detection: swap landing copy for Japanese or Chinese.
        The inbox app reads __i18n_lang on load and uses the same language. -->
   <script>
+    function trackLandingEvent(name, params) {
+      if (typeof gtag !== 'function') return;
+      try { gtag('event', name, Object.assign({ page_area: 'landing' }, params || {})); } catch {}
+    }
+
     (function detectLang() {
       const langs = (navigator.languages && navigator.languages.length)
         ? navigator.languages : [navigator.language || 'en'];

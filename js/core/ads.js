@@ -9,11 +9,12 @@
 // testing — set showSlotLabel:false in production.
 
 import { el } from './utils.js';
+import { trackEvent } from './analytics.js';
 
 export function adsActive(settings, user) {
   if (!settings) return false;
   if (settings.ads?.enabled === false) return false;
-  if (user?.tier === 'paid') return false;
+  if (user?.tier === 'paid' || user?.tier === 'admin') return false;
   return true;
 }
 export function placementOn(settings, name) {
@@ -22,7 +23,11 @@ export function placementOn(settings, name) {
 export function showLabel(settings) {
   return settings.ads?.showSlotLabel !== false;
 }
-function openCreative(url) {
+function openCreative(url, placement) {
+  trackEvent('ad_click', {
+    placement,
+    destination: url === 'upgrade://paid' ? 'upgrade' : (url && url !== '#' ? 'external' : 'none')
+  });
   if (url === 'upgrade://paid') {
     window.dispatchEvent(new CustomEvent('stealth:upgrade-request'));
     return;
@@ -51,7 +56,7 @@ export function buildSponsoredInboxRow(settings) {
       el('span', { class: 'mail-label ad-tag', text: c.tag || 'Ad' })
     ])
   ]);
-  row.addEventListener('click', () => openCreative(c.url));
+  row.addEventListener('click', () => openCreative(c.url, 'sponsored_inbox'));
   return row;
 }
 
@@ -61,7 +66,7 @@ export function buildUnderSubjectAd(settings) {
   const c = settings.ads?.creatives?.underSubject;
   if (!c) return null;
   const cta = el('button', { class: 'att-ad-cta', text: c.cta || 'Open' });
-  cta.addEventListener('click', () => openCreative(c.url));
+  cta.addEventListener('click', () => openCreative(c.url, 'under_subject'));
   const node = el('div', { class: 'ad-undersubject', 'data-ad-slot': '2' }, [
     el('span', { class: 'ad-undersubject-icon', text: c.icon || '📎' }),
     el('div', { class: 'ad-undersubject-copy' }, [
@@ -85,7 +90,7 @@ export function buildTopbarTile(settings) {
     class: 'ad-topbar-tile',
     'data-ad-slot': '3',
     title: c.title || 'Sponsored',
-    onclick: () => openCreative(c.url)
+    onclick: () => openCreative(c.url, 'topbar_tile')
   }, [
     el('span', { class: 'ad-topbar-icon', text: c.icon || '✨' }),
     el('span', { class: 'ad-topbar-label', text: c.label || 'Sponsored' }),
@@ -100,7 +105,7 @@ export function buildReaderStickyStrip(settings) {
   const c = settings.ads?.creatives?.readerSticky;
   if (!c) return null;
   const cta = el('button', { class: 'ad-sticky-cta', text: c.cta || 'Open' });
-  cta.addEventListener('click', () => openCreative(c.url));
+  cta.addEventListener('click', () => openCreative(c.url, 'reader_sticky'));
   const close = el('button', { class: 'ad-sticky-close', title: 'Hide', text: '×' });
   const wrap = el('div', { class: 'ad-sticky-strip', 'data-ad-slot': '4' }, [
     el('span', { class: 'ad-sticky-icon', text: c.icon || '✨' }),

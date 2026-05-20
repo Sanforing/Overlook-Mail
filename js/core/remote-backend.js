@@ -213,6 +213,14 @@ class RemoteBackend {
 
   // ---- saves ----
   async saveState(mailId, data) {
+    const me = await this.currentUser();
+    if (me) {
+      try {
+        return await this._req(`/api/state/${encodeURIComponent(String(mailId))}`, { method: 'PUT', body: data });
+      } catch (err) {
+        if (!/unauthorized/i.test(err?.message || '')) throw err;
+      }
+    }
     const db = await this._fileDB();
     const { store, done } = localTx(db, 'state', 'readwrite');
     store.put({ mailId: String(mailId), data, updatedAt: Date.now() });
@@ -220,10 +228,25 @@ class RemoteBackend {
     return { ok: true };
   }
   async loadState(mailId) {
+    const me = await this.currentUser();
+    let canBackfillRemote = false;
+    if (me) {
+      try {
+        const remote = await this._req(`/api/state/${encodeURIComponent(String(mailId))}`);
+        if (remote != null) return remote;
+        canBackfillRemote = true;
+      } catch (err) {
+        if (!/unauthorized/i.test(err?.message || '')) throw err;
+      }
+    }
     const db = await this._fileDB();
     const { store } = localTx(db, 'state');
     const row = await wrap(store.get(String(mailId)));
-    return row?.data ?? null;
+    const local = row?.data ?? null;
+    if (canBackfillRemote && local != null) {
+      try { await this._req(`/api/state/${encodeURIComponent(String(mailId))}`, { method: 'PUT', body: local }); } catch {}
+    }
+    return local;
   }
 
   async loadComments(mailId) {

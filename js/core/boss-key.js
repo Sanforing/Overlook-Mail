@@ -5,6 +5,8 @@
  *
  * Config (settings.bossKey): { key, pressCount, windowMs }
  */
+import { trackEvent } from './analytics.js';
+
 export function initBossKey(state, host) {
   const cfg = state.settings.bossKey || {};
   const key = cfg.key || 'Escape';
@@ -17,6 +19,7 @@ export function initBossKey(state, host) {
   function setPanic(on) {
     panic = on;
     host.setPanic(on);
+    trackEvent('boss_key_toggle', { enabled: on, tier: state.user?.tier || 'guest' });
   }
 
   document.addEventListener('keydown', (e) => {

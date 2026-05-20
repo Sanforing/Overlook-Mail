@@ -1,6 +1,7 @@
 import { openModal, field, input, btn, notice } from './modal.js';
 import { el } from './utils.js';
 import { t } from './i18n.js';
+import { setAnalyticsUser, trackEvent, userTier } from './analytics.js';
 
 export function showAuth(state, { onSignedIn } = {}) {
   let mode = 'login'; // | 'register'
@@ -56,6 +57,9 @@ export function showAuth(state, { onSignedIn } = {}) {
           // Mark this user as needing the tutorial (consumed by onSignedIn caller).
           u.__justRegistered = true;
         }
+        state.user = u;
+        setAnalyticsUser(u);
+        trackEvent(mode === 'login' ? 'login' : 'sign_up', { method: 'password', tier: userTier(u) });
         m.close();
         onSignedIn?.(u);
       } catch (err) {
@@ -127,11 +131,15 @@ function startOAuth(state, provider, status, onSignedIn, closeModal) {
     if (!d || d.source !== 'stealthbox-oauth') return;
     window.removeEventListener('message', onMessage);
     if (!d.ok) {
+      trackEvent('login_failed', { method: provider, reason: d.error || 'unknown' });
       status.appendChild(notice(`Sign-in failed: ${d.error || 'unknown'}`, 'error'));
       return;
     }
     if (typeof state.backend.invalidateUser === 'function') state.backend.invalidateUser();
     state.backend.currentUser().then(u => {
+      state.user = u;
+      setAnalyticsUser(u);
+      trackEvent('login', { method: provider, tier: userTier(u) });
       closeModal();
       onSignedIn?.(u);
     });

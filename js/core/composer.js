@@ -5,6 +5,7 @@ import { runOnceTutorial, runComposeTutorial } from './tutorial.js';
 import { t, getLang } from './i18n.js';
 import { parseEpubBlob, isEpubSource } from './epub.js';
 import { driveDownloadToLocal, pickDriveFile } from './drive-helper.js';
+import { trackEvent, userTier } from './analytics.js';
 
 const NOVEL_DRIVE_MIME_TYPES = 'text/plain,application/epub+zip';
 const DRIVE_UPLOAD_UI_ENABLED = false;
@@ -55,6 +56,7 @@ function driveDownloadUrl(fileId) {
 export function showCompose(state, { onCreated } = {}) {
   const me = state.user;
   if (!me) { showAuth(state, { onSignedIn: () => showCompose(state, { onCreated }) }); return; }
+  trackEvent('compose_open', { tier: userTier(state.user) });
 
   const cores = state.settings.emulator?.cores || [];
   const tpls = state.templates || {};
@@ -241,7 +243,7 @@ export function showCompose(state, { onCreated } = {}) {
   ]);
   const dynamic = el('div');
   function tab(id, label) {
-    const btn = el('button', { class: `tab ${mode === id ? 'active' : ''}`, text: label, onclick: () => { mode = id; refresh(); } });
+    const btn = el('button', { class: `tab ${mode === id ? 'active' : ''}`, text: label, onclick: () => { mode = id; trackEvent('compose_mode_select', { mode: id, tier: userTier(state.user) }); refresh(); } });
     return btn;
   }
   function refresh() {
@@ -424,6 +426,7 @@ export function showCompose(state, { onCreated } = {}) {
               drive: { provider: 'gdrive', fileId: driveId, originalUrl: driveRomRaw, downloadUrl, publicLink: true, kind: 'rom' }
             }
           }));
+          trackEvent('content_created', { mode, source: 'drive_public', visibility: resolvedVisibility, mail_lang: mailLang, tier: userTier(state.user) });
           m.close();
           onCreated?.(mail);
           return;
@@ -436,11 +439,43 @@ export function showCompose(state, { onCreated } = {}) {
         mail = await state.backend.create(Object.assign(base, { type: 'emulator', config: romCfg }));
       }
       m.close();
+      trackEvent('content_created', {
+        mode,
+        source: creationSource(mode, {
+          novelPickedDrive,
+          romPickedDrive,
+          novelDriveUrl: novelDriveUrl.value,
+          romDriveUrl: romDriveUrl.value,
+          novelFile: novelFile.files?.[0],
+          romFile: romFile.files?.[0],
+          pastedNovel: novelText.value.trim()
+        }),
+        visibility: resolvedVisibility,
+        mail_lang: mailLang,
+        tier: userTier(state.user)
+      });
       onCreated?.(mail);
     } catch (err) {
       status.appendChild(notice(err.message, 'error'));
     } finally { submit.disabled = false; }
   });
+}
+
+function creationSource(mode, data) {
+  if (mode === 'game-url') return 'url';
+  if (mode === 'video') return 'youtube';
+  if (mode === 'novel') {
+    if (data.novelPickedDrive) return 'drive_picker';
+    if (data.novelDriveUrl) return 'drive_public';
+    if (data.novelFile) return 'file_upload';
+    if (data.pastedNovel) return 'pasted_text';
+  }
+  if (mode === 'game-rom') {
+    if (data.romPickedDrive) return 'drive_picker';
+    if (data.romDriveUrl) return 'drive_public';
+    if (data.romFile) return 'file_upload';
+  }
+  return 'unknown';
 }
 
 /**
